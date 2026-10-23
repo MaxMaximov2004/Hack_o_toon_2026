@@ -12,9 +12,14 @@ async function enableMocking() {
   }
 
   const { worker } = await import('./mocks/browser')
-  return worker.start()
+
+  // Явно ждём запуска worker
+  await worker.start({
+    onUnhandledRequest: 'bypass', // Пропускаем запросы которые не перехватываем
+  })
 }
 
+// Рендерим ТОЛЬКО после запуска MSW
 enableMocking().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

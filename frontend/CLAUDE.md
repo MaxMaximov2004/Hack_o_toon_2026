@@ -224,6 +224,3 @@ src/
 - Список и экспорт — одна и та же строка фильтра, включая bbox. Не собирать query вручную в разных местах.
 - `sessionStorage` может бросить исключение (приватный режим) — оборачивать.
 - `mockServiceWorker.js` лежит в `public/`, но регистрируется только при `VITE_USE_MOCKS=true`.
-- В корне репо нет `.dockerignore`: при сборке образа `COPY frontend/ ./` затащит локальные `node_modules` поверх
-  `npm ci` и может сломать сборку (бинарники esbuild/rollup под другую ОС). Попросить техлида добавить
-  `**/node_modules` и `**/dist` в `.dockerignore` (или `infra/nginx/Dockerfile.dockerignore`).
