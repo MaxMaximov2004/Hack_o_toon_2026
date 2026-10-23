@@ -5,8 +5,16 @@ import type {
   User,
   MapCellsResponse,
   MapPointsResponse,
+  CompaniesResponse,
+  CompanyShort,
 } from '../api/types'
-import { mockDictionaries, generateMapCells } from './fixtures'
+import {
+  mockDictionaries,
+  generateMapCells,
+  filterCompanies,
+  getCompanyById,
+  type MockFilters
+} from './fixtures'
 
 // Демо-пользователи
 const DEMO_USER: User = {
@@ -117,42 +125,70 @@ export const handlers = [
     return HttpResponse.json(mockDictionaries)
   }),
 
-  // GET /api/map/cells
+  // GET /api/map/cells - использует ОБЩУЮ функцию фильтрации
   http.get('/api/map/cells', ({ request }) => {
     const url = new URL(request.url)
     const zoom = parseInt(url.searchParams.get('zoom') || '7', 10)
 
-    // Парсим bbox если есть
+    // Парсим ВСЕ фильтры из URL (те же, что у списка)
+    const filters: MockFilters = {
+      client: url.searchParams.get('client') || 'all',
+      status: url.searchParams.get('status') || 'active',
+    }
+
+    // bbox
     const minLat = url.searchParams.get('minLat')
     const maxLat = url.searchParams.get('maxLat')
     const minLon = url.searchParams.get('minLon')
     const maxLon = url.searchParams.get('maxLon')
 
-    const bbox =
-      minLat && maxLat && minLon && maxLon
-        ? {
-            minLat: parseFloat(minLat),
-            maxLat: parseFloat(maxLat),
-            minLon: parseFloat(minLon),
-            maxLon: parseFloat(maxLon),
-          }
-        : undefined
+    if (minLat && maxLat && minLon && maxLon) {
+      filters.bbox = {
+        minLat: parseFloat(minLat),
+        maxLat: parseFloat(maxLat),
+        minLon: parseFloat(minLon),
+        maxLon: parseFloat(maxLon),
+      }
+    }
 
-    // Генерируем данные
-    const { cells, points } = generateMapCells(zoom, bbox)
+    // Другие фильтры
+    const industries = url.searchParams.getAll('industry')
+    if (industries.length > 0) filters.industry = industries
 
-    // Переключаемся в режим points при zoom >= 11
-    if (zoom >= 11) {
+    const municipalities = url.searchParams.getAll('municipalityId').map(Number)
+    if (municipalities.length > 0) filters.municipalityId = municipalities
+
+    const sizeCategories = url.searchParams.getAll('sizeCategory')
+    if (sizeCategories.length > 0) filters.sizeCategory = sizeCategories
+
+    const revenueMin = url.searchParams.get('revenueMin')
+    if (revenueMin) filters.revenueMin = parseFloat(revenueMin)
+
+    const revenueMax = url.searchParams.get('revenueMax')
+    if (revenueMax) filters.revenueMax = parseFloat(revenueMax)
+
+    const growthMin = url.searchParams.get('growthMin')
+    if (growthMin) filters.growthMin = parseFloat(growthMin)
+
+    if (url.searchParams.get('isNew') === 'true') filters.isNew = true
+
+    const q = url.searchParams.get('q')
+    if (q) filters.q = q
+
+    // Генерируем данные через ОБЩУЮ функцию
+    const { cells, points, total } = generateMapCells(zoom, filters)
+
+    // Переключаемся в режим points при zoom >= 11 ИЛИ total <= 1500
+    if (points.length > 0) {
       const response: MapPointsResponse = {
         mode: 'points',
-        total: points.length,
+        total,
         points,
       }
       return HttpResponse.json(response)
     }
 
-    // Режим cells для низких зумов
-    const total = cells.reduce((sum, cell) => sum + cell.total, 0)
+    // Режим cells
     const cellDeg = 84 / Math.pow(2, zoom)
 
     const response: MapCellsResponse = {
@@ -162,5 +198,123 @@ export const handlers = [
       cells,
     }
     return HttpResponse.json(response)
+  }),
+
+  // GET /api/companies - использует ОБЩУЮ функцию фильтрации
+  http.get('/api/companies', ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '0', 10)
+    const size = parseInt(url.searchParams.get('size') || '50', 10)
+    const sort = url.searchParams.get('sort') || 'revenueEst,desc'
+
+    // Парсим ВСЕ фильтры из URL (те же, что у карты)
+    const filters: MockFilters = {
+      client: url.searchParams.get('client') || 'all',
+      status: url.searchParams.get('status') || 'active',
+    }
+
+    // bbox - ОБЯЗАТЕЛЬНО должен быть в запросе списка!
+    const minLat = url.searchParams.get('minLat')
+    const maxLat = url.searchParams.get('maxLat')
+    const minLon = url.searchParams.get('minLon')
+    const maxLon = url.searchParams.get('maxLon')
+
+    if (minLat && maxLat && minLon && maxLon) {
+      filters.bbox = {
+        minLat: parseFloat(minLat),
+        maxLat: parseFloat(maxLat),
+        minLon: parseFloat(minLon),
+        maxLon: parseFloat(maxLon),
+      }
+    }
+
+    // Другие фильтры
+    const industries = url.searchParams.getAll('industry')
+    if (industries.length > 0) filters.industry = industries
+
+    const municipalities = url.searchParams.getAll('municipalityId').map(Number)
+    if (municipalities.length > 0) filters.municipalityId = municipalities
+
+    const sizeCategories = url.searchParams.getAll('sizeCategory')
+    if (sizeCategories.length > 0) filters.sizeCategory = sizeCategories
+
+    const revenueMin = url.searchParams.get('revenueMin')
+    if (revenueMin) filters.revenueMin = parseFloat(revenueMin)
+
+    const revenueMax = url.searchParams.get('revenueMax')
+    if (revenueMax) filters.revenueMax = parseFloat(revenueMax)
+
+    const growthMin = url.searchParams.get('growthMin')
+    if (growthMin) filters.growthMin = parseFloat(growthMin)
+
+    if (url.searchParams.get('isNew') === 'true') filters.isNew = true
+
+    const q = url.searchParams.get('q')
+    if (q) filters.q = q
+
+    // Фильтруем через ОБЩУЮ функцию - те же данные, что у карты!
+    let items = filterCompanies(filters)
+    const total = items.length
+
+    // Сортировка
+    const [sortField, sortDir] = sort.split(',')
+    items.sort((a, b) => {
+      let aVal: any = a[sortField as keyof CompanyShort]
+      let bVal: any = b[sortField as keyof CompanyShort]
+
+      // Обработка null значений
+      if (aVal === null) aVal = sortDir === 'desc' ? -Infinity : Infinity
+      if (bVal === null) bVal = sortDir === 'desc' ? -Infinity : Infinity
+
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+
+    // Пагинация
+    const start = page * size
+    const end = start + size
+    const pageItems = items.slice(start, end)
+
+    const response: CompaniesResponse = {
+      items: pageItems,
+      page,
+      size,
+      total,
+    }
+
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/companies/{id}
+  http.get('/api/companies/:id', ({ params }) => {
+    const id = parseInt(params.id as string, 10)
+
+    if (isNaN(id)) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Компания не найдена',
+          },
+        },
+        { status: 404 }
+      )
+    }
+
+    try {
+      const company = getCompanyById(id)
+      return HttpResponse.json(company)
+    } catch {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Компания не найдена',
+          },
+        },
+        { status: 404 }
+      )
+    }
   }),
 ]

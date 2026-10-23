@@ -11,13 +11,15 @@ import styles from './RadarMap.module.css'
 
 interface RadarMapProps {
   filters: CompanyFilters
+  selectedCompanyId?: number
   onBoundsChange: (bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number }) => void
+  onSelectCompany: (id: number) => void
 }
 
 const ROSTOV_CENTER: [number, number] = [40.8, 47.6] // [lon, lat] для MapLibre
 const INITIAL_ZOOM = 7
 
-export function RadarMap({ filters, onBoundsChange }: RadarMapProps) {
+export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectCompany }: RadarMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
@@ -74,6 +76,13 @@ export function RadarMap({ filters, onBoundsChange }: RadarMapProps) {
 
     map.current = mapInstance
 
+    // ResizeObserver для реакции на изменение размера контейнера
+    // (появление списка, вкладки на телефоне, открытие карточки)
+    const resizeObserver = new ResizeObserver(() => {
+      mapInstance.resize()
+    })
+    resizeObserver.observe(mapContainer.current)
+
     // Обновляем zoom при изменении
     mapInstance.on('zoom', () => {
       setZoom(mapInstance.getZoom())
@@ -109,6 +118,7 @@ export function RadarMap({ filters, onBoundsChange }: RadarMapProps) {
       if (boundsTimeoutRef.current) {
         clearTimeout(boundsTimeoutRef.current)
       }
+      resizeObserver.disconnect()
       mapInstance.remove()
       map.current = null
     }
@@ -149,6 +159,7 @@ export function RadarMap({ filters, onBoundsChange }: RadarMapProps) {
     } else if (data.mode === 'points') {
       // Рисуем точки
       data.points.forEach((point) => {
+        const isSelected = point.id === selectedCompanyId
         const color =
           point.kind === 'ours'
             ? 'var(--rt-purple)'
@@ -157,20 +168,23 @@ export function RadarMap({ filters, onBoundsChange }: RadarMapProps) {
             : 'var(--rt-gray)'
 
         const el = document.createElement('div')
-        el.className = styles.pointMarker
+        el.className = `${styles.pointMarker} ${isSelected ? styles.selected : ''}`
         el.style.backgroundColor = color
+
+        // Клик по точке - открыть карточку компании
+        el.addEventListener('click', () => {
+          onSelectCompany(point.id)
+        })
 
         // ВАЖНО: порядок [lon, lat] для MapLibre и anchor: 'center'
         const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
           .setLngLat([point.lon, point.lat]) // [lon, lat]
           .addTo(map.current!)
 
-        // TODO: клик по точке - открыть карточку компании
-
         markersRef.current.push(marker)
       })
     }
-  }, [data, filters.client])
+  }, [data, filters.client, selectedCompanyId, onSelectCompany])
 
   return (
     <div className={styles.container}>
