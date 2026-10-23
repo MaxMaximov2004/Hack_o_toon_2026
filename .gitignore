@@ -1,0 +1,12 @@
+.env
+data-raw/
+**/node_modules/
+**/dist/
+**/target/
+**/build/
+**/bin/
+**/obj/
+**/__pycache__/
+*.pem
+.idea/
+.vscode/
