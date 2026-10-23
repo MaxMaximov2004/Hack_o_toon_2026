@@ -3,7 +3,10 @@ import type {
   LoginResponse,
   TwoFactorVerifyResponse,
   User,
+  MapCellsResponse,
+  MapPointsResponse,
 } from '../api/types'
+import { mockDictionaries, generateMapCells } from './fixtures'
 
 // Демо-пользователи
 const DEMO_USER: User = {
@@ -109,5 +112,55 @@ export const handlers = [
     )
   }),
 
-  // Остальные эндпоинты добавим позже
+  // GET /api/dictionaries
+  http.get('/api/dictionaries', () => {
+    return HttpResponse.json(mockDictionaries)
+  }),
+
+  // GET /api/map/cells
+  http.get('/api/map/cells', ({ request }) => {
+    const url = new URL(request.url)
+    const zoom = parseInt(url.searchParams.get('zoom') || '7', 10)
+
+    // Парсим bbox если есть
+    const minLat = url.searchParams.get('minLat')
+    const maxLat = url.searchParams.get('maxLat')
+    const minLon = url.searchParams.get('minLon')
+    const maxLon = url.searchParams.get('maxLon')
+
+    const bbox =
+      minLat && maxLat && minLon && maxLon
+        ? {
+            minLat: parseFloat(minLat),
+            maxLat: parseFloat(maxLat),
+            minLon: parseFloat(minLon),
+            maxLon: parseFloat(maxLon),
+          }
+        : undefined
+
+    // Генерируем данные
+    const { cells, points } = generateMapCells(zoom, bbox)
+
+    // Переключаемся в режим points при zoom >= 11
+    if (zoom >= 11) {
+      const response: MapPointsResponse = {
+        mode: 'points',
+        total: points.length,
+        points,
+      }
+      return HttpResponse.json(response)
+    }
+
+    // Режим cells для низких зумов
+    const total = cells.reduce((sum, cell) => sum + cell.total, 0)
+    const cellDeg = 84 / Math.pow(2, zoom)
+
+    const response: MapCellsResponse = {
+      mode: 'cells',
+      cellDeg,
+      total,
+      cells,
+    }
+    return HttpResponse.json(response)
+  }),
 ]

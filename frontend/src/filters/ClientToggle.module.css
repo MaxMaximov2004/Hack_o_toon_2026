@@ -1,0 +1,35 @@
+.toggle {
+  display: inline-flex;
+  background-color: var(--gray-100);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  gap: 4px;
+}
+
+.option {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.option:hover {
+  background-color: var(--gray-200);
+}
+
+.option.active {
+  background-color: var(--rt-purple);
+  color: var(--rt-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.option.active:hover {
+  background-color: #6600DD;
+}

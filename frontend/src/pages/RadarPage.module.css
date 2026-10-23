@@ -9,14 +9,21 @@
   color: var(--rt-white);
   padding: var(--spacing-md) var(--spacing-lg);
   box-shadow: var(--shadow-md);
+  flex-shrink: 0;
 }
 
 .headerContent {
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
-  max-width: 1600px;
+  max-width: 1800px;
   margin: 0 auto;
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .logo {
@@ -28,6 +35,12 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
+}
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .userSection {
@@ -61,20 +74,13 @@
 
 .main {
   flex: 1;
+  min-height: 0; /* Критично для правильной работы flex */
   overflow: hidden;
+  position: relative;
 }
 
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.mapContainer {
+  position: relative;
+  width: 100%;
   height: 100%;
-  gap: var(--spacing-md);
-  color: var(--gray-600);
-}
-
-.placeholder h2 {
-  font-size: var(--font-size-2xl);
-  color: var(--rt-purple);
 }
