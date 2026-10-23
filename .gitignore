@@ -10,3 +10,5 @@ data-raw/
 *.pem
 .idea/
 .vscode/
+# Исключение: ТЕСТОВЫЕ ключи JWT для разработки без auth-service (не секрет, в полной сборке не принимаются)
+!contracts/dev-keys/*.pem
