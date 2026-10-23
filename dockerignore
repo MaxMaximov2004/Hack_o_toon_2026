@@ -1,0 +1,41 @@
+# =====================================================================
+# .dockerignore корня репозитория.
+# Действует ТОЛЬКО на сборку образа nginx (infra/nginx/Dockerfile) — у него
+# контекст сборки = корень. Остальные сервисы собираются из своих папок
+# (build: ./core-api и т. п.) и этот файл не видят — у них свой .dockerignore.
+#
+# Главное: локальные node_modules и dist фронта не должны попадать в образ,
+# иначе COPY frontend/ перезапишет то, что поставил npm ci, и сборка упадёт.
+# НЕ исключать: frontend/ (исходники) и infra/nginx/ (Dockerfile и конфиг).
+# =====================================================================
+
+# Зависимости и сборки — ставятся и собираются внутри образа
+**/node_modules
+**/dist
+**/.vite
+**/coverage
+
+# Чужие сервисы и их артефакты — nginx они не нужны
+core-api
+auth-service
+export-service
+notifier
+etl
+tools
+contracts
+docs
+infra/db
+data-raw
+
+# Git, секреты, IDE, мусор ОС
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+**/*.pem
+.idea
+.vscode
+**/.DS_Store
+**/Thumbs.db
+**/*.log
