@@ -1,0 +1,23 @@
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.default {
+  background-color: var(--rt-cool-grey);
+  color: var(--rt-black);
+}
+
+.purple {
+  background-color: var(--rt-lavender);
+  color: var(--rt-purple);
+}
+
+.orange {
+  background-color: rgba(255, 79, 18, 0.1);
+  color: var(--rt-orange);
+}

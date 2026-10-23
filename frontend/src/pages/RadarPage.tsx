@@ -3,14 +3,18 @@ import { useFilter } from '../filters/useFilter'
 import { ClientToggle } from '../filters/ClientToggle'
 import { RadarMap } from '../map/RadarMap'
 import { MapLegend } from '../map/MapLegend'
-import { useCallback } from 'react'
+import { CompanyList } from '../list/CompanyList'
+import { CompanyCard } from '../company/CompanyCard'
+import { Tabs } from '../ui/Tabs'
+import { useCallback, useState } from 'react'
 import styles from './RadarPage.module.css'
 
 export function RadarPage() {
   const { user, logout } = useAuth()
   const { filters, updateFilters } = useFilter()
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>()
+  const [activeTab, setActiveTab] = useState<'map' | 'list'>('map')
 
-  // Стабильная функция - не пересоздаётся при каждом рендере
   const handleBoundsChange = useCallback((bounds: {
     minLat: number
     maxLat: number
@@ -19,6 +23,14 @@ export function RadarPage() {
   }) => {
     updateFilters(bounds)
   }, [updateFilters])
+
+  const handleSelectCompany = useCallback((id: number) => {
+    setSelectedCompanyId(id)
+  }, [])
+
+  const handleCloseCard = useCallback(() => {
+    setSelectedCompanyId(undefined)
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -43,12 +55,40 @@ export function RadarPage() {
         </div>
       </header>
 
+      <div className={styles.mobileTabs}>
+        <Tabs
+          tabs={[
+            { id: 'map', label: 'Карта' },
+            { id: 'list', label: 'Список' },
+          ]}
+          activeTab={activeTab}
+          onChange={(tab) => setActiveTab(tab as 'map' | 'list')}
+        />
+      </div>
+
       <main className={styles.main}>
-        <div className={styles.mapContainer}>
-          <RadarMap filters={filters} onBoundsChange={handleBoundsChange} />
+        <div className={`${styles.mapContainer} ${activeTab === 'map' ? styles.active : ''}`}>
+          <RadarMap
+            filters={filters}
+            selectedCompanyId={selectedCompanyId}
+            onBoundsChange={handleBoundsChange}
+            onSelectCompany={handleSelectCompany}
+          />
           <MapLegend />
         </div>
+
+        <div className={`${styles.listContainer} ${activeTab === 'list' ? styles.active : ''}`}>
+          <CompanyList
+            filters={filters}
+            selectedId={selectedCompanyId}
+            onSelectCompany={handleSelectCompany}
+          />
+        </div>
       </main>
+
+      {selectedCompanyId && (
+        <CompanyCard companyId={selectedCompanyId} onClose={handleCloseCard} />
+      )}
     </div>
   )
 }

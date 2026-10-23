@@ -6,13 +6,15 @@ import type { ClientFilter } from '../filters/types'
  */
 export function createClusterMarker(cell: MapCell, clientFilter: ClientFilter): HTMLElement {
   const container = document.createElement('div')
-  container.style.position = 'relative'
+  // НЕ устанавливаем position, transform, left, top, margin — это делает MapLibre!
   container.style.cursor = 'pointer'
-  // Маркер НЕ должен блокировать события карты
-  container.style.pointerEvents = 'auto'
 
   // Размер маркера зависит от логарифма количества
   const size = Math.min(60, Math.max(30, 20 + Math.log10(cell.total) * 10))
+
+  // Обёртка для анимации (внутренний элемент)
+  const animationWrapper = document.createElement('div')
+  animationWrapper.style.transition = 'transform 0.2s'
 
   // SVG с кольцом
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -20,7 +22,6 @@ export function createClusterMarker(cell: MapCell, clientFilter: ClientFilter): 
   svg.setAttribute('height', size.toString())
   svg.setAttribute('viewBox', `0 0 ${size} ${size}`)
   svg.style.overflow = 'visible'
-  svg.style.pointerEvents = 'auto'
 
   const radius = size / 2 - 3
   const centerX = size / 2
@@ -130,15 +131,15 @@ export function createClusterMarker(cell: MapCell, clientFilter: ClientFilter): 
   text.textContent = cell.total >= 1000 ? `${Math.floor(cell.total / 1000)}k` : cell.total.toString()
   svg.appendChild(text)
 
-  container.appendChild(svg)
+  animationWrapper.appendChild(svg)
+  container.appendChild(animationWrapper)
 
-  // Hover эффект
+  // Hover эффект на ВНУТРЕННЕМ элементе, не на корневом контейнере
   container.addEventListener('mouseenter', () => {
-    svg.style.transform = 'scale(1.1)'
-    svg.style.transition = 'transform 0.2s'
+    animationWrapper.style.transform = 'scale(1.1)'
   })
   container.addEventListener('mouseleave', () => {
-    svg.style.transform = 'scale(1)'
+    animationWrapper.style.transform = 'scale(1)'
   })
 
   return container

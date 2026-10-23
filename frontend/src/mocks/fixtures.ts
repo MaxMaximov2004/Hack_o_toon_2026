@@ -1,4 +1,4 @@
-import type { Dictionaries, MapCell, MapPoint } from '../api/types'
+import type { Dictionaries, MapCell, MapPoint, CompanyShort, Company as ApiCompany } from '../api/types'
 
 // Справочники с реальными данными Ростовской области
 export const mockDictionaries: Dictionaries = {
@@ -62,6 +62,20 @@ const CITIES = [
   { name: 'Миллерово', lat: 48.9226, lon: 40.3984, companies: 80, oursRatio: 0.07 },
 ]
 
+// Названия компаний для генерации
+const COMPANY_NAMES = [
+  'ООО "Ростовский торговый дом"',
+  'ИП Иванов А.В.',
+  'ООО "Азовское предприятие"',
+  'ООО "Южная логистика"',
+  'ООО "ДонСтрой"',
+  'ООО "РостовПродукт"',
+  'ИП Петров С.И.',
+  'ООО "ТехноСервис"',
+  'ООО "ДонТранс"',
+  'ООО "Южный ветер"',
+]
+
 // Простой генератор псевдослучайных чисел с seed
 class SeededRandom {
   private seed: number
@@ -80,23 +94,15 @@ class SeededRandom {
   }
 }
 
-// Тип компании
-type Company = {
-  id: number
-  lat: number
-  lon: number
-  kind: 'ours' | 'others'
-}
+// Генерируем ОДИН РАЗ все компании с полными данными (CompanyShort)
+let allCompanies: CompanyShort[] | null = null
 
-// Генерируем компании один раз с фиксированным seed
-let generatedCompanies: Company[] | null = null
+export function getAllCompanies(): CompanyShort[] {
+  if (allCompanies) return allCompanies
 
-function generateCompanies(): Company[] {
-  if (generatedCompanies) return generatedCompanies
-
-  const companies: Company[] = []
+  const companies: CompanyShort[] = []
   let id = 1
-  const rng = new SeededRandom(12345) // Фиксированный seed
+  const rng = new SeededRandom(12345) // Фиксированный seed для воспроизводимости
 
   CITIES.forEach((city) => {
     const totalCompanies = city.companies
@@ -105,68 +111,178 @@ function generateCompanies(): Company[] {
 
     // Генерируем "наши" компании
     for (let i = 0; i < oursCount; i++) {
-      companies.push({
-        id: id++,
-        // Небольшой разброс вокруг города (±0.02 градуса ≈ ±2км)
-        lat: city.lat + rng.range(-0.02, 0.02),
-        lon: city.lon + rng.range(-0.02, 0.02),
-        kind: 'ours',
-      })
+      const lat = city.lat + rng.range(-0.02, 0.02)
+      const lon = city.lon + rng.range(-0.02, 0.02)
+      companies.push(createCompanyShort(id++, 'ours', lat, lon, city.name, rng))
     }
 
     // Генерируем "не наши" компании
     for (let i = 0; i < othersCount; i++) {
-      companies.push({
-        id: id++,
-        lat: city.lat + rng.range(-0.02, 0.02),
-        lon: city.lon + rng.range(-0.02, 0.02),
-        kind: 'others',
-      })
+      const lat = city.lat + rng.range(-0.02, 0.02)
+      const lon = city.lon + rng.range(-0.02, 0.02)
+      companies.push(createCompanyShort(id++, 'others', lat, lon, city.name, rng))
     }
   })
 
-  generatedCompanies = companies
+  allCompanies = companies
   return companies
 }
 
-// Генерация кластеров с группировкой по ячейкам
+function createCompanyShort(
+  id: number,
+  kind: 'ours' | 'others' | 'excluded',
+  lat: number,
+  lon: number,
+  cityName: string,
+  rng: SeededRandom
+): CompanyShort {
+  const industry = mockDictionaries.industries[Math.floor(rng.next() * mockDictionaries.industries.length)]
+  const municipality = mockDictionaries.municipalities.find(m => m.name === cityName) || mockDictionaries.municipalities[0]
+  const sizeCategory = mockDictionaries.sizeCategories[Math.floor(rng.next() * 3)]
+
+  const isClient = kind === 'ours'
+  const status: 'active' | 'excluded' = kind === 'excluded' ? 'excluded' : 'active'
+  const isEstimated = rng.next() > 0.3
+  const isNew = rng.next() > 0.9
+
+  return {
+    id,
+    inn: String(6100000000 + id).padStart(12, '0'),
+    name: COMPANY_NAMES[id % COMPANY_NAMES.length] + ` №${id}`,
+    industry: industry.code,
+    industryName: industry.name,
+    okvedCode: '47.11',
+    okvedName: 'Торговля розничная преимущественно пищевыми продуктами',
+    municipalityId: municipality.id,
+    municipalityName: municipality.name,
+    settlement: rng.next() > 0.5 ? 'пос. Южный' : null,
+    lat,
+    lon,
+    sizeCategory: sizeCategory.code as 'micro' | 'small' | 'medium',
+    employees: Math.floor(rng.range(5, 200)),
+    revenueEst: Math.floor(rng.range(1_000_000, 100_000_000)),
+    revenueGrowthEst: rng.next() > 0.5 ? Math.floor(rng.range(-10, 50)) : null,
+    revenueSource: isEstimated ? 'model' : 'fns',
+    isEstimated,
+    isClient,
+    status,
+    kind,
+    excludedAt: kind === 'excluded' ? '2025-09-15T00:00:00Z' : null,
+    isNew,
+    registeredAt: `202${Math.floor(rng.range(0, 5))}-01-01T00:00:00Z`,
+  }
+}
+
+// ОБЩАЯ функция фильтрации для всех хендлеров
+export interface MockFilters {
+  client?: string
+  status?: string
+  bbox?: { minLat: number; maxLat: number; minLon: number; maxLon: number }
+  industry?: string[]
+  municipalityId?: number[]
+  sizeCategory?: string[]
+  revenueMin?: number
+  revenueMax?: number
+  growthMin?: number
+  isNew?: boolean
+  q?: string
+}
+
+export function filterCompanies(filters: MockFilters): CompanyShort[] {
+  let companies = getAllCompanies()
+
+  // Фильтр по client
+  if (filters.client === 'ours') {
+    companies = companies.filter((c) => c.kind === 'ours')
+  } else if (filters.client === 'others') {
+    companies = companies.filter((c) => c.kind === 'others')
+  }
+
+  // Фильтр по status
+  if (filters.status === 'active') {
+    companies = companies.filter((c) => c.status === 'active')
+  } else if (filters.status === 'excluded') {
+    companies = companies.filter((c) => c.status === 'excluded')
+  }
+
+  // Фильтр по bbox
+  if (filters.bbox) {
+    const { minLat, maxLat, minLon, maxLon } = filters.bbox
+    companies = companies.filter(
+      (c) => c.lat >= minLat && c.lat <= maxLat && c.lon >= minLon && c.lon <= maxLon
+    )
+  }
+
+  // Фильтр по отрасли
+  if (filters.industry && filters.industry.length > 0) {
+    companies = companies.filter((c) => filters.industry!.includes(c.industry))
+  }
+
+  // Фильтр по району
+  if (filters.municipalityId && filters.municipalityId.length > 0) {
+    companies = companies.filter((c) => filters.municipalityId!.includes(c.municipalityId))
+  }
+
+  // Фильтр по размеру
+  if (filters.sizeCategory && filters.sizeCategory.length > 0) {
+    companies = companies.filter((c) => filters.sizeCategory!.includes(c.sizeCategory))
+  }
+
+  // Фильтр по выручке
+  if (filters.revenueMin !== undefined && filters.revenueMin !== null) {
+    companies = companies.filter((c) => c.revenueEst !== null && c.revenueEst >= filters.revenueMin!)
+  }
+  if (filters.revenueMax !== undefined && filters.revenueMax !== null) {
+    companies = companies.filter((c) => c.revenueEst !== null && c.revenueEst <= filters.revenueMax!)
+  }
+
+  // Фильтр по росту
+  if (filters.growthMin !== undefined && filters.growthMin !== null) {
+    companies = companies.filter(
+      (c) => c.revenueGrowthEst !== null && c.revenueGrowthEst >= filters.growthMin!
+    )
+  }
+
+  // Фильтр по новизне
+  if (filters.isNew) {
+    companies = companies.filter((c) => c.isNew)
+  }
+
+  // Фильтр по поиску
+  if (filters.q && filters.q.length >= 2) {
+    const query = filters.q.toLowerCase()
+    companies = companies.filter(
+      (c) => c.name.toLowerCase().includes(query) || c.inn.startsWith(query)
+    )
+  }
+
+  return companies
+}
+
+// Генерация кластеров из отфильтрованных компаний
 export function generateMapCells(
   zoom: number,
-  bbox?: { minLat: number; maxLat: number; minLon: number; maxLon: number }
-): { cells: MapCell[]; points: MapPoint[] } {
-  const companies = generateCompanies()
+  filters: MockFilters
+): { cells: MapCell[]; points: MapPoint[]; total: number } {
+  const filtered = filterCompanies(filters)
+  const total = filtered.length
 
-  // Фильтруем по bbox если есть
-  const filtered = bbox
-    ? companies.filter(
-        (c) =>
-          c.lat >= bbox.minLat &&
-          c.lat <= bbox.maxLat &&
-          c.lon >= bbox.minLon &&
-          c.lon <= bbox.maxLon
-      )
-    : companies
-
-  // Если zoom >= 11, возвращаем точки
-  if (zoom >= 11) {
-    const points: MapPoint[] = filtered.slice(0, 500).map((c) => ({
+  // Если zoom >= 11 ИЛИ компаний мало (≤ 1500), возвращаем точки
+  if (zoom >= 11 || total <= 1500) {
+    const points: MapPoint[] = filtered.map((c) => ({
       id: c.id,
       lat: c.lat,
       lon: c.lon,
       kind: c.kind,
     }))
-    return { cells: [], points }
+    return { cells: [], points, total }
   }
 
   // Группируем в кластеры
-  // cellDeg = 84 / 2^zoom (из формулы Mercator Web для приблизительной оценки)
   const cellDeg = 84 / Math.pow(2, zoom)
 
   // Группируем компании по ячейкам
-  const cellMap = new Map<
-    string,
-    Array<{ lat: number; lon: number; kind: 'ours' | 'others' }>
-  >()
+  const cellMap = new Map<string, CompanyShort[]>()
 
   filtered.forEach((company) => {
     const cellLat = Math.floor(company.lat / cellDeg)
@@ -179,16 +295,16 @@ export function generateMapCells(
     cellMap.get(key)!.push(company)
   })
 
-  // Создаём кластеры
+  // Создаём кластеры - центр = среднее lat/lon компаний в ячейке
   const cells: MapCell[] = []
 
   cellMap.forEach((companies) => {
-    // Центр кластера - среднее координат компаний
     const avgLat = companies.reduce((sum, c) => sum + c.lat, 0) / companies.length
     const avgLon = companies.reduce((sum, c) => sum + c.lon, 0) / companies.length
 
     const ours = companies.filter((c) => c.kind === 'ours').length
     const others = companies.filter((c) => c.kind === 'others').length
+    const excluded = companies.filter((c) => c.kind === 'excluded').length
 
     cells.push({
       lat: avgLat,
@@ -196,9 +312,32 @@ export function generateMapCells(
       total: companies.length,
       ours,
       others,
-      excluded: 0,
+      excluded,
     })
   })
 
-  return { cells, points: [] }
+  return { cells, points: [], total }
+}
+
+// Получение детальной компании по ID
+export function getCompanyById(id: number): ApiCompany {
+  const company = getAllCompanies().find((c) => c.id === id)
+
+  if (!company) {
+    throw new Error(`Company ${id} not found`)
+  }
+
+  const rng = new SeededRandom(id + 1000)
+
+  return {
+    ...company,
+    ogrn: String(1026100000000 + id),
+    subjectType: rng.next() > 0.3 ? 'legal' : 'ip',
+    phone: rng.next() > 0.2 ? '+7 (863) 123-45-67' : null,
+    email: rng.next() > 0.3 ? `company${id}@example.com` : null,
+    website: rng.next() > 0.5 ? `https://company${id}.ru` : null,
+    hasLicenses: rng.next() > 0.7,
+    isInnovative: rng.next() > 0.85,
+    isSocial: rng.next() > 0.9,
+  }
 }
