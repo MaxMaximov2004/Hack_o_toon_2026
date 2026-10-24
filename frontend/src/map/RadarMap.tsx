@@ -7,6 +7,7 @@ import type { MapDataResponse, MunicipalityStats, WhiteSpot } from '../api/types
 import { filterToQuery } from '../filters/filterToQuery'
 import type { CompanyFilters } from '../filters/types'
 import { createClusterMarker } from './clusterMarker'
+import { attachBasemapFallback, createBaseStyle } from './basemap'
 import styles from './RadarMap.module.css'
 
 interface RadarMapProps {
@@ -68,6 +69,7 @@ export function RadarMap({
   const map = useRef<maplibregl.Map | null>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const markersRef = useRef<maplibregl.Marker[]>([])
+  const whiteSpotLabelsRef = useRef<maplibregl.Marker[]>([])
   const boundsTimeoutRef = useRef<NodeJS.Timeout>()
   const lastBoundsRef = useRef<string>('') // Храним предыдущий bbox для сравнения
 
@@ -89,26 +91,7 @@ export function RadarMap({
 
     const mapInstance = new maplibregl.Map({
       container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'osm-tiles': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
-          },
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm-tiles',
-            minzoom: 0,
-            maxzoom: 19,
-          },
-        ],
-      },
+      style: createBaseStyle(),
       center: ROSTOV_CENTER,
       zoom: INITIAL_ZOOM,
       // Явно включаем интерактивность
@@ -119,6 +102,7 @@ export function RadarMap({
     })
 
     map.current = mapInstance
+    const detachBasemap = attachBasemapFallback(mapInstance)
 
     // Вызываем callback когда карта готова
     if (onMapReady) {
@@ -173,6 +157,7 @@ export function RadarMap({
         clearTimeout(boundsTimeoutRef.current)
       }
       resizeObserver.disconnect()
+      detachBasemap()
       mapInstance.remove()
       map.current = null // Обнуляем ref после удаления карты
     }
@@ -371,9 +356,8 @@ export function RadarMap({
         if (mapInstance.getLayer('white-spots-circle')) {
           mapInstance.removeLayer('white-spots-circle')
         }
-        if (mapInstance.getLayer('white-spots-label')) {
-          mapInstance.removeLayer('white-spots-label')
-        }
+        whiteSpotLabelsRef.current.forEach((m) => m.remove())
+        whiteSpotLabelsRef.current = []
         if (mapInstance.getLayer('potential-circle')) {
           mapInstance.removeLayer('potential-circle')
         }
@@ -542,26 +526,20 @@ export function RadarMap({
           layout: {},
         },
         // Вставляем под первый слой маркеров (если они есть)
-        mapInstance.getLayer('osm') ? undefined : 'osm'
+        undefined
       )
 
-      // Подписи
-      mapInstance.addLayer({
-        id: 'white-spots-label',
-        type: 'symbol',
-        source: 'white-spots',
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-          'text-size': 12,
-          'text-offset': [0, -2],
-          'text-anchor': 'top',
-        },
-        paint: {
-          'text-color': '#FF4F12',
-          'text-halo-color': '#FFFFFF',
-          'text-halo-width': 2,
-        },
+      // Подписи — HTML-маркерами, а не symbol-слоем: тому нужны шрифты-глифы с внешнего сервера,
+      // без них (и без интернета на площадке) MapLibre сыпет ошибками в консоль
+      whiteSpots.forEach((spot) => {
+        const el = document.createElement('div')
+        el.className = styles.whiteSpotLabel
+        el.textContent = spot.name
+        whiteSpotLabelsRef.current.push(
+          new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -14] })
+            .setLngLat([spot.lon, spot.lat])
+            .addTo(mapInstance)
+        )
       })
 
       // Hover и popup
