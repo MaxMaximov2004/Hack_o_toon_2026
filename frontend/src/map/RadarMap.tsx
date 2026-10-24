@@ -8,6 +8,7 @@ import { filterToQuery } from '../filters/filterToQuery'
 import type { CompanyFilters } from '../filters/types'
 import { createClusterMarker } from './clusterMarker'
 import { attachBasemapFallback, createBaseStyle } from './basemap'
+import { potentialTooltip } from './potentialTooltip'
 import styles from './RadarMap.module.css'
 
 interface RadarMapProps {
@@ -390,8 +391,7 @@ export function RadarMap({
           coverage: stats.coverage,
           excludedClients: stats.excludedClients,
           revenueEstSum: stats.revenueEstSum,
-          // Радиус в метрах: 8км для городов, 20км для районов
-          radiusM: stats.kind === 'city' ? 8000 : 20000,
+          tooltip: potentialTooltip(stats),
         },
       }))
 
@@ -408,13 +408,18 @@ export function RadarMap({
         type: 'circle',
         source: 'potential',
         paint: {
+          // В пикселях и по числу компаний: кружки в метрах (20 км) у Ростова накрывали друг друга,
+          // и подсказка показывала не тот район
           'circle-radius': [
             'interpolate',
-            ['exponential', 2],
-            ['zoom'],
-            0, ['/', ['get', 'radiusM'], 106760],
-            20, ['*', ['/', ['get', 'radiusM'], 106760], 1048576],
+            ['linear'],
+            ['sqrt', ['get', 'companies']],
+            0, 6,
+            50, 18,
+            250, 34,
           ],
+          'circle-stroke-color': '#FFFFFF',
+          'circle-stroke-width': 1.5,
           'circle-color': '#7700FF',
           'circle-opacity': [
             'interpolate',
@@ -456,7 +461,7 @@ export function RadarMap({
           const props = e.features[0].properties
           new maplibregl.Popup({ closeButton: false })
             .setLngLat(e.lngLat)
-            .setHTML(`${props.name} · потенциал ${props.potentialScore}`)
+            .setText(props.tooltip)
             .addTo(mapInstance)
         }
       })
