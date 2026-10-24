@@ -1,22 +1,8 @@
 {
-  "minYear": 2020,
+  "minYear": 2021,
   "maxYear": 2028,
-  "total": 12,
+  "total": 8,
   "years": [
-    {
-      "year": 2020,
-      "events": [
-        {
-          "projectId": 5,
-          "type": "start",
-          "title": "Современный и многофункциональный аквакультурный центр по производству осетровых видов рыб",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "launch",
-          "amountMln": 295.0
-        }
-      ]
-    },
     {
       "year": 2021,
       "events": [
@@ -37,15 +23,6 @@
           "municipalityName": "г. Ростов-на-Дону",
           "stage": "construction",
           "amountMln": 8000.0
-        },
-        {
-          "projectId": 27,
-          "type": "start",
-          "title": "Создание творческого кластера на территории бывшего вино-водочного завода по пр. Буденовский, 70/234",
-          "municipalityId": 53,
-          "municipalityName": "г. Ростов-на-Дону",
-          "stage": "launch",
-          "amountMln": 1500.0
         }
       ]
     },
@@ -66,24 +43,6 @@
     {
       "year": 2024,
       "events": [
-        {
-          "projectId": 45,
-          "type": "start",
-          "title": "Модернизация тепличного комплекса «Южный». Инвестпроектом предусмотрено внедрение системы ассимиляционного освещения на площади 11,34 га, строительство крупного энергоцентра для производства энергии и повышения технологичности всего производства.",
-          "municipalityId": 26,
-          "municipalityName": "Неклиновский р-н",
-          "stage": "launch",
-          "amountMln": 3704.0
-        },
-        {
-          "projectId": 1,
-          "type": "start",
-          "title": "Строительство комбикормового цеха производительностью 10 тонн в час гранулированных кормов для свиней",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "launch",
-          "amountMln": 877.6
-        },
         {
           "projectId": 36,
           "type": "start",
@@ -108,6 +67,15 @@
       "year": 2025,
       "events": [
         {
+          "projectId": 28,
+          "type": "start",
+          "title": "Расширение производственных мощностей. Расширение производственных мощностей предприятия путём установки дополнительной линии розлива в алюминиевую банку (1,2 млрд рублей). Строительство склада.",
+          "municipalityId": 53,
+          "municipalityName": "г. Ростов-на-Дону",
+          "stage": "construction",
+          "amountMln": 2000.0
+        },
+        {
           "projectId": 46,
           "type": "start",
           "title": "Строительство производственного здания , с. Николаевка, территория Юго-Восточная,21",
@@ -122,21 +90,12 @@
       "year": 2026,
       "events": [
         {
-          "projectId": 11,
-          "type": "start",
-          "title": "ООО \"Северстройсервис\" Завод по производству СПГ мощностью 4500 кг/час",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "construction",
-          "amountMln": 4500.0
-        },
-        {
           "projectId": 54,
           "type": "start",
           "title": "Реконструкция цеха для производства комбикормов в производственное здание по ремонту спецтехники",
           "municipalityId": 26,
           "municipalityName": "Неклиновский р-н",
-          "stage": "construction",
+          "stage": "design",
           "amountMln": 5.0
         },
         {
@@ -147,57 +106,12 @@
           "municipalityName": "г. Ростов-на-Дону",
           "stage": "launch",
           "amountMln": 17142.1
-        },
-        {
-          "projectId": 45,
-          "type": "launch",
-          "title": "Модернизация тепличного комплекса «Южный». Инвестпроектом предусмотрено внедрение системы ассимиляционного освещения на площади 11,34 га, строительство крупного энергоцентра для производства энергии и повышения технологичности всего производства.",
-          "municipalityId": 26,
-          "municipalityName": "Неклиновский р-н",
-          "stage": "launch",
-          "amountMln": 3704.0
-        },
-        {
-          "projectId": 27,
-          "type": "launch",
-          "title": "Создание творческого кластера на территории бывшего вино-водочного завода по пр. Буденовский, 70/234",
-          "municipalityId": 53,
-          "municipalityName": "г. Ростов-на-Дону",
-          "stage": "launch",
-          "amountMln": 1500.0
-        },
-        {
-          "projectId": 1,
-          "type": "launch",
-          "title": "Строительство комбикормового цеха производительностью 10 тонн в час гранулированных кормов для свиней",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "launch",
-          "amountMln": 877.6
-        },
-        {
-          "projectId": 5,
-          "type": "launch",
-          "title": "Современный и многофункциональный аквакультурный центр по производству осетровых видов рыб",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "launch",
-          "amountMln": 295.0
         }
       ]
     },
     {
       "year": 2027,
       "events": [
-        {
-          "projectId": 11,
-          "type": "launch",
-          "title": "ООО \"Северстройсервис\" Завод по производству СПГ мощностью 4500 кг/час",
-          "municipalityId": 1,
-          "municipalityName": "Азовский р-н",
-          "stage": "construction",
-          "amountMln": 4500.0
-        },
         {
           "projectId": 25,
           "type": "launch",
@@ -231,7 +145,7 @@
           "title": "Реконструкция цеха для производства комбикормов в производственное здание по ремонту спецтехники",
           "municipalityId": 26,
           "municipalityName": "Неклиновский р-н",
-          "stage": "construction",
+          "stage": "design",
           "amountMln": 5.0
         }
       ]
@@ -247,6 +161,15 @@
           "municipalityName": "г. Ростов-на-Дону",
           "stage": "construction",
           "amountMln": 8000.0
+        },
+        {
+          "projectId": 28,
+          "type": "launch",
+          "title": "Расширение производственных мощностей. Расширение производственных мощностей предприятия путём установки дополнительной линии розлива в алюминиевую банку (1,2 млрд рублей). Строительство склада.",
+          "municipalityId": 53,
+          "municipalityName": "г. Ростов-на-Дону",
+          "stage": "construction",
+          "amountMln": 2000.0
         },
         {
           "projectId": 36,
