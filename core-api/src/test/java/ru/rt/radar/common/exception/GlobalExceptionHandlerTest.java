@@ -2,6 +2,7 @@ package ru.rt.radar.common.exception;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** Все ошибки — в формате контракта { "error": { "code", "message", "details" } }. БД не нужна. */
 @WebMvcTest(ErrorProbeController.class)
+@AutoConfigureMockMvc(addFilters = false)   // без JWT: безопасность — в common/security/SecurityTest
 class GlobalExceptionHandlerTest {
 
     @Autowired

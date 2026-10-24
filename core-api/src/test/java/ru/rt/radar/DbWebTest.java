@@ -7,9 +7,12 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Полный контекст Spring на тестовом Postgres ({@link TestDb}) под core_svc, как у сервиса. */
+/**
+ * Полный контекст Spring на тестовом Postgres ({@link TestDb}) под core_svc, как у сервиса.
+ * Фильтры безопасности выключены: здесь проверяется логика, JWT и X-Internal-Token — в common/security/SecurityTest.
+ */
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 public abstract class DbWebTest {
 
     @DynamicPropertySource

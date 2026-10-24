@@ -26,4 +26,19 @@ public interface LogPatterns {
     String CONSTRAINT_VIOLATION_FIELD = "Поле '%s': %s";
     String UPLOAD_TOO_LARGE = "Файл больше допустимого размера";
     String TOO_LARGE_EXPORT = "Найдено %d компаний, больше лимита %d — сузьте фильтр";
+
+    // Security (Slf4j)
+    String AUTH_FAILURE = "{} {} -> [{}] {}: {} | причина: {}";
+    String JWKS_URL_MISSING = "AUTH_JWKS_URL не задан — все запросы с токеном будут отклонены";
+    String INTERNAL_TOKEN_MISSING = "INTERNAL_TOKEN не задан — все запросы к /internal/** будут отклонены";
+
+    // Security — ответ клиенту
+    String AUTH_REQUIRED = "Требуется вход: передайте заголовок Authorization: Bearer <accessToken>";
+    String TOKEN_INVALID = "Токен недействителен или истёк — войдите заново";
+    String ACCESS_DENIED = "Недостаточно прав для этого действия";
+    String INTERNAL_TOKEN_INVALID = "Нужен верный заголовок X-Internal-Token";
+    String AUTH_UNAVAILABLE = "Сервис авторизации недоступен — повторите позже";
+
+    // Security — причина отказа (в лог, через описание ошибки валидатора)
+    String OTP_MISSING = "в amr нет \"otp\": вход без второго фактора";
 }

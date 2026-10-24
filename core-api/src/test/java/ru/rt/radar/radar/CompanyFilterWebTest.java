@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** Резолвер CompanyFilter, формат ошибок и параметры фильтра в OpenAPI. БД не нужна (Hikari стартует лениво). */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:postgresql://127.0.0.1:1/none")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)   // без JWT: безопасность — в common/security/SecurityTest
 class CompanyFilterWebTest {
 
     @Autowired
