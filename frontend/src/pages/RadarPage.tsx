@@ -12,11 +12,14 @@ import { CompanyList } from '../list/CompanyList'
 import { CompanyCard } from '../company/CompanyCard'
 import { Tabs } from '../ui/Tabs'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
+import { ProfileMenu } from '../ui/ProfileMenu'
 import { useCallback, useState, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMunicipalityStats, getWhiteSpots } from '../api/endpoints'
+import { getMunicipalityStats, getWhiteSpots, getCompanies } from '../api/endpoints'
+import { filterToQuery } from '../filters/filterToQuery'
 import type { Map } from 'maplibre-gl'
 import type { MunicipalityStats } from '../api/types'
+import type { CompanyFilters } from '../filters/types'
 import styles from './RadarPage.module.css'
 
 export function RadarPage() {
@@ -27,6 +30,7 @@ export function RadarPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [activeLayer, setActiveLayer] = useState<MapLayer>('none')
   const [selectedDistrict, setSelectedDistrict] = useState<MunicipalityStats | null>(null)
+  const [pendingFilters, setPendingFilters] = useState<CompanyFilters>(filters)
   const mapRef = useRef<Map | null>(null)
 
   // Ref для updateFilters чтобы moveend всегда вызывал актуальную версию
@@ -110,29 +114,118 @@ export function RadarPage() {
     }
   }, [])
 
+  // Обработчик применения пресета "Исключённые клиенты"
+  const handleExcludedPresetApply = useCallback(() => {
+    // Применить фильтры пресета в URL сразу
+    updateFilters({
+      client: 'ours',
+      status: 'excluded',
+      minLat: undefined,
+      maxLat: undefined,
+      minLon: undefined,
+      maxLon: undefined
+    })
+    // Обновить pendingFilters для синхронизации (на случай повторного открытия панели)
+    setPendingFilters(prev => ({
+      ...prev,
+      client: 'ours',
+      status: 'excluded',
+      minLat: undefined,
+      maxLat: undefined,
+      minLon: undefined,
+      maxLon: undefined
+    }))
+    // Закрыть мобильную панель фильтров
+    setMobileFiltersOpen(false)
+    // Переключить на вкладку "Список" на мобильных
+    setActiveTab('list')
+    // FitBounds на Ростовскую область
+    if (mapRef.current) {
+      mapRef.current.fitBounds(
+        [
+          [38.8, 46.0], // [lon, lat] юго-запад
+          [43.5, 49.5]  // [lon, lat] северо-восток
+        ],
+        { duration: 800, padding: 50 }
+      )
+    }
+  }, [updateFilters])
+
+  // Обработчики мобильных фильтров
+  const handleOpenMobileFilters = useCallback(() => {
+    setPendingFilters(filters)
+    setMobileFiltersOpen(true)
+  }, [filters])
+
+  const handleApplyMobileFilters = useCallback(() => {
+    // Применяем все изменения из pendingFilters
+    Object.keys(pendingFilters).forEach((key) => {
+      const filterKey = key as keyof CompanyFilters
+      if (pendingFilters[filterKey] !== filters[filterKey]) {
+        updateFilters({ [filterKey]: pendingFilters[filterKey] })
+      }
+    })
+    setMobileFiltersOpen(false)
+  }, [pendingFilters, filters, updateFilters])
+
+  const handleCancelMobileFilters = useCallback(() => {
+    setPendingFilters(filters)
+    setMobileFiltersOpen(false)
+  }, [filters])
+
+  const handlePendingFiltersChange = useCallback((updates: Partial<CompanyFilters>) => {
+    setPendingFilters((prev) => ({ ...prev, ...updates }))
+  }, [])
+
+  // Подсчёт активных фильтров
+  const activeFiltersCount = () => {
+    let count = 0
+    if (filters.client !== 'all') count++
+    if (filters.status !== 'active') count++
+    if (filters.industry && filters.industry.length > 0) count++
+    if (filters.revenueMin || filters.revenueMax) count++
+    if (filters.municipalityId && filters.municipalityId.length > 0) count++
+    if (filters.sizeCategory && filters.sizeCategory.length > 0) count++
+    if (filters.growthMin) count++
+    if (filters.isNew) count++
+    if (filters.q) count++
+    return count
+  }
+
+  // Запрос для подсчёта результатов в мобильной панели - используем примененные фильтры
+  const { data: mobileFilterCount } = useQuery({
+    queryKey: ['companies-count', filterToQuery(filters)],
+    queryFn: async () => {
+      const result = await getCompanies(filterToQuery(filters) + '&page=0&size=1')
+      return result.total
+    },
+    enabled: mobileFiltersOpen,
+  })
+
   return (
     <ErrorBoundary>
       <div className={styles.container}>
         <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.logoSection}>
+          <div className={styles.headerTop}>
             <div className={styles.logo}>Ростелеком</div>
-            <h1 className={styles.title}>Радар присутствия</h1>
+            <h1 className={styles.titleMobile}>Радар присутствия</h1>
+            <div className={styles.headerActions}>
+              <span className={styles.userNameDesktop}>{user?.fullName}</span>
+              <button onClick={logout} className={styles.logoutButtonDesktop}>
+                Выйти
+              </button>
+              <div className={styles.profileMenuMobile}>
+                <ProfileMenu userName={user?.fullName || ''} onLogout={logout} />
+              </div>
+            </div>
           </div>
-          <div className={styles.filterSection}>
+          <div className={styles.headerBottom}>
             <ClientToggle
               value={filters.client}
               onChange={(client) => updateFilters({ client })}
             />
           </div>
-          <div className={styles.userSection}>
-            <span className={styles.userName}>{user?.fullName}</span>
-            <button onClick={logout} className={styles.logoutButton}>
-              Выйти
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
 
       <div className={styles.mobileTabs}>
         <Tabs
@@ -153,15 +246,16 @@ export function RadarPage() {
             onFiltersChange={updateFilters}
             onReset={resetFilters}
             mapRef={mapRef}
+            onExcludedPresetApply={handleExcludedPresetApply}
           />
         </div>
 
         {/* Кнопка фильтров на мобайле */}
         <button
           className={styles.mobileFilterButton}
-          onClick={() => setMobileFiltersOpen(true)}
+          onClick={handleOpenMobileFilters}
         >
-          Фильтры
+          Фильтры{activeFiltersCount() > 0 && ` · ${activeFiltersCount()}`}
         </button>
 
         <div className={`${styles.mapContainer} ${activeTab === 'map' ? styles.active : ''}`}>
@@ -211,20 +305,41 @@ export function RadarPage() {
 
       {/* Мобильная панель фильтров */}
       {mobileFiltersOpen && (
-        <div className={styles.mobileFilterOverlay} onClick={() => setMobileFiltersOpen(false)}>
+        <div className={styles.mobileFilterOverlay} onClick={handleCancelMobileFilters}>
           <div className={styles.mobileFilterPanel} onClick={(e) => e.stopPropagation()}>
-            <FilterPanel
-              filters={filters}
-              onFiltersChange={updateFilters}
-              onReset={resetFilters}
-              mapRef={mapRef}
-            />
-            <button
-              className={styles.mobileFilterClose}
-              onClick={() => setMobileFiltersOpen(false)}
-            >
-              Закрыть
-            </button>
+            <div className={styles.mobileFilterHeader}>
+              <h3 className={styles.mobileFilterTitle}>Фильтры</h3>
+              <button
+                className={styles.mobileFilterCloseIcon}
+                onClick={handleCancelMobileFilters}
+                aria-label="Закрыть"
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.mobileFilterContent}>
+              <FilterPanel
+                filters={pendingFilters}
+                onFiltersChange={handlePendingFiltersChange}
+                onReset={resetFilters}
+                mapRef={mapRef}
+                hideHeader={true}
+                onExcludedPresetApply={handleExcludedPresetApply}
+              />
+            </div>
+            <div className={styles.mobileFilterFooter}>
+              <div className={styles.mobileFilterCount}>
+                {mobileFilterCount !== undefined
+                  ? `Найдено: ${mobileFilterCount}`
+                  : 'Загрузка...'}
+              </div>
+              <button
+                className={styles.mobileFilterApply}
+                onClick={handleApplyMobileFilters}
+              >
+                Применить
+              </button>
+            </div>
           </div>
         </div>
       )}

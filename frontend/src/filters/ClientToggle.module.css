@@ -16,7 +16,7 @@
   color: var(--gray-700);
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 40px;
+  min-height: 44px;
   white-space: nowrap;
 }
 
@@ -32,4 +32,18 @@
 
 .option.active:hover {
   background-color: #6600DD;
+}
+
+@media (max-width: 767px) {
+  .toggle {
+    padding: 3px;
+    gap: 3px;
+    width: 100%;
+  }
+
+  .option {
+    padding: 10px 12px;
+    font-size: 14px;
+    flex: 1;
+  }
 }

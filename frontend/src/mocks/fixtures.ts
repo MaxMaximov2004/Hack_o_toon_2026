@@ -109,11 +109,22 @@ export function getAllCompanies(): CompanyShort[] {
     const oursCount = Math.floor(totalCompanies * city.oursRatio)
     const othersCount = totalCompanies - oursCount
 
-    // Генерируем "наши" компании
-    for (let i = 0; i < oursCount; i++) {
+    // Из наших клиентов ~15% будут исключены из реестра МСП
+    const excludedCount = Math.floor(oursCount * 0.15)
+    const activeOursCount = oursCount - excludedCount
+
+    // Генерируем "наши активные" компании
+    for (let i = 0; i < activeOursCount; i++) {
       const lat = city.lat + rng.range(-0.02, 0.02)
       const lon = city.lon + rng.range(-0.02, 0.02)
       companies.push(createCompanyShort(id++, 'ours', lat, lon, city.name, rng))
+    }
+
+    // Генерируем "исключённые" компании (наши клиенты, но исключены из реестра)
+    for (let i = 0; i < excludedCount; i++) {
+      const lat = city.lat + rng.range(-0.02, 0.02)
+      const lon = city.lon + rng.range(-0.02, 0.02)
+      companies.push(createCompanyShort(id++, 'excluded', lat, lon, city.name, rng))
     }
 
     // Генерируем "не наши" компании
@@ -140,7 +151,8 @@ function createCompanyShort(
   const municipality = mockDictionaries.municipalities.find(m => m.name === cityName) || mockDictionaries.municipalities[0]
   const sizeCategory = mockDictionaries.sizeCategories[Math.floor(rng.next() * 3)]
 
-  const isClient = kind === 'ours'
+  // Исключённые компании — это НАШИ клиенты, но исключённые из реестра МСП
+  const isClient = kind === 'ours' || kind === 'excluded'
   const status: 'active' | 'excluded' = kind === 'excluded' ? 'excluded' : 'active'
   const isEstimated = rng.next() > 0.3
   const isNew = rng.next() > 0.9
@@ -191,18 +203,26 @@ export interface MockFilters {
 export function filterCompanies(filters: MockFilters): CompanyShort[] {
   let companies = getAllCompanies()
 
-  // Фильтр по client
+  // Фильтр по client и status вместе
   if (filters.client === 'ours') {
-    companies = companies.filter((c) => c.kind === 'ours')
+    companies = companies.filter((c) => c.isClient)
+    // Дополнительно фильтруем по status
+    if (filters.status === 'active') {
+      companies = companies.filter((c) => c.status === 'active')
+    } else if (filters.status === 'excluded') {
+      companies = companies.filter((c) => c.status === 'excluded')
+    }
   } else if (filters.client === 'others') {
-    companies = companies.filter((c) => c.kind === 'others')
-  }
-
-  // Фильтр по status
-  if (filters.status === 'active') {
-    companies = companies.filter((c) => c.status === 'active')
-  } else if (filters.status === 'excluded') {
-    companies = companies.filter((c) => c.status === 'excluded')
+    companies = companies.filter((c) => !c.isClient && c.status === 'active')
+  } else {
+    // client === 'all'
+    if (filters.status === 'active') {
+      companies = companies.filter((c) => c.status === 'active')
+    } else if (filters.status === 'excluded') {
+      companies = companies.filter((c) => c.status === 'excluded')
+    } else {
+      // status === 'all' - показываем всё
+    }
   }
 
   // Фильтр по bbox

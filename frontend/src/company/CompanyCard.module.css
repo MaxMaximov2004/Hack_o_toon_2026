@@ -39,8 +39,8 @@
   color: var(--rt-gray);
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,6 +49,20 @@
 
 .closeButton:hover {
   color: var(--rt-purple);
+}
+
+@media (max-width: 767px) {
+  .header {
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+
+  .header::before {
+    content: 'Назад';
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--rt-purple);
+  }
 }
 
 .content {
@@ -61,6 +75,8 @@
   font-weight: 700;
   color: var(--rt-black);
   line-height: 1.3;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .badges {

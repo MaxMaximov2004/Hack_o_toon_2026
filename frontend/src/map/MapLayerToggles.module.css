@@ -1,11 +1,10 @@
 .container {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .button {
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: var(--rt-white);
   border: 1px solid var(--rt-cool-grey);
   border-radius: 8px;
@@ -14,6 +13,8 @@
   color: var(--rt-black);
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px;
+  white-space: nowrap;
 }
 
 .button:hover {
@@ -28,10 +29,19 @@
 
 @media (max-width: 767px) {
   .container {
-    flex-direction: column;
+    flex-direction: row;
+    gap: 6px;
   }
 
   .button {
-    width: 100%;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 36px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  .button.active {
+    box-shadow: 0 2px 8px rgba(119, 0, 255, 0.3);
   }
 }
