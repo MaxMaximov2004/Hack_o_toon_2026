@@ -13,6 +13,7 @@
 | `stats.json` | `GET /api/municipalities/stats?industry=all` |
 | `white-spots.json` | `GET /api/white-spots?industry=all&limit=10` |
 | `companies-internal.json` | `GET /internal/companies?status=all` — массив полных `Company`, сортировка по `name` |
+| `locations.json` | `GET /api/companies/{id}/locations` — регистрация и фактические места (задача со *, [07](../../docs/tz/07-star-actual-location.md)) |
 
 **Продукт 2** — формы по [08-product2-contract](../../docs/tz/08-product2-contract.md). Проекты и компании — из реальных
 данных после ETL (лист МОД2 и реестр МСП), услуги — из `infra/db/init/04_need_offer.sql`; подписки и лента — выдуманные.
@@ -36,5 +37,6 @@
 - `revenueEst`, `revenueEstSum` — рубли, целое число. `revenueGrowthEst` — %, один знак после запятой.
 - `coverage` = `clients / companies`, 4 знака; `potentialScore` — 0..100, до 2 знаков.
 - `reason` — текст из SQL-функции `core.refresh_municipality_stats`, у не белых пятен — `null`.
+- `relocated` (в `CompanyShort` и `Company`) — работает не там, где зарегистрирована: есть фактическое место в другом районе или регионе.
 - `kind`: `ours` — действующий клиент РТ, `others` — не клиент, `excluded` — клиент, исключённый из реестра МСП.
 - Даты — `"YYYY-MM-DD"`.

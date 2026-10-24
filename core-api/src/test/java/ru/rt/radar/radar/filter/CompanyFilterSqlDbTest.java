@@ -18,6 +18,13 @@ class CompanyFilterSqlDbTest {
     @BeforeAll
     static void data() {
         TestDb.resetStandardData();
+        // 6 (Тестовый р-н) работает в г. Тестоград; 5 — в другом регионе; 1 — там же, где зарегистрирован;
+        // у 2 запись registered (не фактическое место); 7 (исключён из реестра) — в другом районе
+        TestDb.addLocation("610000000601", "actual", "г. Тестоград", null);
+        TestDb.addLocation("6100000005", "actual", null, "Краснодарский край");
+        TestDb.addLocation("6100000001", "actual", "г. Тестоград", null);
+        TestDb.addLocation("6100000002", "registered", "Тестовый р-н", null);
+        TestDb.addLocation("6100000007", "actual", "Тестовый р-н", null);
         jdbc = new NamedParameterJdbcTemplate(TestDb.coreDataSource());
     }
 
@@ -55,6 +62,10 @@ class CompanyFilterSqlDbTest {
             "q=_1&status=all                                          | 1",  // «_» буквально, не любой символ
             "q=%25%25&status=all                                      | 0",  // «%%» буквально
             "q=100%25&status=all                                      | 1",
+            "relocated=true                                           | 2",  // 5 и 6
+            "relocated=true&status=all                                | 3",  // + 7
+            "relocated=true&client=ours                               | 1",  // 6
+            "relocated=false                                          | 6",
     })
     void counts(String query, long expected) {
         assertThat(count(query == null ? "" : query)).isEqualTo(expected);

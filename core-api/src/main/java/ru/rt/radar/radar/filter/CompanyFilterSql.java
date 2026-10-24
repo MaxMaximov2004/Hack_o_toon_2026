@@ -16,6 +16,18 @@ public final class CompanyFilterSql {
     public static final String KIND =
             "CASE WHEN NOT c.is_client THEN 'others' WHEN c.status = 'excluded' THEN 'excluded' ELSE 'ours' END";
 
+    /**
+     * «Работает не там, где зарегистрирован» (docs/tz/07): есть фактическое место в другом районе области или в другом
+     * регионе. Одно выражение — и для фильтра relocated=true, и для поля relocated в ответах. По ИНН: company_location
+     * переживает перезагрузку ETL, а id компаний — нет.
+     * Таблицы — через запятую, не JOIN … ON c.municipality_id: так Postgres делает из EXISTS hash semi join (~60 мс
+     * на 188 тыс. компаний), а с JOIN … ON на внешнюю колонку — подзапрос на каждую компанию (~350 мс).
+     */
+    public static final String RELOCATED = """
+            EXISTS (SELECT 1 FROM company_location l, municipality rm
+                    WHERE l.inn = c.inn AND rm.id = c.municipality_id AND l.kind = 'actual'
+                      AND (l.region_name IS NOT NULL OR l.municipality_name <> rm.name))""";
+
     /** WHERE-часть и её параметры. К params можно добавлять свои (limit, offset…). */
     public record Where(String sql, MapSqlParameterSource params) {
     }
@@ -77,12 +89,16 @@ public final class CompanyFilterSql {
             p.addValue("q", escapeLike(f.q()));
         }
 
+        if (f.relocated()) {
+            and.add(RELOCATED);
+        }
+
         String sql = and.isEmpty() ? "WHERE true" : "WHERE " + String.join("\n  AND ", and);
         return new Where(sql, p);
     }
 
-    /** Экранирует спецсимволы LIKE, чтобы «100%» или «_» искались буквально. */
-    static String escapeLike(String s) {
+    /** Экранирует спецсимволы LIKE, чтобы «100%» или «_» искались буквально. Используется и ProjectFilterSql. */
+    public static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

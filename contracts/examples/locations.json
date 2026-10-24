@@ -1,0 +1,35 @@
+{
+  "registered": {
+    "municipalityName": "Сальский р-н",
+    "settlement": "г. Сальск",
+    "lat": 46.4752,
+    "lon": 41.5413
+  },
+  "actual": [
+    {
+      "id": 7,
+      "municipalityName": "г. Азов",
+      "regionName": null,
+      "address": "ул. Ленина, 1",
+      "lat": 47.1078,
+      "lon": 39.4237,
+      "source": "manager",
+      "confidence": 0.8,
+      "note": "офис и склад, со слов директора",
+      "createdAt": "2026-10-24T10:12:00.123456Z"
+    },
+    {
+      "id": 5,
+      "municipalityName": null,
+      "regionName": "Краснодарский край",
+      "address": null,
+      "lat": null,
+      "lon": null,
+      "source": "crm",
+      "confidence": 0.9,
+      "note": null,
+      "createdAt": "2026-10-23T09:00:00Z"
+    }
+  ],
+  "relocated": true
+}

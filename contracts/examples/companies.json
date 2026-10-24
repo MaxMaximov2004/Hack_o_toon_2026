@@ -24,7 +24,8 @@
       "kind": "ours",
       "excludedAt": null,
       "isNew": false,
-      "registeredAt": "2008-04-21"
+      "registeredAt": "2008-04-21",
+      "relocated": false
     },
     {
       "id": 205,
@@ -50,7 +51,8 @@
       "kind": "others",
       "excludedAt": null,
       "isNew": false,
-      "registeredAt": "2015-11-02"
+      "registeredAt": "2015-11-02",
+      "relocated": false
     },
     {
       "id": 633,
@@ -76,7 +78,8 @@
       "kind": "others",
       "excludedAt": null,
       "isNew": false,
-      "registeredAt": "2020-01-15"
+      "registeredAt": "2020-01-15",
+      "relocated": false
     },
     {
       "id": 101,
@@ -102,7 +105,8 @@
       "kind": "ours",
       "excludedAt": null,
       "isNew": false,
-      "registeredAt": "2019-07-10"
+      "registeredAt": "2019-07-10",
+      "relocated": false
     },
     {
       "id": 102,
@@ -128,7 +132,8 @@
       "kind": "ours",
       "excludedAt": null,
       "isNew": false,
-      "registeredAt": "2019-03-14"
+      "registeredAt": "2019-03-14",
+      "relocated": false
     },
     {
       "id": 318,
@@ -154,7 +159,8 @@
       "kind": "others",
       "excludedAt": null,
       "isNew": true,
-      "registeredAt": "2026-03-02"
+      "registeredAt": "2026-03-02",
+      "relocated": false
     }
   ],
   "page": 0,

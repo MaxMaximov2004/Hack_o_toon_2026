@@ -160,6 +160,30 @@ class CompanyApiTest extends DbWebTest {
                 .andExpect(jsonPath("$.error.details.field").value(field));
     }
 
+    /** relocated: поле в списке, карточке и выгрузке = фильтр; total у списка, карты и выгрузки одинаковый. */
+    @Test
+    void relocatedFieldMatchesFilterEverywhere() throws Exception {
+        TestDb.addLocation("610000000601", "actual", "г. Тестоград", null);      // 6 — другой район
+        TestDb.addLocation("6100000001", "actual", "г. Тестоград", null);        // 1 — там же, где зарегистрирован
+        try {
+            mvc.perform(get("/api/companies?relocated=true"))
+                    .andExpect(jsonPath("$.items[*].id", contains(6)))
+                    .andExpect(jsonPath("$.items[0].relocated").value(true))
+                    .andExpect(jsonPath("$.total").value(1));
+            mvc.perform(get("/api/companies/1")).andExpect(jsonPath("$.relocated").value(false));
+            mvc.perform(get("/api/companies/6")).andExpect(jsonPath("$.relocated").value(true));
+            mvc.perform(get("/api/map/cells?zoom=7&relocated=true"))
+                    .andExpect(jsonPath("$.total").value(1))
+                    .andExpect(jsonPath("$.points[*].id", contains(6)));
+            var started = mvc.perform(get("/internal/companies?relocated=true")).andReturn();
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(started))
+                    .andExpect(jsonPath("$[*].id", contains(6)))
+                    .andExpect(jsonPath("$[0].relocated").value(true));
+        } finally {
+            TestDb.jdbc().update("DELETE FROM company_location");
+        }
+    }
+
     @Test
     void swaggerShowsFilterAndPaging() throws Exception {
         mvc.perform(get("/v3/api-docs"))

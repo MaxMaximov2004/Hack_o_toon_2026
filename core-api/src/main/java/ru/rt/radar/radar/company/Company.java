@@ -32,6 +32,7 @@ public record Company(
         LocalDate excludedAt,
         boolean isNew,
         LocalDate registeredAt,
+        boolean relocated,
         String ogrn,
         String subjectType,
         String phone,
@@ -45,6 +46,6 @@ public record Company(
     public CompanyShort toShort() {
         return new CompanyShort(id, inn, name, industry, industryName, okvedCode, okvedName, municipalityId,
                 municipalityName, settlement, lat, lon, sizeCategory, employees, revenueEst, revenueGrowthEst,
-                revenueSource, isEstimated, isClient, status, kind, excludedAt, isNew, registeredAt);
+                revenueSource, isEstimated, isClient, status, kind, excludedAt, isNew, registeredAt, relocated);
     }
 }

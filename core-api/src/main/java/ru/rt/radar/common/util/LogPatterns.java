@@ -25,7 +25,7 @@ public interface LogPatterns {
     String BODY_NOT_READABLE = "Тело запроса не читается: проверьте JSON";
     String CONSTRAINT_VIOLATION_FIELD = "Поле '%s': %s";
     String UPLOAD_TOO_LARGE = "Файл больше допустимого размера";
-    String TOO_LARGE_EXPORT = "Найдено %d компаний, больше лимита %d — сузьте фильтр";
+    String TOO_LARGE_EXPORT = "Компаний по фильтру: %d, лимит выгрузки: %d — сузьте фильтр";
 
     // Security (Slf4j)
     String AUTH_FAILURE = "{} {} -> [{}] {}: {} | причина: {}";

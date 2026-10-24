@@ -116,6 +116,8 @@ class InternalCompanyApiTest extends DbWebTest {
                 .andExpect(request().asyncNotStarted())
                 .andExpect(status().isPayloadTooLarge())
                 .andExpect(jsonPath("$.error.code").value("TOO_LARGE"))
+                .andExpect(jsonPath("$.error.message").value(
+                        "Компаний по фильтру: " + total + ", лимит выгрузки: " + (total - 1) + " — сузьте фильтр"))
                 .andExpect(jsonPath("$.error.details.total").value(total))
                 .andExpect(jsonPath("$.error.details.limit").value(total - 1))
                 .andExpect(jsonPath("$[0]").doesNotExist());

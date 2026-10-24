@@ -3,7 +3,10 @@ package ru.rt.radar.radar.company;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/** Строка списка компаний (GET /api/companies). Порядок полей = порядок в JSON (contracts/examples/companies.json). */
+/**
+ * Строка списка компаний (GET /api/companies). Порядок полей = порядок в JSON (contracts/examples/companies.json).
+ * relocated — есть фактическое место в другом районе или регионе (задача со *, locations/).
+ */
 public record CompanyShort(
         int id,
         String inn,
@@ -28,6 +31,7 @@ public record CompanyShort(
         String kind,
         LocalDate excludedAt,
         boolean isNew,
-        LocalDate registeredAt
+        LocalDate registeredAt,
+        boolean relocated
 ) {
 }

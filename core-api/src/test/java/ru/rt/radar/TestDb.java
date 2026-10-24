@@ -83,7 +83,8 @@ public final class TestDb {
      */
     public static void resetStandardData() {
         JdbcTemplate j = jdbc();
-        j.execute("TRUNCATE municipality_stats, company, municipality RESTART IDENTITY CASCADE");
+        // company_location — без FK (переживает перезагрузку ETL), CASCADE её не чистит
+        j.execute("TRUNCATE municipality_stats, company, municipality, company_location RESTART IDENTITY CASCADE");
         j.update("INSERT INTO municipality (id, name, kind, lat, lon) VALUES "
                 + "(1, 'г. Тестоград', 'city', 47.2, 39.7), (2, 'Тестовый р-н', 'district', 46.5, 41.5)");
         j.update("""
@@ -103,6 +104,37 @@ public final class TestDb {
         j.update("""
                 UPDATE company SET ogrn = '1196196012345', okved_name = 'Торговля розничная', phone = '+78632000001',
                        email = 'info@alfa.example', has_licenses = true WHERE id = 1
+                """);
+    }
+
+    /** Место компании в company_location (по ИНН, без FK — как у сервиса). */
+    public static void addLocation(String inn, String kind, String municipalityName, String regionName) {
+        jdbc().update("""
+                INSERT INTO company_location (inn, kind, municipality_name, region_name, source, confidence)
+                VALUES (?, ?, ?, ?, 'manager', 0.8)""", inn, kind, municipalityName, regionName);
+    }
+
+    /**
+     * Стандартный набор + 5 инвестпроектов (id 1..5). need_offer уже заполнен 04_need_offer.sql.
+     * <pre>
+     * id район  ключ  годы       млн      стадия        отрасль        потребности               updated_at (UTC)
+     * 1  1      да    2022–2026  1150.00  construction  logistics      it_infra, phys_security   2026-10-20 10:00:00.123456
+     * 2  1      нет   2021–2028  8000.00  construction  manufacturing  apcs, it_infra            2026-10-20 11:00:00
+     * 3  2      нет   2024–2026  3704.00  launch        agro           —                         2026-10-21 09:30:00.5
+     * 4  2      нет   —          null     null          null           info_security             2026-10-22 12:00:00
+     * 5  1      да    2019–2025  650.50   launch        logistics      it_infra                  2026-10-23 08:00:00.000001
+     * </pre>
+     */
+    public static void resetStandardDataWithProjects() {
+        resetStandardData();
+        jdbc().update("""
+                INSERT INTO invest_project (id, municipality_id, initiator, title, is_key, curator, start_year, launch_year,
+                                            amount_mln, jobs, stage, industry, needs, updated_at) VALUES
+                (1, 1, 'ООО «Бета»',  'Логистический центр',    true,  'Минпром',    2022, 2026, 1150.00, 150,  'construction', 'logistics',     '{it_infra,phys_security}', '2026-10-20 10:00:00.123456+00'),
+                (2, 1, 'ИП Зета',     'Завод запчастей',        false, NULL,         2021, 2028, 8000.00, 700,  'construction', 'manufacturing', '{apcs,it_infra}',          '2026-10-20 11:00:00+00'),
+                (3, 2, NULL,          'Теплица',                false, 'Минсельхоз', 2024, 2026, 3704.00, 120,  'launch',       'agro',          '{}',                       '2026-10-21 09:30:00.5+00'),
+                (4, 2, 'АО "Дубль"',  'Без годов 100%',         false, NULL,         NULL, NULL, NULL,    NULL, NULL,           NULL,            '{info_security}',          '2026-10-22 12:00:00+00'),
+                (5, 1, 'ООО "ТЕТА"',  'Склад_1',                true,  NULL,         2019, 2025, 650.50,  50,   'launch',       'logistics',     '{it_infra}',               '2026-10-23 08:00:00.000001+00')
                 """);
     }
 

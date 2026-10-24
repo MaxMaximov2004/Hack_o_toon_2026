@@ -48,7 +48,7 @@ class CompanyFilterWebTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(op + ".parameters[*].name", containsInAnyOrder(
                         "client", "status", "industry", "revenueMin", "revenueMax", "minLat", "maxLat",
-                        "minLon", "maxLon", "municipalityId", "sizeCategory", "growthMin", "isNew", "q")))
+                        "minLon", "maxLon", "municipalityId", "sizeCategory", "growthMin", "isNew", "q", "relocated")))
                 .andExpect(jsonPath(op + ".parameters[?(@.name == 'industry')].schema.type", hasItem("array")))
                 .andExpect(jsonPath(op + ".parameters[?(@.name == 'industry')].schema.items.enum[*]", hasItem("logistics")))
                 .andExpect(jsonPath(op + ".parameters[?(@.name == 'status')].schema.default", hasItem("active")));

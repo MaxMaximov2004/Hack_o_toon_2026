@@ -42,26 +42,28 @@ public final class CompanyFilterOpenApi {
                 multi(SIZE_CATEGORY, enumSchema(SizeCategory.class), "Категория МСП; несколько — повтором: " + legend(SizeCategory.class)),
                 param(GROWTH_MIN, new NumberSchema(), "Рост выручки от, % год к году (оценка)"),
                 param(IS_NEW, new BooleanSchema(), "true — только вновь созданные компании; false — условие не задано"),
-                param(Q, new StringSchema().minLength(Q_MIN).maxLength(Q_MAX), "Поиск: часть названия или начало ИНН")
+                param(Q, new StringSchema().minLength(Q_MIN).maxLength(Q_MAX), "Поиск: часть названия или начало ИНН"),
+                param(RELOCATED, new BooleanSchema(),
+                        "true — только «работает не там, где зарегистрирован» (есть фактическое место в другом районе или регионе)")
         );
     }
 
-    private static Parameter param(String name, Schema<?> schema, String description) {
+    public static Parameter param(String name, Schema<?> schema, String description) {
         return new Parameter().in("query").name(name).required(false).schema(schema).description(description);
     }
 
-    private static Parameter multi(String name, Schema<?> items, String description) {
+    public static Parameter multi(String name, Schema<?> items, String description) {
         return param(name, new ArraySchema().items(items), description)
                 .style(Parameter.StyleEnum.FORM).explode(true);
     }
 
-    private static <E extends Enum<E> & CodedEnum> StringSchema enumSchema(Class<E> type) {
+    public static <E extends Enum<E> & CodedEnum> StringSchema enumSchema(Class<E> type) {
         StringSchema s = new StringSchema();
         CodedEnum.codes(type).forEach(s::addEnumItem);
         return s;
     }
 
-    private static <E extends Enum<E> & CodedEnum> String legend(Class<E> type) {
+    public static <E extends Enum<E> & CodedEnum> String legend(Class<E> type) {
         return Arrays.stream(type.getEnumConstants())
                 .map(e -> e.code() + " — " + e.title())
                 .collect(Collectors.joining(", "));

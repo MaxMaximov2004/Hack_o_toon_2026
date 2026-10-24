@@ -41,7 +41,7 @@ import static ru.rt.radar.common.util.LogPatterns.*;
  * <ul>
  *   <li>/api/** — JWT RS256 от auth-service, ключи по AUTH_JWKS_URL (лениво, при первом запросе — сервис стартует
  *       без auth-service), проверки — {@link RadarJwtValidators};</li>
- *   <li>POST /api/clients/import — роль admin (claim roles);</li>
+ *   <li>POST /api/clients/import, POST /api/locations/import — роль admin (claim roles);</li>
  *   <li>/internal/** — без JWT, но с X-Internal-Token ({@link InternalTokenFilter});</li>
  *   <li>/health, Swagger — открыты.</li>
  * </ul>
@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/internal/**").permitAll()          // проверяет InternalTokenFilter
                         .requestMatchers(HttpMethod.POST, "/api/clients/import").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/locations/import").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o
                         .jwt(j -> j.jwtAuthenticationConverter(rolesConverter()))

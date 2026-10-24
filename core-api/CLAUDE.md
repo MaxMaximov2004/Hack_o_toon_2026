@@ -24,19 +24,24 @@
 
 ## 2. Моя зона ответственности
 
-**Моё:** `core-api/`, пакеты `radar/` (продукт 1) и `invest/` (продукт 2, позже), скелет Spring Boot проекта, `Dockerfile`,
-`contracts/examples/*.json` (примеры ответов — на них фронт и C# делают заглушки).
+С `docs/tz/10-java-todo.md` вся Java — моя: `core-api/` целиком (включая пакеты техлида) и `notifier/`.
+Но правки в `common/` и в `notifier/` — только по прямому разрешению в этой сессии (там чужие договорённости).
 
-**Не моё (делает Java #2, не писать и не переписывать):**
-- `common/` — Spring Security (JWT RS256 по JWKS, `iss=radar-auth`, `amr` содержит `otp`), фильтр `X-Internal-Token` для `/internal/**`,
-  `@RestControllerAdvice` с общим форматом ошибок, `NotFoundException`, `TooLargeException`.
-- `clients/` — `POST /api/clients/import`.
-- `locations/` — задача со звёздочкой.
-- `docker-compose.yml`, `infra/`, `README.md`, `.env.example`.
+| Пакет `ru.rt.radar.…` | Что | Автор |
+|---|---|---|
+| `radar/` (`filter`, `company`, `dictionary`, `map`, `stats`, `web`) | продукт 1 | я |
+| `invest/` | продукт 2: проекты, таймлайн, `/internal/projects` | я |
+| `clients/` | `POST /api/clients/import` | я |
+| `locations/` | задача со *: фактические места, `relocated` | я |
+| `related/` | `GET /api/projects/{id}/related-companies` | техлид |
+| `common/` | ошибки (`GlobalExceptionHandler`, `ValidationException`, `NotFoundException`, `TooLargeException`, `LogPatterns`), безопасность (`SecurityConfig`: JWT по JWKS, `X-Internal-Token`, роли) | техлид |
+| `config/` | лог запросов, резолверы фильтров, Swagger | я |
 
-**Если `common/` ещё не влит:** сделать минимальные временные заглушки в своём пакете (исключения `NotFoundException` / `TooLargeException`
-и обработчик ошибок в формате контракта), пометить `// TEMP: заменить на common/` и не лезть в чужие пакеты. Согласовать имена с Java #2.
-Если нужен JWT до готовности Go — ключи и `jwks.json` в `contracts/dev-keys/` (их кладёт Java #2).
+**Ошибки — только через `common/exception`** (временных заглушек больше нет). Классов для 403 и 409 там нет: 403 для
+удаления чужого места отдаёт локальный `@ExceptionHandler` в `LocationController` (`AccessDeniedException` из контроллера
+глобальный обработчик превратил бы в 500).
+**Роли** — `.requestMatchers(...).hasRole("ADMIN")` в `common/security/SecurityConfig` (сейчас: оба импорта).
+Не моё: `docker-compose.yml`, `infra/`, `README.md`, `.env.example`, остальные сервисы. Нужна правка — написать текстом.
 
 ## 3. Жёсткие правила (нарушение = PR не примут)
 
@@ -60,8 +65,10 @@ Java 21, Spring Boot 3, Spring Web, `NamedParameterJdbcTemplate` (без JPA), J
 
 - Подключение: `jdbc:postgresql://postgres:5432/radar?currentSchema=core`, пользователь `core_svc` (владелец схемы `core`). Таблицы в SQL — без префикса схемы.
 - Таблицы (структура в `02_tables.sql`): `municipality`, `company`, `municipality_stats`, `invest_project`, `company_location`, `need_offer`.
-- Данные в `core.*` заливает ETL (Python). **Мой сервис только читает.** Пока ETL не готов, `core.company` может быть пустой —
-  для разработки вставлять тестовые строки вручную или писать SQL-скрипт для локальной отладки (не коммитить в `infra/`).
+- Данные в `core.*` заливает ETL (Python). **Сервис читает**, кроме двух исключений (DDL нет нигде):
+  `clients/` меняет только `company.is_client` и вызывает `refresh_municipality_stats()` в одной транзакции;
+  `locations/` пишет в `company_location` (по ИНН, без FK — переживает перезагрузку ETL).
+  Для локальной отладки — SQL-скрипты вне `infra/` (не коммитить).
 - Ожидаемый объём: 759 наших клиентов + десятки–сотни тысяч компаний реестра. Индексы уже есть: `(municipality_id)`, `(industry)`, `(is_client, status)`, `(lat, lon)`.
 - `municipality_stats` и белые пятна считает **SQL-функция** `core.refresh_municipality_stats()`. **Формулы в Java не дублировать.** Я только читаю таблицу.
 - ID компаний (`serial`) меняются при каждой перезагрузке ETL — не хранить и не кэшировать их надолго.
@@ -98,9 +105,9 @@ Java 21, Spring Boot 3, Spring Web, `NamedParameterJdbcTemplate` (без JPA), J
 
 | Эндпоинт | Суть | Подводные камни |
 |---|---|---|
-| `GET /api/dictionaries` | отрасли, категории (enum с русскими названиями), районы из БД | районы — кэш в памяти; `stages` и `needs` пока пустые массивы; коды отраслей не менять |
+| `GET /api/dictionaries` | отрасли, категории, стадии, потребности (enum с русскими названиями), районы из БД | районы — кэш 60 с, пустой результат не кэшируется (ETL пересоздаёт районы с новыми id и может стартовать позже core-api); коды не менять |
 | `GET /api/map/cells` | `CompanyFilter` + `zoom` (3–18, обязателен); `total ≤ 1500` → `mode=points`, иначе `mode=cells` | `cellDeg = 84 / 2^zoom`; центр кластера = `avg(lat), avg(lon)`; `zoom` вне 3–18 → 400; без границ окна — вся область |
-| `GET /api/companies` | страница `CompanyShort` | сортировка **только из белого списка через `switch`** (`name`, `revenueEst`, `revenueGrowthEst`, `employees`, `registeredAt`), `NULLS LAST`, вторым ключом `id`; `size ≤ 200`; невалидная сортировка → 400 |
+| `GET /api/companies` | страница `CompanyShort` (с полем `relocated`) | сортировка **только из белого списка через `switch`** (`name`, `revenueEst`, `revenueGrowthEst`, `employees`, `registeredAt`), `NULLS LAST`, вторым ключом `id`; `size ≤ 200`; невалидная сортировка → 400 |
 | `GET /api/companies/{id}` | полный `Company` | нет → 404 |
 | `GET /api/municipalities/stats?industry=all` | из `municipality_stats` JOIN `municipality` | `coverage = clients / companies` считать в Java с защитой от деления на 0; формулы потенциала не дублировать |
 | `GET /api/white-spots?industry=all&limit=10` | `WHERE is_white_spot ORDER BY potential_score DESC` | `limit` 1–50 |
@@ -112,7 +119,8 @@ Java 21, Spring Boot 3, Spring Web, `NamedParameterJdbcTemplate` (без JPA), J
 - Отдавать потоком: `StreamingResponseBody` + Jackson `JsonGenerator`; строки читать через `JdbcTemplate.query(..., RowCallbackHandler)` с `fetchSize=1000`.
 - **Важно:** PostgreSQL-драйвер игнорирует `fetchSize` и грузит всё в память, если соединение в автокоммите. Нужна транзакция
   (`TransactionTemplate` / `@Transactional(readOnly = true)`) на время всего стриминга. Проверить это на 100 000 строк по памяти.
-- Список целиком в памяти не собирать. Защита по `X-Internal-Token` — в `common/` у Java #2; здесь — только эндпоинт.
+- Список целиком в памяти не собирать (проверено: `-Xmx64m`, 100 000 строк). `X-Internal-Token` проверяет `common/security/InternalTokenFilter`.
+- `spring.mvc.async.request-timeout: 5m`. Ошибка посреди потока — «]» не пишется, клиент получает заведомо битый JSON.
 
 ### 6.4 Формат ответов
 
@@ -121,10 +129,43 @@ Java 21, Spring Boot 3, Spring Web, `NamedParameterJdbcTemplate` (без JPA), J
 - Деньги — рубли, числом (не строкой); `numeric` из БД → `BigDecimal` или `double` — главное, чтобы формат совпадал с `contracts/examples`.
 - Ошибки — общий формат `{ "error": { "code", "message", "details" } }` (коды в `00-common`).
 
-### 6.5 `contracts/examples/` — первая задача
+### 6.5 `contracts/examples/`
 
-Файлы: `dictionaries.json`, `companies.json`, `company.json`, `cells.json`, `points.json`, `stats.json`, `white-spots.json`,
-`companies-internal.json` (массив 5–10 полных `Company`). Формы — строго как в ТЗ. Это нужно в первый час: на них фронт делает MSW-заглушки, C# — `USE_STUB`.
+Формы всех ответов — там; тесты сверяют их через `ContractShape` (ключи, порядок, JSON-типы, целое/дробное).
+**`ContractShape` не ловит пустой массив** — статические справочники сравнивать значениями (`DictionaryApiTest`).
+Меняешь форму ответа — обновляй пример в том же PR и предупреждай фронт и C#.
+
+### 6.6 Продукт 2 — `invest/` (контракт — `docs/tz/08-product2-contract.md`)
+
+- `ProjectFilter` + `ProjectFilterParser` + `ProjectFilterSql` — по образцу компаний, общие правила разбора — `radar/filter/QueryParams`.
+  `need` → `needs && CAST(:needs AS text[])`; период — `start_year <= yearTo AND launch_year >= yearFrom`, неизвестный год не отсекает.
+- `GET /api/projects` (сортировка — белый список `ProjectSort`), `/api/projects/{id}`, `/api/projects/timeline`
+  (при `yearFrom/yearTo` — только события внутри периода, `total` — по проектам), `GET /internal/projects?updatedSince=`
+  (строго больше, сортировка `updatedAt, id`; его вызывает notifier).
+- `updatedAt` — **с микросекундами**: notifier шлёт его обратно в `updatedSince`, иначе проект приходил бы повторно.
+- `lat/lon` проекта — центр муниципалитета; `recommendedOffers` — из `need_offer` (кэш 60 с) в порядке `needs`.
+
+### 6.7 Импорты (роль admin) и задача со *
+
+- `POST /api/clients/import` — CSV до 10 МБ (`spring.servlet.multipart`), `append|replace`, ответ `{rows, matched, notFound, mode, whiteSpots}`.
+- `locations/`: `GET/POST/DELETE /api/companies/{id}/locations`, `POST /api/locations/import` (ответ + `invalid`).
+  Менеджер удаляет только `source=manager`, admin — любые (колонки автора в таблице нет).
+- `relocated` — **одно выражение** `CompanyFilterSql.RELOCATED` для фильтра и поля. Таблицы в `EXISTS` — через запятую:
+  с `JOIN … ON c.municipality_id` Postgres выполняет подзапрос на каждую компанию (~350 мс против ~60 мс).
+- Разбор CSV — общий `radar/web/Csv` (BOM, `;`/`,`, кавычки).
+
+### 6.8 Производительность (замерено на 188–200 тыс. строк)
+
+- `connection-init-sql: SET plan_cache_mode = force_custom_plan` — без него с 5-го вызова JDBC окна карты идут общим
+  планом по индексу и работают в 2–3 раза медленнее (проверяет `DataSourceSettingsTest`).
+- Карта в режиме cells: `total` = сумма по ячейкам, без отдельного `count`.
+- Поиск `q` — полный проход (200–260 мс); индексы `pg_trgm` / `text_pattern_ops` предложены техлиду, в `infra` их нет.
+
+### 6.9 Swagger
+
+`/swagger-ui` (через nginx тоже). Кнопка **Authorize**: `bearerAuth` для `/api/**`, `internalToken` для `/internal/**`
+(снаружи `/internal/` закрыт nginx — Try it out только на `core-api:8080`). `persist-authorization: true`.
+Схемы раздаёт `config/OpenApiConfig` по префиксу пути.
 
 ## 7. Тесты (минимум)
 
@@ -138,16 +179,9 @@ Testcontainers Postgres + `infra/db/init/*` + свои строки. Что пр
 
 ## 8. Порядок работы
 
-1. Скелет Spring Boot + `Dockerfile` + `/health` + настройка Hikari + springdoc → проверить `docker compose up -d --build postgres core-api`.
-2. `contracts/examples/*.json` (быстро, вручную) → отдать фронту и C#.
-3. Enum'ы (отрасли, категории, статусы) + `CompanyFilter` + `CompanyFilterSql` + валидация + тесты на фильтр.
-4. `/api/dictionaries`, `/api/companies`, `/api/companies/{id}`.
-5. `/api/map/cells` (точки и кластеры).
-6. `/api/municipalities/stats`, `/api/white-spots`.
-7. `/internal/companies` со стримингом.
-8. Нагрузка: на 200 000 строк карта по всей области должна отвечать быстрее 300 мс.
-9. Тесты Testcontainers, финальная проверка по чек-листу.
-10. Продукт 2 (`invest/`) — только после зелёной сборки продукта 1: `/api/projects`, `/api/projects/{id}`, `/api/projects/timeline`, `/internal/projects?updatedSince=`.
+Продукт 1 (шаги 1–9 исходного плана) и пункты 1–4 из `docs/tz/10-java-todo.md` сделаны. Дальше — по новым задачам:
+перед крупным изменением — план и «ок»; после задачи — тесты только по затронутым классам (`.\mvnw.cmd test -Dtest=…`,
+JAVA_HOME на JDK 21), полный прогон — в конце или по просьбе. Testcontainers поднимают `infra/db/init/01–05` сами.
 
 ## 9. Готово, когда
 

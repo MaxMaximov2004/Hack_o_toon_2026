@@ -26,6 +26,7 @@
       "excludedAt": null,
       "isNew": false,
       "registeredAt": "2025-07-10",
+      "relocated": false,
       "relation": "initiator"
     },
     {
@@ -53,6 +54,7 @@
       "excludedAt": null,
       "isNew": false,
       "registeredAt": "2026-07-10",
+      "relocated": false,
       "relation": "same_area_industry"
     },
     {
@@ -80,6 +82,7 @@
       "excludedAt": null,
       "isNew": false,
       "registeredAt": "2016-08-01",
+      "relocated": false,
       "relation": "same_area_industry"
     },
     {
@@ -107,6 +110,7 @@
       "excludedAt": null,
       "isNew": false,
       "registeredAt": "2016-08-01",
+      "relocated": false,
       "relation": "same_area_industry"
     }
   ],

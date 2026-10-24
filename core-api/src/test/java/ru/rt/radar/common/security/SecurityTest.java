@@ -9,6 +9,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -92,8 +93,18 @@ class SecurityTest {
         mvc.perform(post("/api/clients/import").header("Authorization", "Bearer " + DevTokens.valid("manager")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+        // Настоящий эндпоинт (clients/): admin проходит проверку доступа; без файла — уже ошибка запроса, но не 403
         mvc.perform(post("/api/clients/import").header("Authorization", "Bearer " + DevTokens.valid("manager", "admin")))
-                .andExpect(status().isOk());
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
+    }
+
+    @Test
+    void locationsImportNeedsAdmin() throws Exception {
+        mvc.perform(post("/api/locations/import").header("Authorization", "Bearer " + DevTokens.valid("manager")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+        mvc.perform(post("/api/locations/import").header("Authorization", "Bearer " + DevTokens.valid("manager", "admin")))
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
     }
 
     @Test

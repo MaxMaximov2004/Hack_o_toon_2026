@@ -3,10 +3,10 @@ package ru.rt.radar.radar.filter;
 import ru.rt.radar.common.exception.ValidationException;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+
+import static ru.rt.radar.radar.filter.QueryParams.*;
 
 /**
  * Разбор и проверка CompanyFilter из query-параметров. Любая ошибка — {@link ValidationException}
@@ -29,9 +29,10 @@ public final class CompanyFilterParser {
     public static final String GROWTH_MIN = "growthMin";
     public static final String IS_NEW = "isNew";
     public static final String Q = "q";
+    public static final String RELOCATED = "relocated";
 
-    static final int Q_MIN = 2;
-    static final int Q_MAX = 200;
+    static final int Q_MIN = QueryParams.Q_MIN;
+    static final int Q_MAX = QueryParams.Q_MAX;
 
     private CompanyFilterParser() {
     }
@@ -58,14 +59,15 @@ public final class CompanyFilterParser {
         Double maxLon = single(params, MAX_LON, v -> coordinate(v, MAX_LON, 180));
         checkBounds(minLat, maxLat, minLon, maxLon);
 
-        Boolean isNew = single(params, IS_NEW, CompanyFilterParser::bool);
-        String q = single(params, Q, CompanyFilterParser::query);
+        Boolean isNew = single(params, IS_NEW, v -> bool(v, IS_NEW));
+        String q = single(params, Q, v -> query(v, Q));
+        Boolean relocated = single(params, RELOCATED, v -> bool(v, RELOCATED));
 
         return new CompanyFilter(
                 client == null ? ClientMode.ALL : client,
                 status == null ? StatusMode.ACTIVE : status,
                 industries, revenueMin, revenueMax, minLat, maxLat, minLon, maxLon,
-                municipalityIds, sizes, growthMin, Boolean.TRUE.equals(isNew), q);
+                municipalityIds, sizes, growthMin, Boolean.TRUE.equals(isNew), q, Boolean.TRUE.equals(relocated));
     }
 
     private static void checkBounds(Double minLat, Double maxLat, Double minLon, Double maxLon) {
@@ -86,72 +88,7 @@ public final class CompanyFilterParser {
         }
     }
 
-    // ---- разбор значений ----
-
-    /** Одиночный параметр: пустое значение = не задан, повтор — ошибка. */
-    private static <T> T single(Map<String, String[]> params, String name, Function<String, T> convert) {
-        List<String> values = values(params, name);
-        if (values.isEmpty()) {
-            return null;
-        }
-        if (values.size() > 1) {
-            throw new ValidationException(name, "Параметр " + name + " задан несколько раз");
-        }
-        return convert.apply(values.get(0));
-    }
-
-    /** Множественный параметр — повтором: ?industry=trade&industry=logistics. Дубли убираются. */
-    private static <T> List<T> multi(Map<String, String[]> params, String name, Function<String, T> convert) {
-        List<T> result = new ArrayList<>();
-        for (String v : values(params, name)) {
-            T item = convert.apply(v);
-            if (!result.contains(item)) {
-                result.add(item);
-            }
-        }
-        return result;
-    }
-
-    private static List<String> values(Map<String, String[]> params, String name) {
-        String[] raw = params.get(name);
-        List<String> values = new ArrayList<>();
-        if (raw != null) {
-            for (String v : raw) {
-                if (v != null && !v.isBlank()) {
-                    values.add(v.trim());
-                }
-            }
-        }
-        return values;
-    }
-
-    private static BigDecimal decimal(String v, String field) {
-        try {
-            return new BigDecimal(v);
-        } catch (NumberFormatException e) {
-            throw new ValidationException(field, "Параметр " + field + " должен быть числом, получено '" + v + "'");
-        }
-    }
-
-    private static BigDecimal nonNegative(String v, String field) {
-        BigDecimal d = decimal(v, field);
-        if (d.signum() < 0) {
-            throw new ValidationException(field, "Параметр " + field + " не может быть отрицательным");
-        }
-        return d;
-    }
-
-    private static Integer positiveInt(String v, String field) {
-        try {
-            int i = Integer.parseInt(v);
-            if (i > 0) {
-                return i;
-            }
-        } catch (NumberFormatException ignored) {
-            // ниже — общая ошибка
-        }
-        throw new ValidationException(field, "Параметр " + field + " должен быть положительным целым, получено '" + v + "'");
-    }
+    // ---- разбор значений (общие — в QueryParams) ----
 
     private static Double coordinate(String v, String field, double limit) {
         double d;
@@ -164,23 +101,5 @@ public final class CompanyFilterParser {
             throw new ValidationException(field, "Параметр " + field + " должен быть в диапазоне от -" + (int) limit + " до " + (int) limit);
         }
         return d;
-    }
-
-    private static Boolean bool(String v) {
-        return switch (v) {
-            case "true" -> true;
-            case "false" -> false;
-            default -> throw new ValidationException(IS_NEW, "Параметр isNew принимает true или false");
-        };
-    }
-
-    private static String query(String v) {
-        if (v.length() < Q_MIN) {
-            throw new ValidationException(Q, "Строка поиска q — не короче " + Q_MIN + " символов");
-        }
-        if (v.length() > Q_MAX) {
-            throw new ValidationException(Q, "Строка поиска q — не длиннее " + Q_MAX + " символов");
-        }
-        return v;
     }
 }

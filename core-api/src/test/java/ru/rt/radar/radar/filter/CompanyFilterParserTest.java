@@ -59,6 +59,12 @@ class CompanyFilterParserTest {
     }
 
     @Test
+    void relocatedTrueOnlyFalseMeansNotSet() {
+        assertThat(filter("relocated=true").relocated()).isTrue();
+        assertThat(filter("relocated=false")).isEqualTo(CompanyFilter.defaults());
+    }
+
+    @Test
     void duplicatesInMultiRemoved() {
         assertThat(filter("industry=it&industry=it").industries()).containsExactly(Industry.IT);
     }
@@ -89,6 +95,7 @@ class CompanyFilterParserTest {
             "revenueMin=200&revenueMax=100                  | revenueMin",
             "growthMin=ten                                  | growthMin",
             "isNew=yes                                      | isNew",
+            "relocated=1                                    | relocated",
             "q=a                                            | q",
             "minLat=47&maxLat=48&minLon=39                  | maxLon",
             "maxLat=48                                      | minLat",

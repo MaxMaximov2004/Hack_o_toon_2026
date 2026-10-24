@@ -38,10 +38,10 @@ public class CompanyRepository {
             SELECT c.id, c.inn, c.name, c.industry, c.okved_code, c.okved_name, c.municipality_id,
                    m.name AS municipality_name, c.settlement, c.lat, c.lon, c.size_category, c.employees,
                    c.revenue_est, c.revenue_growth_est, c.revenue_source, c.is_estimated, c.is_client, c.status,
-                   %s AS kind, c.excluded_at, c.is_new, c.registered_at,
+                   %s AS kind, c.excluded_at, c.is_new, c.registered_at, %s AS relocated,
                    c.ogrn, c.subject_type, c.phone, c.email, c.website, c.has_licenses, c.is_innovative, c.is_social
             FROM company c JOIN municipality m ON m.id = c.municipality_id
-            """.formatted(CompanyFilterSql.KIND);
+            """.formatted(CompanyFilterSql.KIND, CompanyFilterSql.RELOCATED);
 
     private static final Set<String> warnedIndustries = ConcurrentHashMap.newKeySet();
 
@@ -139,6 +139,7 @@ public class CompanyRepository {
                 rs.getObject("excluded_at", LocalDate.class),
                 rs.getBoolean("is_new"),
                 rs.getObject("registered_at", LocalDate.class),
+                rs.getBoolean("relocated"),
                 rs.getString("ogrn"),
                 rs.getString("subject_type"),
                 rs.getString("phone"),
