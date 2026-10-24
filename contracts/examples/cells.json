@@ -1,0 +1,16 @@
+{
+  "mode": "cells",
+  "cellDeg": 0.65625,
+  "total": 117020,
+  "cells": [
+    { "lat": 47.2301, "lon": 39.7105, "total": 61240, "ours": 268, "others": 60972, "excluded": 0 },
+    { "lat": 47.2224, "lon": 38.9012, "total": 14310, "ours": 54, "others": 14256, "excluded": 0 },
+    { "lat": 47.5602, "lon": 40.1533, "total": 12870, "ours": 39, "others": 12831, "excluded": 0 },
+    { "lat": 47.1199, "lon": 39.5521, "total": 9540, "ours": 41, "others": 9499, "excluded": 0 },
+    { "lat": 47.5241, "lon": 42.1203, "total": 8320, "ours": 27, "others": 8293, "excluded": 0 },
+    { "lat": 48.318, "lon": 40.2611, "total": 3960, "ours": 18, "others": 3942, "excluded": 0 },
+    { "lat": 46.4801, "lon": 41.5302, "total": 3120, "ours": 0, "others": 3120, "excluded": 0 },
+    { "lat": 48.9227, "lon": 40.3984, "total": 2210, "ours": 9, "others": 2201, "excluded": 0 },
+    { "lat": 48.3511, "lon": 41.8302, "total": 1450, "ours": 6, "others": 1444, "excluded": 0 }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "municipalityId": 5, "name": "Сальский р-н", "lat": 46.4752, "lon": 41.5413,
+    "potentialScore": 72.5, "companies": 3120, "clients": 0,
+    "reason": "3120 компаний, охват РТ 0.00% при среднем по области 0.39%"
+  },
+  {
+    "municipalityId": 7, "name": "Азовский р-н", "lat": 47.05, "lon": 39.6,
+    "potentialScore": 58.03, "companies": 4870, "clients": 3,
+    "reason": "4870 компаний, охват РТ 0.06% при среднем по области 0.39%"
+  }
+]

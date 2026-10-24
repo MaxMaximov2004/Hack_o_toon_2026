@@ -1,0 +1,35 @@
+{
+  "industries": [
+    { "code": "agro", "name": "Сельское хозяйство" },
+    { "code": "energy", "name": "Добыча и энергетика" },
+    { "code": "manufacturing", "name": "Производство" },
+    { "code": "construction", "name": "Строительство" },
+    { "code": "trade", "name": "Торговля" },
+    { "code": "logistics", "name": "Транспорт и логистика" },
+    { "code": "hospitality", "name": "Гостиницы и общепит" },
+    { "code": "it", "name": "ИТ и связь" },
+    { "code": "realestate", "name": "Недвижимость" },
+    { "code": "services", "name": "Услуги" },
+    { "code": "other", "name": "Прочее" }
+  ],
+  "municipalities": [
+    { "id": 7, "name": "Азовский р-н", "kind": "district", "lat": 47.05, "lon": 39.6 },
+    { "id": 4, "name": "Аксайский р-н", "kind": "district", "lat": 47.2676, "lon": 39.8756 },
+    { "id": 11, "name": "Миллеровский р-н", "kind": "district", "lat": 48.9227, "lon": 40.3984 },
+    { "id": 5, "name": "Сальский р-н", "kind": "district", "lat": 46.4752, "lon": 41.5413 },
+    { "id": 3, "name": "г. Азов", "kind": "city", "lat": 47.1078, "lon": 39.4237 },
+    { "id": 10, "name": "г. Батайск", "kind": "city", "lat": 47.1383, "lon": 39.7448 },
+    { "id": 9, "name": "г. Волгодонск", "kind": "city", "lat": 47.5136, "lon": 42.1514 },
+    { "id": 6, "name": "г. Новочеркасск", "kind": "city", "lat": 47.422, "lon": 40.0939 },
+    { "id": 1, "name": "г. Ростов-на-Дону", "kind": "city", "lat": 47.2357, "lon": 39.7015 },
+    { "id": 2, "name": "г. Таганрог", "kind": "city", "lat": 47.2362, "lon": 38.8969 },
+    { "id": 8, "name": "г. Шахты", "kind": "city", "lat": 47.7085, "lon": 40.216 }
+  ],
+  "sizeCategories": [
+    { "code": "micro", "name": "Микропредприятие" },
+    { "code": "small", "name": "Малое" },
+    { "code": "medium", "name": "Среднее" }
+  ],
+  "stages": [],
+  "needs": []
+}

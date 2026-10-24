@@ -1,0 +1,34 @@
+[
+  {
+    "municipalityId": 1, "name": "г. Ростов-на-Дону", "kind": "city", "lat": 47.2357, "lon": 39.7015,
+    "industry": "all", "companies": 61240, "clients": 268, "excludedClients": 12, "coverage": 0.0044,
+    "newShare": 0.183, "revenueEstSum": 1837200000000, "potentialScore": 0.0, "isWhiteSpot": false, "reason": null
+  },
+  {
+    "municipalityId": 2, "name": "г. Таганрог", "kind": "city", "lat": 47.2362, "lon": 38.8969,
+    "industry": "all", "companies": 14310, "clients": 54, "excludedClients": 2, "coverage": 0.0038,
+    "newShare": 0.1512, "revenueEstSum": 386400000000, "potentialScore": 76.96, "isWhiteSpot": false, "reason": null
+  },
+  {
+    "municipalityId": 4, "name": "Аксайский р-н", "kind": "district", "lat": 47.2676, "lon": 39.8756,
+    "industry": "all", "companies": 8100, "clients": 21, "excludedClients": 3, "coverage": 0.0026,
+    "newShare": 0.17, "revenueEstSum": 64000000000, "potentialScore": 23.94, "isWhiteSpot": false, "reason": null
+  },
+  {
+    "municipalityId": 5, "name": "Сальский р-н", "kind": "district", "lat": 46.4752, "lon": 41.5413,
+    "industry": "all", "companies": 3120, "clients": 0, "excludedClients": 1, "coverage": 0.0,
+    "newShare": 0.2204, "revenueEstSum": 52300000000, "potentialScore": 72.5, "isWhiteSpot": true,
+    "reason": "3120 компаний, охват РТ 0.00% при среднем по области 0.39%"
+  },
+  {
+    "municipalityId": 7, "name": "Азовский р-н", "kind": "district", "lat": 47.05, "lon": 39.6,
+    "industry": "all", "companies": 4870, "clients": 3, "excludedClients": 0, "coverage": 0.0006,
+    "newShare": 0.1987, "revenueEstSum": 71800000000, "potentialScore": 58.03, "isWhiteSpot": true,
+    "reason": "4870 компаний, охват РТ 0.06% при среднем по области 0.39%"
+  },
+  {
+    "municipalityId": 3, "name": "г. Азов", "kind": "city", "lat": 47.1078, "lon": 39.4237,
+    "industry": "all", "companies": 3410, "clients": 18, "excludedClients": 1, "coverage": 0.0053,
+    "newShare": 0.1402, "revenueEstSum": 48900000000, "potentialScore": 0.0, "isWhiteSpot": false, "reason": null
+  }
+]
