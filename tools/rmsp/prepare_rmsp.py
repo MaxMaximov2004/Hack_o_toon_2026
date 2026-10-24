@@ -93,6 +93,7 @@ def read_rows(path):
     if path.lower().endswith((".xlsx", ".xlsm")):
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
         for ws in wb.worksheets:
+            ws.reset_dimensions()
             it = ws.iter_rows(values_only=True)
             for row in it:
                 if any(norm_header(c) == "инн" for c in row if c is not None):

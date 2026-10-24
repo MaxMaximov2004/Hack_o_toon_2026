@@ -46,37 +46,39 @@ services:
     build: ./etl
     container_name: radar-etl
     environment:
+      PORT: "8084"
       DATABASE_URL: postgresql://etl_loader:${ETL_DB_PASSWORD:-etl_dev}@postgres:5432/radar
-      RANDOM_SEED: "42"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
-
-  # ------------------------------------------------------------------
-  # Go — auth-service: вход, 2FA, JWT. Ведёт: Go
-  # ------------------------------------------------------------------
-  auth-service:
-    build: ./auth-service
-    container_name: radar-auth
-    environment:
-      PORT: "8081"
-      DATABASE_URL: postgres://auth_svc:${AUTH_DB_PASSWORD:-auth_dev}@postgres:5432/radar?sslmode=disable
-      JWT_KEY_PATH: /keys/jwt-private.pem          # нет файла -> сервис создаст ключ сам
-      ACCESS_TOKEN_TTL: 8h
-      MFA_TOKEN_TTL: 5m
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
-      DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-demo@rt.ru}
-      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-Demo2026!}
-      DEMO_TOTP_SECRET: ${DEMO_TOTP_SECRET:-JBSWY3DPEHPK3PXP}
-      ADMIN_USER_EMAIL: ${ADMIN_USER_EMAIL:-admin@rt.ru}
-      ADMIN_USER_PASSWORD: ${ADMIN_USER_PASSWORD:-Admin2026!}
-    volumes:
-      - auth-keys:/keys
+      AUTO_LOAD: if-empty
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Go — auth-service: вход, 2FA, JWT. Ведёт: Go
+  # ------------------------------------------------------------------
+  # auth-service:
+  #   build: ./auth-service
+  #   container_name: radar-auth
+  #   environment:
+  #     PORT: "8081"
+  #     DATABASE_URL: postgres://auth_svc:${AUTH_DB_PASSWORD:-auth_dev}@postgres:5432/radar?sslmode=disable
+  #     JWT_KEY_PATH: /keys/jwt-private.pem          # нет файла -> сервис создаст ключ сам
+  #     ACCESS_TOKEN_TTL: 8h
+  #     MFA_TOKEN_TTL: 5m
+  #     INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+  #     DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-demo@rt.ru}
+  #     DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-Demo2026!}
+  #     DEMO_TOTP_SECRET: ${DEMO_TOTP_SECRET:-JBSWY3DPEHPK3PXP}
+  #     ADMIN_USER_EMAIL: ${ADMIN_USER_EMAIL:-admin@rt.ru}
+  #     ADMIN_USER_PASSWORD: ${ADMIN_USER_PASSWORD:-Admin2026!}
+  #   volumes:
+  #     - auth-keys:/keys
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # ------------------------------------------------------------------
   # auth-stub: ПОДМЕНА auth-service для разработки, пока Go не готов.
@@ -104,73 +106,73 @@ services:
   # ------------------------------------------------------------------
   # Java — core-api: радар (и навигатор в продукте 2). Ведут: Java #1, Java #2
   # ------------------------------------------------------------------
-  core-api:
-    build: ./core-api
-    container_name: radar-core
-    environment:
-      SERVER_PORT: "8080"
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/radar?currentSchema=core
-      SPRING_DATASOURCE_USERNAME: core_svc
-      SPRING_DATASOURCE_PASSWORD: ${CORE_DB_PASSWORD:-core_dev}
-      AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
-      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+  # core-api:
+  #   build: ./core-api
+  #   container_name: radar-core
+  #   environment:
+  #     SERVER_PORT: "8080"
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/radar?currentSchema=core
+  #     SPRING_DATASOURCE_USERNAME: core_svc
+  #     SPRING_DATASOURCE_PASSWORD: ${CORE_DB_PASSWORD:-core_dev}
+  #     AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
+  #     INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # ------------------------------------------------------------------
   # C# — export-service: CSV / CRM (и калькулятор в резерве). Ведёт: C#
   # ------------------------------------------------------------------
-  export-service:
-    build: ./export-service
-    container_name: radar-export
-    environment:
-      ASPNETCORE_URLS: http://+:8082
-      CORE_API_URL: http://core-api:8080
-      AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
-      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
-      # Резерв (модуль 3), пока не используется:
-      CALC_DB: Host=postgres;Port=5432;Database=radar;Username=calc_svc;Password=${CALC_DB_PASSWORD:-calc_dev};Search Path=calc
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+  # export-service:
+  #   build: ./export-service
+  #   container_name: radar-export
+  #   environment:
+  #     ASPNETCORE_URLS: http://+:8082
+  #     CORE_API_URL: http://core-api:8080
+  #     AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
+  #     INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+  #     # Резерв (модуль 3), пока не используется:
+  #     CALC_DB: Host=postgres;Port=5432;Database=radar;Username=calc_svc;Password=${CALC_DB_PASSWORD:-calc_dev};Search Path=calc
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # ------------------------------------------------------------------
   # Go — notifier: подписки и Telegram. ПРОДУКТ 2, по умолчанию не стартует
   # ------------------------------------------------------------------
-  notifier:
-    profiles: ["product2"]
-    build: ./notifier
-    container_name: radar-notifier
-    environment:
-      PORT: "8083"
-      DATABASE_URL: postgres://notify_svc:${NOTIFY_DB_PASSWORD:-notify_dev}@postgres:5432/radar?sslmode=disable
-      CORE_API_URL: http://core-api:8080
-      AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
-      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      CHECK_INTERVAL: 60s
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+  # notifier:
+  #   profiles: ["product2"]
+  #   build: ./notifier
+  #   container_name: radar-notifier
+  #   environment:
+  #     PORT: "8083"
+  #     DATABASE_URL: postgres://notify_svc:${NOTIFY_DB_PASSWORD:-notify_dev}@postgres:5432/radar?sslmode=disable
+  #     CORE_API_URL: http://core-api:8080
+  #     AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
+  #     INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+  #     TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+  #     CHECK_INTERVAL: 60s
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # ------------------------------------------------------------------
   # nginx: единая точка входа + статика фронта (собирается из ./frontend).
   # Ведут: Java #2 (конфиг), Фронт (сборка)
   # ------------------------------------------------------------------
-  nginx:
-    build:
-      context: .
-      dockerfile: infra/nginx/Dockerfile
-    container_name: radar-nginx
-    ports:
-      - "${HTTP_PORT:-80}:80"
-    # depends_on намеренно нет: nginx резолвит сервисы в момент запроса,
-    # поэтому можно поднять часть системы (например, без export-service).
-    restart: unless-stopped
+  # nginx:
+  #   build:
+  #     context: .
+  #     dockerfile: infra/nginx/Dockerfile
+  #   container_name: radar-nginx
+  #   ports:
+  #     - "${HTTP_PORT:-80}:80"
+  #   # depends_on намеренно нет: nginx резолвит сервисы в момент запроса,
+  #   # поэтому можно поднять часть системы (например, без export-service).
+  #   restart: unless-stopped
 
 volumes:
   pgdata:

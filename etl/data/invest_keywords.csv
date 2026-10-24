@@ -1,0 +1,19 @@
+keyword,industry,needs
+склад,logistics,it_infra|phys_security
+логистич,logistics,it_infra|phys_security
+порт,logistics,it_infra|phys_security
+завод,manufacturing,apcs|it_infra
+цех,manufacturing,apcs|it_infra
+производств,manufacturing,apcs|it_infra
+тепличн,agro,apcs
+сад,agro,apcs
+выращиван,agro,apcs
+комбикорм,agro,apcs
+жк,construction,it_infra|phys_security
+многоквартирн,construction,it_infra|phys_security
+застройщик,construction,it_infra|phys_security
+магазин,trade,it_infra|info_security
+торгов,trade,it_infra|info_security
+база отдыха,hospitality,it_infra
+пляж,hospitality,it_infra
+кафе,hospitality,it_infra
