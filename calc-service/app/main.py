@@ -2,12 +2,14 @@
 
 import os
 import jwt
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta
 
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import Response, StreamingResponse
 
 from app.config import settings
+from app.db import init_pool
 from app.errors import register_exception_handlers
 from app.auth import verify_jwt
 from app.catalog import get_catalog, validate_region, validate_level, validate_stages, validate_components
@@ -19,7 +21,15 @@ from app.engine import load_pricing_params
 
 _MOSCOW = timezone(timedelta(hours=3))
 
-app = FastAPI(title="Калькулятор сделок", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Инициализация пула БД при старте, закрытие при остановке."""
+    init_pool()
+    yield
+
+
+app = FastAPI(title="Калькулятор сделок", version="1.0.0", lifespan=lifespan)
 register_exception_handlers(app)
 
 # Глобальный валидатор каталога (для estimate)

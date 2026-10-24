@@ -1,0 +1,9 @@
+{
+  "regionId": 1,
+  "level": "basic",
+  "termMonths": 12,
+  "financing": "prepay",
+  "stages": ["pir"],
+  "items": [{"componentId": "el_01", "qty": 10}],
+  "client": {"name": "OOO Test", "inn": "1234567890"}
+}

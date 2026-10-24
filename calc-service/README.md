@@ -158,3 +158,5 @@ calc-service/
 │   └── pricing_params.json
 └── tests/
 ```
+
+docker exec -it radar-postgres psql -U postgres -d radar -c "SELECT count(*) FROM calc.component;"

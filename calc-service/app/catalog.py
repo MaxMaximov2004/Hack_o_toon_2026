@@ -53,7 +53,7 @@ def _load_stages():
             {
                 "code": r["code"],
                 "name": r["name"],
-                "shareOfEquipment": float(r["share_of_equipment"]),
+                "share_of_equipment": float(r["share_of_equipment"]),
                 "comment": r["comment"],
             }
             for r in rows
@@ -76,7 +76,7 @@ def _load_components():
                 "id": r["id"],
                 "name": r["name"],
                 "unit": r["unit"],
-                "basePrice": float(r["base_price"]),
+                "base_price": float(r["base_price"]),
                 "complexity": float(r["complexity"]),
             }
         )
