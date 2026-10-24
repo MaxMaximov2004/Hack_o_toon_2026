@@ -114,6 +114,8 @@ curl -s localhost/api/companies -H "Authorization: Bearer <accessToken>"   # cor
 
 ## Продукт 2 — notifier (после зелёной сборки)
 
+> **Изменено:** notifier пишет Java #2 на Java (папка `notifier/`), по контракту [08](08-product2-contract.md). Раздел ниже — для истории.
+
 Папка `notifier/`, порт 8083, схема `notify`, пользователь `notify_svc` (таблицы уже созданы), профиль compose `product2`.
 
 - `GET/POST /api/subscriptions`, `DELETE /api/subscriptions/{id}` — подписка на `industry` / `municipalityId` /

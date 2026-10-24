@@ -1,7 +1,7 @@
 # 08. Продукт 2 «Инвестиционный навигатор» — контракт
 
-Читают: Java #1 (core-api, пакет `invest/`), фронт (страница «Навигатор»), Go (notifier), C# (экспорт проектов),
-Java #2 (связанные компании, справочник услуг). Примеры ответов — в [`contracts/examples/`](../../contracts/examples/)
+Читают: Java #1 (core-api, пакет `invest/`), фронт (страница «Навигатор»), C# (экспорт проектов),
+Java #2 (связанные компании, справочник услуг, **notifier — на Java, папка `notifier/`**). Примеры ответов — в [`contracts/examples/`](../../contracts/examples/)
 (файлы `project*.json`, `timeline.json`, `related-companies.json`, `subscriptions.json`, `notifications.json`,
 `telegram-link.json`), на них фронт делает MSW-заглушки, пока бэкенд не готов. При расхождении верить этому файлу.
 Общие правила (JWT, формат ошибок, пагинация, camelCase, `null` вместо пропуска) — как в [00-common](00-common.md).
@@ -116,7 +116,7 @@ type RelatedCompanies = {
   (потенциальные), затем клиенты; внутри — по `revenueEst` убыв. Инициатор повторно не включается.
 - У проекта нет отрасли → только инициатор, `sameAreaIndustryTotal = 0`, `radarQuery = null`.
 
-## notifier (Go) — подписки и уведомления
+## notifier (Java, Java #2) — подписки и уведомления
 
 Пользователь — `sub` из JWT. Через nginx: `/api/subscriptions*`, `/api/notifications*` → notifier :8083.
 
@@ -133,7 +133,8 @@ type Subscription = { id: number; industry: string | null; municipalityId: numbe
 ```
 
 **Проект подходит подписке**, если совпадают **все** её заполненные поля: `industry =`, `municipalityId =`,
-`need ∈ needs`, `stage =`.
+`need ∈ needs`, `stage =` — **и** проект изменён после создания подписки (`updatedAt > createdAt`): иначе новая
+подписка «на Ростов» сразу завалила бы ленту всеми старыми проектами.
 
 ### Лента
 
@@ -149,13 +150,15 @@ type Notification = { id: number; projectId: number; title: string; municipality
 ### Telegram
 
 `GET /api/notifications/telegram-link` → `{ botConfigured: boolean, linked: boolean, url: string | null }`.
-`url` = `https://t.me/<bot>?start=<link_token>`; бот не настроен (`TELEGRAM_BOT_TOKEN` пуст) → `botConfigured: false`, `url: null`
+`url` = `https://t.me/<bot>?start=<link_token>`, `<bot>` берётся из Telegram (`getMe`); бот не настроен (`TELEGRAM_BOT_TOKEN` пуст) → `botConfigured: false`, `url: null`
 — фронт показывает «Telegram не подключён на сервере», остальное работает.
 
 ### Воркер и демо
 
 Раз в `CHECK_INTERVAL`: `GET http://core-api:8080/internal/projects?updatedSince=<lastCheckedAt>` → подходящие подписки →
-`INSERT … ON CONFLICT (user_id, project_id) DO NOTHING` → Telegram, если привязан → `lastCheckedAt`.
+`INSERT … ON CONFLICT (user_id, project_id) DO NOTHING` → Telegram, если привязан → `lastCheckedAt` = максимальный
+`updatedAt` из ответа. core-api не ответил → в лог, повтор по расписанию; ручной запуск в этом случае отвечает 502.
+Входящие команды бота — long polling (`getUpdates`), вебхук и белый IP не нужны.
 **Демо на защите:** подписаться в интерфейсе → `docker compose exec etl python -m etl demo-project` (новый проект с
 `updated_at = now()`) → `POST /internal/notifier/check` (или подождать `CHECK_INTERVAL`) → уведомление в ленте и Telegram.
 

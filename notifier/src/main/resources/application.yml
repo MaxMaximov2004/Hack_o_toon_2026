@@ -1,0 +1,49 @@
+# Конфиг только из переменных окружения (имена — как в docker-compose.yml):
+# SERVER_PORT, SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD,
+# CORE_API_URL, AUTH_JWKS_URL, INTERNAL_TOKEN, TELEGRAM_BOT_TOKEN, CHECK_INTERVAL.
+# Схема БД — только infra/db/init, из кода ничего не создаём.
+server:
+  port: ${SERVER_PORT:8083}
+  shutdown: graceful
+
+spring:
+  application:
+    name: notifier
+  main:
+    banner-mode: off
+  datasource:
+    hikari:
+      # Старт без БД: пул не подключается при запуске, /health ответит 503, пока Postgres не поднимется.
+      initialization-fail-timeout: -1
+      connection-timeout: 2000
+      maximum-pool-size: 5
+      pool-name: notifier-hikari
+  sql:
+    init:
+      mode: never
+  jackson:
+    default-property-inclusion: always
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    problemdetails:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+radar:
+  auth-jwks-url: ${AUTH_JWKS_URL:}
+  internal-token: ${INTERNAL_TOKEN:}
+  core-api-url: ${CORE_API_URL:http://core-api:8080}
+  check-interval: ${CHECK_INTERVAL:60s}
+  telegram-bot-token: ${TELEGRAM_BOT_TOKEN:}
+  telegram-api-url: ${TELEGRAM_API_URL:https://api.telegram.org}
+
+logging:
+  level:
+    root: INFO

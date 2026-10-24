@@ -33,7 +33,7 @@ docker compose up -d --build
 | `etl/`, `tools/rmsp/` | выгрузка реестра, ETL (одноразовый) | — | `etl` + DML в `core` / `etl_loader` | Python | [04-python-etl](docs/tz/04-python-etl.md) |
 | `auth-service/` | auth-service | 8081 | `auth` / `auth_svc` | Go | [05-go-auth](docs/tz/05-go-auth.md) |
 | `export-service/` | export-service | 8082 | — (резерв: `calc` / `calc_svc`) | C# | [06-csharp-export](docs/tz/06-csharp-export.md) |
-| `notifier/` | notifier, продукт 2 | 8083 | `notify` / `notify_svc` | Go | [05-go-auth](docs/tz/05-go-auth.md) |
+| `notifier/` | notifier, продукт 2 (Java) | 8083 | `notify` / `notify_svc` | Java #2, техлид | [08-product2-contract](docs/tz/08-product2-contract.md) |
 
 Общие правила, контракт и соглашения — [docs/tz/00-common.md](docs/tz/00-common.md).
 Продукт 2 «Инвестиционный навигатор» — контракт [docs/tz/08-product2-contract.md](docs/tz/08-product2-contract.md).

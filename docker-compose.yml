@@ -143,15 +143,19 @@ services:
   #   restart: unless-stopped
 
   # ------------------------------------------------------------------
-  # Go — notifier: подписки и Telegram. ПРОДУКТ 2, по умолчанию не стартует
+  # Java — notifier: подписки, лента, Telegram. ПРОДУКТ 2, по умолчанию не стартует:
+  #   docker compose --profile product2 up -d --build
+  # Ведёт: Java #2 (техлид)
   # ------------------------------------------------------------------
   notifier:
     profiles: ["product2"]
     build: ./notifier
     container_name: radar-notifier
     environment:
-      PORT: "8083"
-      DATABASE_URL: postgres://notify_svc:${NOTIFY_DB_PASSWORD:-notify_dev}@postgres:5432/radar?sslmode=disable
+      SERVER_PORT: "8083"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/radar?currentSchema=notify
+      SPRING_DATASOURCE_USERNAME: notify_svc
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFY_DB_PASSWORD:-notify_dev}
       CORE_API_URL: http://core-api:8080
       AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
