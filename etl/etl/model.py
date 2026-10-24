@@ -45,13 +45,36 @@ def revenue_model(inn, size, subject_type, industry, employees):
     return round(min(max(rev, lo), hi), 2)
 
 
-def growth_model(inn, registered_at):
-    if registered_at is None:
-        base = 12.0
-    else:
-        age = CURRENT_YEAR - registered_at.year
-        base = 25.0 if age < 2 else 12.0 if age <= 5 else 5.0
-    return round(base + 16 * (u(inn, "g") - 0.5), 1)
+# Модельный рост откалиброван по реальному росту ФНС 2024→2025 (~22 тыс. юрлиц области): квартили по отрасли
+# и поправка для молодых компаний. Пересчитать: cd etl && python tools/calibrate_growth.py — и вставить сюда.
+GROWTH_DEFAULT = (-28.4, 0.5, 30.1)
+GROWTH_BY_INDUSTRY = {   # (p25, медиана, p75), % год к году
+    "trade": (-34.1, -6.3, 22.7),   # n=7528
+    "services": (-14.6, 11.1, 39.7),   # n=3840
+    "manufacturing": (-25.3, -0.8, 27.8),   # n=2703
+    "construction": (-39.1, 1.2, 58.9),   # n=2381
+    "realestate": (-7.2, 6.7, 20.8),   # n=1845
+    "logistics": (-38.1, -6.0, 26.9),   # n=1439
+    "it": (-13.5, 10.8, 35.9),   # n=779
+    "agro": (-49.0, -23.9, 6.0),   # n=693
+    "hospitality": (-17.3, 1.5, 28.2),   # n=680
+    "energy": (-24.0, 2.8, 33.6),   # n=192
+    "other": (-31.7, 1.8, 36.5),   # n=132
+}
+GROWTH_YOUNG_YEARS = 5   # «молодая» — в реестре МСП не дольше 5 лет
+GROWTH_YOUNG_BONUS = 9   # медиана молодых 8.8 % (n=4913) против -0.7 % (n=17299), п. п.
+
+
+def growth_model(inn, registered_at, industry):
+    """Рост, %: точка между квартилями отрасли по хэшу ИНН (медиана — в центре) + поправка для молодых.
+    Все модельные значения — внутри межквартильного диапазона отрасли: оценка не выдумывает крайних значений,
+    они есть только в реальных данных ФНС. Стабильно между запусками."""
+    p25, p50, p75 = GROWTH_BY_INDUSTRY.get(industry, GROWTH_DEFAULT)
+    x = u(inn, "g")
+    g = p25 + (p50 - p25) * 2 * x if x < 0.5 else p50 + (p75 - p50) * 2 * (x - 0.5)
+    if registered_at is not None and CURRENT_YEAR - registered_at.year <= GROWTH_YOUNG_YEARS:
+        g += GROWTH_YOUNG_BONUS
+    return round(g, 1)
 
 
 # Рост по ФНС считаем, только если доход в обоих годах не меньше 1 млн ₽: на маленькой базе выходят тысячи процентов
