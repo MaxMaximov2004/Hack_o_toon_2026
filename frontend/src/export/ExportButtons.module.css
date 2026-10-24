@@ -49,3 +49,8 @@
     padding: 8px 12px;
   }
 }
+
+/* Только для роли admin — справа, чтобы не путать с выгрузкой */
+.adminButton {
+  margin-left: auto;
+}

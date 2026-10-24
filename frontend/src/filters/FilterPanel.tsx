@@ -302,6 +302,15 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHea
           />
         </div>
 
+        {/* Задача со звёздочкой: фактическое место ≠ регистрация */}
+        <div className={styles.section}>
+          <Checkbox
+            label="Работает не там, где зарегистрирован"
+            checked={filters.relocated || false}
+            onChange={(checked) => onFiltersChange({ relocated: checked || undefined })}
+          />
+        </div>
+
         {/* Показывать исключённых */}
         <div className={styles.section}>
           <Checkbox

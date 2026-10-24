@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getCompany } from '../api/endpoints'
 import { Badge } from '../ui/Badge'
+import { WhereWorks } from './WhereWorks'
 import styles from './CompanyCard.module.css'
 import { useState } from 'react'
 
@@ -74,6 +75,7 @@ export function CompanyCard({ companyId, onClose }: CompanyCardProps) {
           {company.isClient && <Badge variant="purple">наш клиент</Badge>}
           {company.isEstimated && <Badge variant="default">оценка</Badge>}
           {company.isNew && <Badge variant={kindColor}>новая</Badge>}
+          {company.relocated && <Badge variant="purple">работает в другом месте</Badge>}
           {company.status === 'excluded' && (
             <Badge variant="default">исключён из реестра МСП</Badge>
           )}
@@ -140,6 +142,8 @@ export function CompanyCard({ companyId, onClose }: CompanyCardProps) {
             <span className={styles.fieldValue}>{company.employees || '—'}</span>
           </div>
         </div>
+
+        <WhereWorks companyId={company.id} />
 
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Финансы</h3>

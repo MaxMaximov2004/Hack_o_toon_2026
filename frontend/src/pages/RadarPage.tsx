@@ -13,9 +13,11 @@ import { CompanyCard } from '../company/CompanyCard'
 import { Tabs } from '../ui/Tabs'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { AppHeader } from '../ui/AppHeader'
-import { useCallback, useState, useRef } from 'react'
+import { useCallback, useState, useRef, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMunicipalityStats, getWhiteSpots, getCompanies } from '../api/endpoints'
+import { getMunicipalityStats, getWhiteSpots, getCompanies, getCompanyLocations } from '../api/endpoints'
+import { companyLocationsKey } from '../api/queryKeys'
+import type { RelocationLine } from '../map/RadarMap'
 import { filterToQuery } from '../filters/filterToQuery'
 import type { Map } from 'maplibre-gl'
 import type { MunicipalityStats } from '../api/types'
@@ -80,6 +82,20 @@ export function RadarPage() {
     enabled: activeLayer === 'whiteSpots',
     staleTime: 60000,
   })
+
+  // Места выбранной компании — тот же кэш, что у блока «Где работает» в карточке
+  const { data: selectedLocations } = useQuery({
+    queryKey: companyLocationsKey(selectedCompanyId ?? 0),
+    queryFn: () => getCompanyLocations(selectedCompanyId!),
+    enabled: selectedCompanyId !== undefined,
+  })
+  const relocation = useMemo((): RelocationLine | null => {
+    if (selectedCompanyId === undefined || !selectedLocations?.relocated) return null
+    const to = selectedLocations.actual
+      .filter((a) => a.lat !== null && a.lon !== null)
+      .map((a) => ({ lat: a.lat!, lon: a.lon! }))
+    return to.length > 0 ? { from: selectedLocations.registered, to } : null
+  }, [selectedCompanyId, selectedLocations])
 
   const handleLayerChange = useCallback((layer: MapLayer) => {
     setActiveLayer(layer)
@@ -261,6 +277,7 @@ export function RadarPage() {
               potentialStats={activeLayer === 'potential' ? municipalityStats : undefined}
               whiteSpots={activeLayer === 'whiteSpots' ? whiteSpots : undefined}
               onDistrictClick={handleDistrictClick}
+              relocation={relocation}
             />
           </MapErrorBoundary>
           {/* Легенда - скрывается когда показаны белые пятна */}

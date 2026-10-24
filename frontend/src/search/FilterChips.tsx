@@ -138,7 +138,7 @@ export function FilterChips({ filters, onFiltersChange, onResetAll }: FilterChip
   if (filters.relocated) {
     chips.push({
       key: 'relocated',
-      label: 'Переехавшие',
+      label: 'Работает в другом месте',
       onRemove: () => onFiltersChange({ relocated: undefined }),
     })
   }

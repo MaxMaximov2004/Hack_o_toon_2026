@@ -183,13 +183,61 @@ export interface WhiteSpot {
   reason: string
 }
 
-// Импорт клиентов
+// Импорт клиентов (admin) — POST /api/clients/import, core-api clients/ClientImportResult
+export type ImportMode = 'append' | 'replace'
+
 export interface ImportClientsResponse {
   rows: number
   matched: number
   notFound: string[]
-  mode: 'append' | 'replace'
+  mode: ImportMode
   whiteSpots: number
+}
+
+// «Где работает» — GET /api/companies/{id}/locations (contracts/examples/locations.json)
+export type LocationSource = 'crm' | 'manager' | 'egrul' | string
+
+export interface RegisteredLocation {
+  municipalityName: string
+  settlement: string | null
+  lat: number
+  lon: number
+}
+
+export interface ActualLocation {
+  id: number
+  municipalityName: string | null
+  /** Другой регион, если место за пределами области */
+  regionName: string | null
+  address: string | null
+  lat: number | null
+  lon: number | null
+  source: LocationSource
+  confidence: number
+  note: string | null
+  createdAt: string
+}
+
+export interface CompanyLocations {
+  registered: RegisteredLocation
+  actual: ActualLocation[]
+  relocated: boolean
+}
+
+/** POST /api/companies/{id}/locations: ровно одно из municipalityName и regionName */
+export interface LocationInput {
+  municipalityName?: string
+  regionName?: string
+  address?: string
+  note?: string
+}
+
+/** POST /api/locations/import (admin) */
+export interface LocationImportResponse {
+  rows: number
+  matched: number
+  notFound: string[]
+  invalid: string[]
 }
 
 // Проекты (продукт 2 - Навигатор)

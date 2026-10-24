@@ -11,6 +11,12 @@ import type {
   Subscription,
   SubscriptionInput,
   Notification,
+  CompanyLocations,
+  ActualLocation,
+  LocationInput,
+  ImportClientsResponse,
+  ImportMode,
+  LocationImportResponse,
   NotificationsResponse,
 } from '../api/types'
 import projectsFixture from './fixtures/projects.json'
@@ -208,6 +214,7 @@ function createCompanyShort(
     excludedAt: kind === 'excluded' ? '2025-09-15T00:00:00Z' : null,
     isNew,
     registeredAt: `202${Math.floor(rng.range(0, 5))}-01-01T00:00:00Z`,
+    relocated: false,
   }
 }
 
@@ -224,6 +231,7 @@ export interface MockFilters {
   growthMin?: number
   isNew?: boolean
   q?: string
+  relocated?: boolean
 }
 
 export function filterCompanies(filters: MockFilters): CompanyShort[] {
@@ -287,6 +295,11 @@ export function filterCompanies(filters: MockFilters): CompanyShort[] {
     companies = companies.filter(
       (c) => c.revenueGrowthEst !== null && c.revenueGrowthEst >= filters.growthMin!
     )
+  }
+
+  // «Работает не там, где зарегистрирован»
+  if (filters.relocated) {
+    companies = companies.filter((c) => c.relocated)
   }
 
   // Фильтр по новизне
@@ -825,4 +838,159 @@ export function resetNotifierMocks(): void {
   nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
   notifications = buildMockNotifications()
   nextNotificationId = 101
+}
+
+// ============ «Где работает» и импорт CSV (ТЗ 07, роль admin) ============
+// Состояние в памяти страницы, как у подписок. Фактические места не выдумываем: стартово их нет,
+// демо — ввод менеджера в карточке («ИП из Сальска → фактически Азов») и импорт CSV из CRM.
+
+const CONFIDENCE: Record<string, number> = { crm: 0.9, manager: 0.8, egrul: 0.7 }
+let locations = new Map<number, ActualLocation[]>()
+let nextLocationId = 1
+
+function findMunicipalityByName(name: string) {
+  const n = name.trim().toLowerCase()
+  return mockDictionaries.municipalities.find((m) => m.name.toLowerCase() === n)
+}
+
+function recomputeRelocated(company: CompanyShort): void {
+  const actual = locations.get(company.id) ?? []
+  // Как CompanyFilterSql.RELOCATED: другой регион или другой муниципалитет, чем при регистрации
+  company.relocated = actual.some(
+    (a) => a.regionName !== null || (a.municipalityName !== null && a.municipalityName !== company.municipalityName)
+  )
+}
+
+export function getCompanyLocations(companyId: number): CompanyLocations | undefined {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  if (!company) return undefined
+  return {
+    registered: {
+      municipalityName: company.municipalityName,
+      settlement: company.settlement,
+      lat: company.lat,
+      lon: company.lon,
+    },
+    actual: [...(locations.get(companyId) ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id),
+    relocated: !!company.relocated,
+  }
+}
+
+export type MockLocationResult =
+  | { ok: true; location: ActualLocation }
+  | { ok: false; status: 400 | 404; field?: string; message: string }
+
+function addLocation(company: CompanyShort, input: LocationInput, source: string): MockLocationResult {
+  const municipalityName = input.municipalityName?.trim() || null
+  const regionName = input.regionName?.trim() || null
+  if ((municipalityName === null) === (regionName === null)) {
+    return { ok: false, status: 400, field: 'municipalityName', message: 'Укажите район/город области или другой регион — одно из двух' }
+  }
+  let lat: number | null = null
+  let lon: number | null = null
+  if (municipalityName !== null) {
+    const muni = findMunicipalityByName(municipalityName)
+    if (!muni) {
+      return { ok: false, status: 400, field: 'municipalityName', message: `Неизвестный район или город: ${municipalityName}` }
+    }
+    lat = muni.lat
+    lon = muni.lon
+  }
+  const location: ActualLocation = {
+    id: nextLocationId++,
+    municipalityName,
+    regionName,
+    address: input.address?.trim() || null,
+    lat,
+    lon,
+    source,
+    confidence: CONFIDENCE[source] ?? 0.5,
+    note: input.note?.trim() || null,
+    createdAt: new Date().toISOString(),
+  }
+  locations.set(company.id, [location, ...(locations.get(company.id) ?? [])])
+  recomputeRelocated(company)
+  return { ok: true, location }
+}
+
+export function addCompanyLocation(companyId: number, input: LocationInput): MockLocationResult {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  if (!company) return { ok: false, status: 404, message: `Компания ${companyId} не найдена` }
+  return addLocation(company, input, 'manager')
+}
+
+/** Менеджер удаляет только своё (source = manager) — как LocationService; 403 для остального */
+export function deleteCompanyLocation(companyId: number, locationId: number): 204 | 403 | 404 {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  const list = locations.get(companyId) ?? []
+  const found = list.find((l) => l.id === locationId)
+  if (!company || !found) return 404
+  if (found.source !== 'manager') return 403
+  locations.set(companyId, list.filter((l) => l.id !== locationId))
+  recomputeRelocated(company)
+  return 204
+}
+
+/** CSV: «;» или «,», с BOM или без; заголовок пропускаем, если первая ячейка не похожа на ИНН */
+function parseCsv(text: string): string[][] {
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim() !== '')
+  const delimiter = lines[0]?.includes(';') ? ';' : ','
+  const rows = lines.map((l) => l.split(delimiter).map((c) => c.trim().replace(/^"|"$/g, '')))
+  return rows.length > 0 && !/^\d{10,12}$/.test(rows[0][0]) ? rows.slice(1) : rows
+}
+
+export function importClientsCsv(text: string, mode: ImportMode): ImportClientsResponse {
+  const rows = parseCsv(text)
+  const byInn = new Map(getAllCompanies().map((c) => [c.inn, c]))
+  const matchedInns = new Set<string>()
+  const notFound: string[] = []
+  rows.forEach(([inn]) => {
+    if (byInn.has(inn)) matchedInns.add(inn)
+    else if (notFound.length < 100) notFound.push(inn)
+  })
+
+  getAllCompanies().forEach((c) => {
+    const isClient = matchedInns.has(c.inn) || (mode === 'append' && c.isClient)
+    // Меняется только признак клиента, статус в реестре — нет (ClientImportService)
+    c.isClient = isClient
+    c.kind = c.status === 'excluded' ? (isClient ? 'excluded' : 'others') : isClient ? 'ours' : 'others'
+  })
+
+  return {
+    rows: rows.length,
+    matched: matchedInns.size,
+    notFound,
+    mode,
+    whiteSpots: generateWhiteSpots('all', 1000).length,
+  }
+}
+
+export function importLocationsCsv(text: string): LocationImportResponse {
+  const rows = parseCsv(text)
+  const byInn = new Map(getAllCompanies().map((c) => [c.inn, c]))
+  let matched = 0
+  const notFound: string[] = []
+  const invalid: string[] = []
+  rows.forEach(([inn, municipality = '', region = '', address = '', source = ''], i) => {
+    const company = byInn.get(inn)
+    if (!company) {
+      if (notFound.length < 100) notFound.push(inn)
+      return
+    }
+    const result = addLocation(
+      company,
+      { municipalityName: municipality || undefined, regionName: region || undefined, address },
+      source || 'crm'
+    )
+    if (result.ok) matched++
+    else if (invalid.length < 100) invalid.push(`строка ${i + 1}: ${result.message}`)
+  })
+  return { rows: rows.length, matched, notFound, invalid }
+}
+
+/** Для тестов */
+export function resetLocationMocks(): void {
+  locations = new Map()
+  nextLocationId = 1
+  getAllCompanies().forEach((c) => (c.relocated = false))
 }

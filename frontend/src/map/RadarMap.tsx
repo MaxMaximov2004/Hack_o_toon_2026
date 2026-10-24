@@ -18,6 +18,36 @@ interface RadarMapProps {
   potentialStats?: MunicipalityStats[]
   whiteSpots?: WhiteSpot[]
   onDistrictClick?: (stats: MunicipalityStats) => void
+  /** Выбранная компания работает не там, где зарегистрирована: пунктир регистрация → факт (ТЗ 07) */
+  relocation?: RelocationLine | null
+}
+
+export interface RelocationLine {
+  from: { lat: number; lon: number }
+  to: { lat: number; lon: number }[]
+}
+
+const EMPTY_FC = { type: 'FeatureCollection' as const, features: [] }
+
+function relocationGeoJson(line: RelocationLine | null | undefined) {
+  if (!line || line.to.length === 0) return EMPTY_FC
+  const from: [number, number] = [line.from.lon, line.from.lat] // MapLibre — [lon, lat]
+  return {
+    type: 'FeatureCollection' as const,
+    features: [
+      ...line.to.map((p) => ({
+        type: 'Feature' as const,
+        properties: { role: 'line' },
+        geometry: { type: 'LineString' as const, coordinates: [from, [p.lon, p.lat]] },
+      })),
+      { type: 'Feature' as const, properties: { role: 'registered' }, geometry: { type: 'Point' as const, coordinates: from } },
+      ...line.to.map((p) => ({
+        type: 'Feature' as const,
+        properties: { role: 'actual' },
+        geometry: { type: 'Point' as const, coordinates: [p.lon, p.lat] },
+      })),
+    ],
+  }
 }
 
 const ROSTOV_CENTER: [number, number] = [40.8, 47.6] // [lon, lat] для MapLibre
@@ -31,7 +61,8 @@ export function RadarMap({
   onMapReady,
   potentialStats,
   whiteSpots,
-  onDistrictClick
+  onDistrictClick,
+  relocation,
 }: RadarMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
@@ -584,6 +615,58 @@ export function RadarMap({
       }
     }
   }, [potentialStats, whiteSpots, onDistrictClick])
+
+  // Пунктир «регистрация → фактическое место» у выбранной компании
+  useEffect(() => {
+    const mapInstance = map.current
+    if (!mapInstance) return
+    const data = relocationGeoJson(relocation)
+
+    const draw = () => {
+      const m = map.current
+      if (!m) return
+      const source = m.getSource('relocation') as maplibregl.GeoJSONSource | undefined
+      if (source) {
+        source.setData(data)
+        return
+      }
+      m.addSource('relocation', { type: 'geojson', data })
+      m.addLayer({
+        id: 'relocation-line',
+        type: 'line',
+        source: 'relocation',
+        filter: ['==', ['get', 'role'], 'line'],
+        layout: { 'line-cap': 'round' },
+        paint: { 'line-color': '#7700FF', 'line-width': 3, 'line-dasharray': [2, 2] },
+      })
+      m.addLayer({
+        id: 'relocation-points',
+        type: 'circle',
+        source: 'relocation',
+        filter: ['!=', ['get', 'role'], 'line'],
+        paint: {
+          'circle-radius': 7,
+          // Регистрация — полый кружок, факт — залитый (как в карточке «Где работает»)
+          'circle-color': ['case', ['==', ['get', 'role'], 'actual'], '#7700FF', '#FFFFFF'],
+          'circle-stroke-color': '#7700FF',
+          'circle-stroke-width': 3,
+        },
+      })
+    }
+
+    try {
+      if (mapInstance.isStyleLoaded()) {
+        draw()
+        return
+      }
+    } catch {
+      return
+    }
+    mapInstance.once('load', draw)
+    return () => {
+      mapInstance.off('load', draw)
+    }
+  }, [relocation])
 
   return (
     <div className={styles.container}>
