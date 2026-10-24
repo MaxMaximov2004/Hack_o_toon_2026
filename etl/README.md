@@ -49,6 +49,13 @@ etl-service — отдельный HTTP-микросервис (Python, стан
 | Nominatim / OpenStreetMap — центроиды районов и населённых пунктов | `data/municipalities.json`, `data/settlements.json` (собраны один раз `tools/geocode_nominatim.py`) |
 | ОКВЭД (2 цифры) → отрасль | `data/okved_industry.csv` |
 
+## Записи «Не является субъектом МСП»
+
+В выгрузке реестра у ~56 % строк категория «Не является субъектом МСП» (статуса МСП уже нет). По умолчанию
+(`NON_MSP=exclude`) такие не-клиенты не загружаются (это не рынок МСП), а клиенты из этой категории получают
+`status='excluded'`. `NON_MSP=keep` возвращает прежнее поведение (все считаются действующими).
+Счётчики — в `etl.load_run.details.skipped` (`non_msp_not_loaded`, `clients_non_msp_marked_excluded`).
+
 ## Статус компании
 
 | ИНН есть в… | `is_client` | `status` | `excluded_at` |

@@ -198,6 +198,10 @@ def load_invest(cur, invest_rows, muni, muni_of_raw):
 
 def do_load(conn, run_id):
     t0 = time.time()
+    # NON_MSP=exclude (по умолчанию): записи с категорией «Не является субъектом МСП» — не рынок МСП:
+    # не-клиентов не загружаем, клиентов из этой категории помечаем исключёнными. NON_MSP=keep — вернуть как раньше.
+    exclude_non_msp = os.environ.get("NON_MSP", "exclude").strip().lower() != "keep"
+    log.info("записи «Не является субъектом МСП»: %s", "исключаем" if exclude_non_msp else "оставляем (NON_MSP=keep)")
     cur = conn.cursor()
     dcur = conn.cursor(row_factory=dict_row)
 
@@ -291,6 +295,9 @@ def do_load(conn, run_id):
                 continue
             if r["is_excluded"] or inn in seen:
                 continue
+            if exclude_non_msp and nz.is_non_msp(r["category"]):
+                ctx.skipped["non_msp_not_loaded"] += 1
+                continue
             seen.add(inn)
             row = make_company(ctx, r, False, "active", None)
             if row:
@@ -302,7 +309,11 @@ def do_load(conn, run_id):
     for inn in sorted(clients):
         case_row, rm = clients[inn], client_rmsp.get(inn)
         if rm is not None and not rm["is_excluded"]:
-            row = make_company(ctx, rm, True, "active", None)
+            if exclude_non_msp and nz.is_non_msp(rm["category"]):
+                ctx.skipped["clients_non_msp_marked_excluded"] += 1
+                row = make_company(ctx, rm, True, "excluded", nz.parse_date(rm["excluded_at"]))
+            else:
+                row = make_company(ctx, rm, True, "active", None)
         elif rm is not None:
             row = make_company(ctx, rm, True, "excluded", nz.parse_date(rm["excluded_at"]))
         else:
