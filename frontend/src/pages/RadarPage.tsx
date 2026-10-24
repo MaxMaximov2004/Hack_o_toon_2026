@@ -116,7 +116,7 @@ export function RadarPage() {
 
   // Обработчик применения пресета "Исключённые клиенты"
   const handleExcludedPresetApply = useCallback(() => {
-    // Применить фильтры пресета в URL сразу
+    // Применить фильтры пресета в URL сразу (БЕЗ bbox - он не должен ограничивать результат)
     updateFilters({
       client: 'ours',
       status: 'excluded',
@@ -139,16 +139,8 @@ export function RadarPage() {
     setMobileFiltersOpen(false)
     // Переключить на вкладку "Список" на мобильных
     setActiveTab('list')
-    // FitBounds на Ростовскую область
-    if (mapRef.current) {
-      mapRef.current.fitBounds(
-        [
-          [38.8, 46.0], // [lon, lat] юго-запад
-          [43.5, 49.5]  // [lon, lat] северо-восток
-        ],
-        { duration: 800, padding: 50 }
-      )
-    }
+    // НЕ делаем fitBounds - на вкладке "Список" карта не видна,
+    // и bbox не должен ограничивать результат до движения карты пользователем
   }, [updateFilters])
 
   // Обработчики мобильных фильтров
@@ -191,6 +183,16 @@ export function RadarPage() {
     if (filters.q) count++
     return count
   }
+
+  // Запрос числа исключённых клиентов (БЕЗ bbox - по всей области)
+  const { data: excludedClientsData } = useQuery({
+    queryKey: ['excluded-clients-count'],
+    queryFn: async () => {
+      const result = await getCompanies('client=ours&status=excluded&page=0&size=1')
+      return result.total
+    },
+    staleTime: 60000,
+  })
 
   // Запрос для подсчёта результатов в мобильной панели - используем примененные фильтры
   const { data: mobileFilterCount } = useQuery({
@@ -247,6 +249,7 @@ export function RadarPage() {
             onReset={resetFilters}
             mapRef={mapRef}
             onExcludedPresetApply={handleExcludedPresetApply}
+            excludedClientsCount={excludedClientsData}
           />
         </div>
 
@@ -325,6 +328,7 @@ export function RadarPage() {
                 mapRef={mapRef}
                 hideHeader={true}
                 onExcludedPresetApply={handleExcludedPresetApply}
+                excludedClientsCount={excludedClientsData}
               />
             </div>
             <div className={styles.mobileFilterFooter}>

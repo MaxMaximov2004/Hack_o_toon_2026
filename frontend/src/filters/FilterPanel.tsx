@@ -13,9 +13,10 @@ interface FilterPanelProps {
   mapRef?: React.RefObject<Map | null>
   hideHeader?: boolean
   onExcludedPresetApply?: () => void
+  excludedClientsCount?: number
 }
 
-export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHeader, onExcludedPresetApply }: FilterPanelProps) {
+export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHeader, onExcludedPresetApply, excludedClientsCount }: FilterPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [revenueMinMln, setRevenueMinMln] = useState('')
   const [revenueMaxMln, setRevenueMaxMln] = useState('')
@@ -134,8 +135,8 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHea
     onFiltersChange({ sizeCategory: updated.length > 0 ? updated : undefined })
   }
 
-  // Подсчёт исключённых клиентов (110 из мока)
-  const excludedClients = 110
+  // Общее число клиентов (759 - константа из ТЗ)
+  const totalClients = 759
 
   // Проверяем активен ли пресет
   const isPresetActive = filters.client === 'ours' && filters.status === 'excluded'
@@ -145,18 +146,22 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHea
       // Снять пресет - вернуться к дефолтным значениям
       onFiltersChange({ client: 'all', status: 'active' })
     } else {
-      // Применить пресет - ВСЕ параметры одним вызовом
-      onFiltersChange({
-        client: 'ours',
-        status: 'excluded',
-        // Сбросить bbox
-        minLat: undefined,
-        maxLat: undefined,
-        minLon: undefined,
-        maxLon: undefined
-      })
-      // Вызвать callback для закрытия панели и других действий
-      onExcludedPresetApply?.()
+      // Применить пресет
+      if (onExcludedPresetApply) {
+        // Мобильная панель: callback делает ВСЁ (запись в URL + закрытие)
+        onExcludedPresetApply()
+      } else {
+        // Десктопная панель: запись через onFiltersChange (это updateFilters)
+        onFiltersChange({
+          client: 'ours',
+          status: 'excluded',
+          // Сбросить bbox
+          minLat: undefined,
+          maxLat: undefined,
+          minLon: undefined,
+          maxLon: undefined
+        })
+      }
     }
   }
 
@@ -182,7 +187,7 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHea
             Исключённые клиенты
           </button>
           <p className={styles.excludedInfo}>
-            {excludedClients} из 759 клиентов исключены из реестра МСП
+            {excludedClientsCount !== undefined ? excludedClientsCount : '...'} из {totalClients} клиентов исключены из реестра МСП
           </p>
         </div>
         {/* Поиск */}

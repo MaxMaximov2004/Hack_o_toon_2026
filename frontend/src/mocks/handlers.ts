@@ -415,10 +415,11 @@ export const handlers = [
 
     const csv = BOM + headers + '\n' + rows.join('\n')
 
+    // Фиксированная дата для детерминированности
     const filename =
       format === 'bitrix'
-        ? `export_bitrix_${new Date().toISOString().split('T')[0]}.csv`
-        : `export_${new Date().toISOString().split('T')[0]}.csv`
+        ? 'export_bitrix_2026-01-01.csv'
+        : 'export_2026-01-01.csv'
 
     return new HttpResponse(csv, {
       status: 200,

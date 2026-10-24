@@ -173,4 +173,29 @@ describe('filterCompanies', () => {
       expect(company.kind).toBe('excluded')
     })
   })
+
+  it('mock data is deterministic - multiple calls return identical data', () => {
+    // Два вызова getAllCompanies() должны вернуть одинаковые данные
+    const companies1 = getAllCompanies()
+    const companies2 = getAllCompanies()
+
+    // Одинаковое количество
+    expect(companies1.length).toBe(companies2.length)
+
+    // Одинаковые ID и координаты для первых 10 компаний
+    for (let i = 0; i < Math.min(10, companies1.length); i++) {
+      expect(companies1[i].id).toBe(companies2[i].id)
+      expect(companies1[i].lat).toBe(companies2[i].lat)
+      expect(companies1[i].lon).toBe(companies2[i].lon)
+      expect(companies1[i].industry).toBe(companies2[i].industry)
+      expect(companies1[i].revenueEst).toBe(companies2[i].revenueEst)
+      expect(companies1[i].status).toBe(companies2[i].status)
+    }
+
+    // Проверяем, что число исключённых клиентов всегда одинаковое
+    const excluded1 = companies1.filter(c => c.status === 'excluded')
+    const excluded2 = companies2.filter(c => c.status === 'excluded')
+    expect(excluded1.length).toBe(excluded2.length)
+    expect(excluded1.length).toBe(110)
+  })
 })

@@ -107,12 +107,17 @@ export function RadarMap({
     })
 
     // Обновляем bounds после moveend с дебаунсом (ТОЛЬКО запись в URL)
-    // Только если bbox реально изменился
+    // Только если bbox реально изменился И карта видима
     mapInstance.on('moveend', () => {
       if (boundsTimeoutRef.current) {
         clearTimeout(boundsTimeoutRef.current)
       }
       boundsTimeoutRef.current = setTimeout(() => {
+        // НЕ пишем bbox, если контейнер скрыт или имеет размер 0
+        if (!mapContainer.current) return
+        const rect = mapContainer.current.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) return
+
         const bounds = mapInstance.getBounds()
         const newBounds = {
           minLat: parseFloat(bounds.getSouth().toFixed(4)),
@@ -142,6 +147,30 @@ export function RadarMap({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // ПУСТЫЕ зависимости - карта создаётся ОДИН РАЗ
+
+  // Отслеживаем видимость контейнера карты и делаем resize при показе
+  useEffect(() => {
+    if (!mapContainer.current || !map.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        const isNowVisible = entry.isIntersecting && entry.intersectionRatio > 0
+
+        // Когда карта становится видимой, делаем resize
+        if (isNowVisible && map.current) {
+          map.current.resize()
+        }
+      },
+      { threshold: [0, 0.1] }
+    )
+
+    observer.observe(mapContainer.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   // Функция объединения близких кластеров
   const mergeClusters = (cells: Array<{ lat: number; lon: number; total: number; ours: number; others: number; excluded: number }>, mapInstance: maplibregl.Map) => {
