@@ -15,6 +15,7 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from . import geo
 from . import model
 from . import normalize as nz
 
@@ -28,7 +29,7 @@ SRC_COLS = ("src_no, name, subject_type, category, ogrn, inn, okved, region, dis
 COMPANY_COLS = ("inn, ogrn, name, subject_type, size_category, okved_code, okved_name, industry, municipality_id, "
                 "settlement, lat, lon, registered_at, is_new, employees, phone, email, website, has_licenses, "
                 "is_innovative, is_social, revenue_est, revenue_growth_est, revenue_source, is_estimated, "
-                "is_client, status, excluded_at")
+                "is_client, status, excluded_at, geo_precision")
 
 
 # ---------------------------------------------------------------- подключение
@@ -69,9 +70,10 @@ def copy_gz(cur, path, table):
 # ---------------------------------------------------------------- компании
 
 class Ctx:
-    def __init__(self, muni, settlements, okved, fns):
-        self.muni, self.settlements, self.okved, self.fns = muni, settlements, okved, fns
+    def __init__(self, muni, settlements, buildings, okved, fns):
+        self.muni, self.settlements, self.buildings, self.okved, self.fns = muni, settlements, buildings, okved, fns
         self.skipped = Counter()
+        self.geo = Counter()                  # сколько компаний на какой точности координат
 
 
 def make_company(ctx, rec, is_client, status, excluded_at):
@@ -81,12 +83,10 @@ def make_company(ctx, rec, is_client, status, excluded_at):
         ctx.skipped["no_place"] += 1
         return None
     mid, kind, lat0, lon0 = ctx.muni[place[0]]
-    settlement = nz.clean_text(rec.get("settlement")) or None
-    c = ctx.settlements.get(f"{place[0]}|{settlement}") if settlement else None
-    if c:
-        lat, lon = model.jitter_point(inn, c[0], c[1], 0.01)
-    else:
-        lat, lon = model.jitter_point(inn, lat0, lon0, 0.03 if kind == "city" else 0.08)
+    settlement = nz.settlement_of(rec.get("district"), rec.get("city"), rec.get("settlement"), place)
+    lat, lon, precision = geo.place(inn, ctx.buildings, place[0], kind, (lat0, lon0), settlement,
+                                    ctx.settlements.get(f"{place[0]}|{settlement}") if settlement else None)
+    ctx.geo[precision] += 1
 
     subject = nz.subject_type_of(rec.get("subject_type"))
     size = nz.size_of(rec.get("category"))
@@ -113,7 +113,7 @@ def make_company(ctx, rec, is_client, status, excluded_at):
             nz.clean_text(rec.get("phone")) or None, nz.clean_text(rec.get("email")) or None,
             nz.clean_text(rec.get("website")) or None,
             nz.yes(rec.get("has_licenses")), nz.yes(rec.get("innovative")), nz.yes(rec.get("social")),
-            revenue, growth, source, estimated, is_client, status, excluded_at)
+            revenue, growth, source, estimated, is_client, status, excluded_at, precision)
 
 
 def copy_companies(cur, rows):
@@ -265,6 +265,10 @@ def do_load(conn, run_id):
     settlements = {}
     if (DATA / "settlements.json").exists():
         settlements = load_centroids(DATA / "settlements.json", "населённые пункты")
+    buildings = geo.Buildings(DATA / "buildings.csv.gz")
+    if not len(buildings):
+        log.warning("WARN: нет data/buildings.csv.gz — компании встанут в случайные точки у центров районов "
+                    "(python etl/tools/fetch_osm_buildings.py)")
     muni = {}
     for name in sorted(names):
         lat, lon = centroids[name]
@@ -281,7 +285,7 @@ def do_load(conn, run_id):
     for inn, ys in years.items():
         last = max(ys)
         fns[inn] = (ys[last], ys.get(last - 1))
-    ctx = Ctx(muni, settlements, nz.load_okved_industry(DATA / "okved_industry.csv"), fns)
+    ctx = Ctx(muni, settlements, buildings, nz.load_okved_industry(DATA / "okved_industry.csv"), fns)
 
     client_rmsp, seen = {}, set()
     scur = conn.cursor(name="rmsp_stream", row_factory=dict_row)
@@ -327,6 +331,7 @@ def do_load(conn, run_id):
     copy_companies(cur, out)
     for k, v in ctx.skipped.items():
         log.warning("WARN: %s: %d строк", k, v)
+    log.info("координаты: %s", dict(ctx.geo))
 
     # продукт 2
     invest_n = load_invest(cur, invest_rows, muni, muni_of_raw) if invest_rows else 0
@@ -343,7 +348,7 @@ def do_load(conn, run_id):
         "FROM core.company").fetchone()
     details = {"companies": total, "clients_active": act, "clients_excluded": exc, "others": others,
                "municipalities": len(muni), "white_spots": white, "invest_projects": invest_n,
-               "skipped": dict(ctx.skipped), "seconds": round(time.time() - t0, 1)}
+               "skipped": dict(ctx.skipped), "geo_precision": dict(ctx.geo), "seconds": round(time.time() - t0, 1)}
     # clock_timestamp(), а не now(): now() внутри транзакции — время её начала, длительность выходила ~0 с
     cur.execute("UPDATE etl.load_run SET status='ok', finished_at=clock_timestamp(), details=%s WHERE id=%s",
                 (Jsonb(details), run_id))

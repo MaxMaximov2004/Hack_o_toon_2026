@@ -47,7 +47,33 @@ etl-service — отдельный HTTP-микросервис (Python, стан
 | Открытые данные ФНС «доходы и расходы организаций» (необязательно) | `data/revenue_fns.csv.gz` (колонки `inn,year,income[,expense]`) → `etl.raw_revenue` |
 | Лист МОД2 (инвестпроекты) | сид → `etl.raw_invest` |
 | Nominatim / OpenStreetMap — центроиды районов и населённых пунктов | `data/municipalities.json`, `data/settlements.json` (собраны один раз `tools/geocode_nominatim.py`) |
+| Overpass / OpenStreetMap — центры зданий внутри границ районов и городских округов | `data/buildings.csv.gz` (собран один раз `tools/fetch_osm_buildings.py`) |
 | ОКВЭД (2 цифры) → отрасль | `data/okved_industry.csv` |
+
+## Координаты компании
+
+Адреса в реестре МСП нет: только район, город и населённый пункт. Поэтому точка условная, но всегда на реальном
+здании из OSM (`etl/geo.py`), а не в поле или озере:
+
+1. есть населённый пункт (или райцентр в поле «Город») и он есть в `settlements.json` → здание в радиусе 2 км
+   (город — 4 км) от его центра → `geo_precision = 'settlement'`;
+2. иначе → здание внутри границы района / городского округа → `'municipality'`;
+3. зданий нет (нет `buildings.csv.gz`) → как раньше, случайная точка у центроида → `'approx'`.
+
+Здание выбирается по хэшу ИНН (при перезагрузке точка та же), плюс сдвиг до ~8 м, чтобы компании одного дома не
+слипались. Чем плотнее застройка, тем больше там компаний. Населённые пункты нормализуются (`normalize.norm_settlement`:
+«ХУТОР ПОБЕДА» → «х. Победа»). Если геокодер нашёл одноимённый хутор в другом районе, зданий района рядом нет —
+такому центроиду не верим, переходим к п. 2. Счётчики — в `etl.load_run.details.geo_precision`.
+Фронт показывает точность в карточке компании. Точные адреса появятся только из внешних источников (ЕГРЮЛ для юрлиц,
+CRM для клиентов).
+
+Пересобрать данные (нужен интернет, ~1 ч):
+
+```bash
+python etl/tools/geocode_nominatim.py --rmsp etl/data/rmsp_61.csv.gz --case infra/db/tools/case.xlsx \
+    --user-agent "radar-hackathon (you@example.com)" --settlements
+python etl/tools/fetch_osm_buildings.py --user-agent "radar-hackathon (you@example.com)"
+```
 
 ## Записи «Не является субъектом МСП»
 

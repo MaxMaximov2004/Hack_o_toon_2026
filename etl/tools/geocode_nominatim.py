@@ -41,6 +41,21 @@ def muni_query(name):
     return name[3:] if name.startswith("г. ") else name.replace(" р-н", " район")
 
 
+_SETTLEMENT_WORDS = {"г.": "город", "рп.": "рабочий посёлок", "пгт.": "посёлок городского типа", "п.": "посёлок",
+                     "ст-ца": "станица", "ст.": "станция", "сл.": "слобода", "х.": "хутор", "с.": "село",
+                     "д.": "деревня"}
+
+
+def settlement_query(key):
+    """Сначала имя без типа (Nominatim часто не находит «хутор Победа», но находит «Победа»), потом с типом."""
+    muni, s = key.split("|")
+    abbr, _, name = s.partition(" ")
+    tail = f", {muni_query(muni)}, Ростовская область, Россия"
+    if abbr not in _SETTLEMENT_WORDS:
+        return [s + tail]
+    return [name + tail, f"{_SETTLEMENT_WORDS[abbr]} {name}" + tail]
+
+
 def collect(rmsp, case):
     munis, settl = {}, set()
 
@@ -48,13 +63,18 @@ def collect(rmsp, case):
         p = nz.norm_municipality(district, city)
         if p:
             munis[p[0]] = p[1]
-            s = nz.clean_text(settlement)
+            s = nz.settlement_of(district, city, settlement, p)
             if s:
                 settl.add((p[0], s))
 
     if rmsp:
         with gzip.open(rmsp, "rt", encoding="utf-8", newline="") as f:
             for r in csv.DictReader(f):
+                if r.get("is_excluded") == "true" or nz.is_non_msp(r["category"]):   # ETL их не грузит
+                    p = nz.norm_municipality(r["district"], r["city"])
+                    if p:
+                        munis[p[0]] = p[1]
+                    continue
                 add(r["district"], r["city"], r["settlement"])
     if case:
         import openpyxl
@@ -78,7 +98,12 @@ def fill(path, keys, query_of, ua):
     for i, key in enumerate(keys, 1):
         if key in data:
             continue
-        pt = geocode(query_of(key), ua)
+        queries = query_of(key)
+        pt = None
+        for q in [queries] if isinstance(queries, str) else queries:
+            pt = geocode(q, ua)
+            if pt:
+                break
         if pt is None:
             missing.append(key)
             print(f"[{i}/{len(keys)}] НЕТ: {key}")
@@ -94,7 +119,7 @@ def main():
     ap.add_argument("--rmsp", help="etl/data/rmsp_61.csv.gz")
     ap.add_argument("--case", help="infra/db/tools/case.xlsx (клиенты и инвестпроекты)")
     ap.add_argument("--user-agent", required=True, help='например "radar-hackathon (mail@example.com)"')
-    ap.add_argument("--settlements", action="store_true", help="ещё и населённые пункты (сотни запросов)")
+    ap.add_argument("--settlements", action="store_true", help="ещё и населённые пункты (~3 тыс. запросов, ~1 ч)")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parents[1] / "data"))
     a = ap.parse_args()
     munis, settl = collect(a.rmsp, a.case)
@@ -104,7 +129,7 @@ def main():
                lambda n: f"{muni_query(n)}, Ростовская область, Россия", a.user_agent)
     if a.settlements:
         fill(out / "settlements.json", [f"{m}|{s}" for m, s in sorted(settl)],
-             lambda k: f"{k.split('|')[1]}, {muni_query(k.split('|')[0])}, Ростовская область, Россия", a.user_agent)
+             settlement_query, a.user_agent)
     if bad:
         print("\nНе найдены муниципалитеты (добавьте в municipalities.json руками):")
         print("\n".join(" - " + b for b in bad))

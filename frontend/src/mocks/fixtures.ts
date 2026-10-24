@@ -188,6 +188,7 @@ function createCompanyShort(
   const status: 'active' | 'excluded' = kind === 'excluded' ? 'excluded' : 'active'
   const isEstimated = rng.next() > 0.3
   const isNew = rng.next() > 0.9
+  const settlement = rng.next() > 0.5 ? 'пос. Южный' : null
 
   return {
     id,
@@ -199,9 +200,10 @@ function createCompanyShort(
     okvedName: 'Торговля розничная преимущественно пищевыми продуктами',
     municipalityId: municipality.id,
     municipalityName: municipality.name,
-    settlement: rng.next() > 0.5 ? 'пос. Южный' : null,
+    settlement,
     lat,
     lon,
+    geoPrecision: settlement ? 'settlement' : 'municipality',
     sizeCategory: sizeCategory.code as 'micro' | 'small' | 'medium',
     employees: Math.floor(rng.range(5, 200)),
     revenueEst: Math.floor(rng.range(1_000_000, 100_000_000)),
@@ -642,6 +644,7 @@ function syntheticRelatedCompany(
     municipalityId: project.municipalityId,
     municipalityName: project.municipalityName,
     settlement: null,
+    geoPrecision: 'municipality',
   }
 }
 

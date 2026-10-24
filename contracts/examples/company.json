@@ -11,6 +11,7 @@
   "settlement": null,
   "lat": 47.2313,
   "lon": 39.7233,
+  "geoPrecision": "municipality",
   "sizeCategory": "micro",
   "employees": 3,
   "revenueEst": 18500000,

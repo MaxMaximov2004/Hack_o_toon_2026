@@ -20,6 +20,7 @@ public record Company(
         String settlement,
         double lat,
         double lon,
+        String geoPrecision,
         String sizeCategory,
         Integer employees,
         Long revenueEst,
@@ -45,7 +46,7 @@ public record Company(
 
     public CompanyShort toShort() {
         return new CompanyShort(id, inn, name, industry, industryName, okvedCode, okvedName, municipalityId,
-                municipalityName, settlement, lat, lon, sizeCategory, employees, revenueEst, revenueGrowthEst,
+                municipalityName, settlement, lat, lon, geoPrecision, sizeCategory, employees, revenueEst, revenueGrowthEst,
                 revenueSource, isEstimated, isClient, status, kind, excludedAt, isNew, registeredAt, relocated);
     }
 }
