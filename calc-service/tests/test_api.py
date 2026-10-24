@@ -238,6 +238,7 @@ class TestCSVExport:
                 assert resp.status_code == 200
                 assert "text/csv" in resp.headers.get("content-type", "")
                 assert resp.content[:3] == b"\xef\xbb\xbf"
+                assert resp.content[3:6] != b"\xef\xbb\xbf"   # BOM ровно один, иначе «﻿№» в первом заголовке
                 text = resp.content.decode("utf-8")
                 assert ";" in text
                 assert "filename" in resp.headers.get("Content-Disposition", "")

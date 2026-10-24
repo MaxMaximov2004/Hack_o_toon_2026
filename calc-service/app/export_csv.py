@@ -20,9 +20,6 @@ def generate_csv_estimate(data: dict) -> bytes:
     """
     output = io.StringIO()
 
-    # Пишем BOM вручную (UTF-8 с BOM)
-    output.write("\ufeff")
-
     writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
 
     # Заголовок
@@ -65,7 +62,7 @@ def generate_csv_estimate(data: dict) -> bytes:
 
     content = output.getvalue()
 
-    # UTF-8 с BOM
+    # UTF-8 с BOM — ровно один: utf-8-sig добавляет его сам
     return content.encode("utf-8-sig")
 
 
