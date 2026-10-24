@@ -1,0 +1,132 @@
+.container {
+  position: relative;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  font-size: 16px; /* ≥16px для iOS, чтобы не увеличивалась страница */
+  font-family: inherit;
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 8px;
+  background: var(--rt-white);
+  color: var(--rt-black);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--rt-purple);
+  box-shadow: 0 0 0 2px rgba(119, 0, 255, 0.1);
+}
+
+.input::placeholder {
+  color: var(--rt-gray);
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clearButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--rt-gray);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.clearButton:hover {
+  color: var(--rt-black);
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--rt-white);
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.15);
+  z-index: 100;
+}
+
+.suggestion {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--rt-cool-grey);
+  transition: background-color 0.15s;
+  min-height: 44px; /* Touch-friendly */
+}
+
+.suggestion:last-child {
+  border-bottom: none;
+}
+
+.suggestion:hover,
+.suggestion.selected {
+  background-color: var(--rt-lavender);
+}
+
+.suggestionLabel {
+  flex: 1;
+  font-size: 15px;
+  color: var(--rt-black);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionMeta {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--rt-gray);
+}
+
+/* Мобильные устройства */
+@media (max-width: 767px) {
+  .input {
+    padding: 14px 40px 14px 16px;
+  }
+
+  .suggestions {
+    max-height: 50vh;
+  }
+
+  .suggestion {
+    padding: 14px 16px;
+  }
+}
+
+/* Планшеты */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .suggestions {
+    max-height: 360px;
+  }
+}

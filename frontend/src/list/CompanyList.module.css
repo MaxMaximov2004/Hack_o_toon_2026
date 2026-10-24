@@ -6,6 +6,18 @@
   overflow: hidden;
 }
 
+.searchSection {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--rt-white);
+  padding: 16px;
+  border-bottom: 1px solid var(--rt-cool-grey);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .header {
   padding: 12px 16px;
   border-bottom: 1px solid var(--rt-cool-grey);
@@ -125,6 +137,23 @@
 .hint {
   font-size: 14px;
   color: var(--rt-gray);
+}
+
+.resetButton {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--rt-purple);
+  color: var(--rt-white);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.resetButton:hover {
+  opacity: 0.9;
 }
 
 .error {
