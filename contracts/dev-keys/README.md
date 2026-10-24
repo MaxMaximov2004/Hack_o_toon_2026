@@ -25,6 +25,15 @@ curl http://localhost:18081/internal/auth/jwks      # с хоста — для �
 
 Не поднимать вместе с настоящим `auth-service` — оба отвечают на одно имя.
 
+Заглушка умеет и упрощённый вход — чтобы пройти фронт в браузере без Go: **любой** email и пароль, **любой**
+6-значный код → токен демо-менеджера (настоящий JWT dev-ключа, сроком на год). Неверный пароль и код она не
+проверяет — это работа настоящего auth-service. Посмотреть всё, что готово:
+
+```bash
+docker compose --profile auth-stub up -d --build postgres etl core-api nginx auth-stub
+# http://localhost — любой логин/пароль, любой код из 6 цифр
+```
+
 **2. Получить токен** (Git Bash / macOS / Linux, нужен только `openssl`):
 
 ```bash

@@ -192,8 +192,10 @@ COMMENT ON TABLE core.invest_project IS 'Java — инвестпроекты (п
 -- ---------------------------------------------------------------------
 -- Формула потенциала районов и белых пятен — ОДНО место для Python и Java.
 -- Вызывают: ETL после загрузки (etl_loader), core-api после импорта клиентов (core_svc).
---   SELECT core.refresh_municipality_stats();            -- порог 65, минимум 30 компаний
+--   SELECT core.refresh_municipality_stats();            -- порог 50, минимум 30 компаний
 --   SELECT core.refresh_municipality_stats(60, 20);      -- калибровка порога
+-- Порог 50 откалиброван на реальном реестре (188 тыс. компаний, охват РТ ~0,4% почти везде):
+-- при 65 на общей карте белых пятен 0, при 50 — 3 (Целинский р-н, Багаевский р-н, г. Донецк).
 -- Возвращает число белых пятен для industry = 'all'. Менять формулу — PR техлиду.
 --
 -- base_score  = 100 * (0.5*pr(компаний) + 0.3*pr(доли новых) + 0.2*pr(выручки)), pr — процентиль среди районов
@@ -201,7 +203,7 @@ COMMENT ON TABLE core.invest_project IS 'Java — инвестпроекты (п
 -- potential   = base_score * gap
 -- белое пятно = gap >= 0.5 (охват вдвое ниже среднего) И base_score >= порог И компаний >= минимум
 -- ---------------------------------------------------------------------
-CREATE FUNCTION core.refresh_municipality_stats(p_threshold numeric DEFAULT 65, p_min_companies int DEFAULT 30)
+CREATE FUNCTION core.refresh_municipality_stats(p_threshold numeric DEFAULT 50, p_min_companies int DEFAULT 30)
 RETURNS int LANGUAGE sql AS $$
 TRUNCATE core.municipality_stats;
 INSERT INTO core.municipality_stats
