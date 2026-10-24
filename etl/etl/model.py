@@ -54,8 +54,16 @@ def growth_model(inn, registered_at):
     return round(base + 16 * (u(inn, "g") - 0.5), 1)
 
 
+# Рост по ФНС считаем, только если доход в обоих годах не меньше 1 млн ₽: на маленькой базе выходят тысячи процентов
+# (0,1 → 10 млн = +9900 %). За пределами −90…+300 % — запуски, реорганизации и сворачивание бизнеса: значение реальное,
+# но в сортировке «по росту» такие компании забивают весь верх списка, поэтому ограничиваем.
+GROWTH_MIN_INCOME = 1_000_000
+GROWTH_LIMITS = (-90.0, 300.0)
+
+
 def growth_fns(cur, prev):
-    """Рост год к году по данным ФНС, % (None, если предыдущего года нет)."""
-    if not prev or prev <= 0:
+    """Рост год к году по данным ФНС, %; None — по ФНС честно не посчитать (нет прошлого года или база меньше 1 млн)."""
+    if prev is None or prev < GROWTH_MIN_INCOME or cur < GROWTH_MIN_INCOME:
         return None
-    return round(max(-9999.0, min(9999.0, (cur / prev - 1) * 100)), 2)
+    lo, hi = GROWTH_LIMITS
+    return round(max(lo, min(hi, (cur / prev - 1) * 100)), 2)

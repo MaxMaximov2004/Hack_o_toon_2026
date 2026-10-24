@@ -101,6 +101,8 @@ def make_company(ctx, rec, is_client, status, excluded_at):
     fns = ctx.fns.get(inn)
     if fns and fns[0] and fns[0] > 0:
         revenue, growth, source, estimated = round(fns[0], 2), model.growth_fns(fns[0], fns[1]), "fns", False
+        if growth is None:                    # один год в ФНС или маленькая база — рост по модели, как у остальных
+            growth = model.growth_model(inn, registered)
     else:
         revenue = model.revenue_model(inn, size, subject, industry, employees)
         growth, source, estimated = model.growth_model(inn, registered), "model", True
