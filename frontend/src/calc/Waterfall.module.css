@@ -1,0 +1,76 @@
+.waterfall {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rowTotal {
+  padding-top: 10px;
+  border-top: 1px solid var(--rt-cool-grey);
+}
+
+.text {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.label {
+  min-width: 0;
+  color: var(--gray-600);
+  overflow-wrap: anywhere;
+}
+
+.amount {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--rt-black);
+  white-space: nowrap;
+}
+
+.rowTotal .label,
+.rowTotal .amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rt-black);
+}
+
+.track {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--gray-100);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+}
+
+.base {
+  background: var(--rt-gray);
+}
+
+.up {
+  background: var(--rt-blue);
+}
+
+.down {
+  background: var(--rt-orange);
+}
+
+.total {
+  background: var(--rt-purple);
+}

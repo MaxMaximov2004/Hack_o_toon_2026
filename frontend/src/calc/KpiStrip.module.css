@@ -1,0 +1,121 @@
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 16px;
+  background: var(--rt-white);
+}
+
+.optimal {
+  border-color: var(--rt-purple);
+  background: var(--rt-purple);
+}
+
+.analogs {
+  background: var(--rt-lavender);
+  border-color: var(--rt-lavender);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--rt-black);
+  white-space: nowrap;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.optimal .label,
+.optimal .value,
+.optimal .note {
+  color: var(--rt-white);
+}
+
+.optimal .value {
+  font-size: 24px;
+}
+
+.analogs .value {
+  color: var(--rt-purple);
+}
+
+.negative {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.optimal .negative {
+  color: var(--rt-white);
+  text-decoration: underline;
+}
+
+.basis {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.costs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.costs div {
+  display: flex;
+  gap: 6px;
+}
+
+.costs dt {
+  color: var(--gray-500);
+}
+
+.costs dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--rt-black);
+}
+
+/* Колонка расчёта на планшете и телефоне узкая: оптимум сверху, мин и макс парой, аналоги строкой */
+@media (max-width: 1279px) {
+  .tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .optimal {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .analogs {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,162 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--gray-500);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--color-error);
+}
+
+.coef {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rt-purple);
+  white-space: nowrap;
+}
+
+.select,
+.input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: var(--rt-white);
+  color: var(--rt-black);
+  font: inherit;
+  font-size: 15px;
+}
+
+.select:focus,
+.input:focus {
+  outline: 2px solid var(--rt-purple);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.termInput {
+  max-width: 140px;
+}
+
+/* Уровень проекта — карточки-радио */
+.levels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.levelCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 16px;
+  background: var(--rt-white);
+  cursor: pointer;
+}
+
+.levelCard input {
+  margin-top: 2px;
+}
+
+.levelCardActive {
+  border-color: var(--rt-purple);
+  background: var(--rt-lavender);
+}
+
+.levelBody,
+.checkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.levelName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rt-black);
+}
+
+/* Чекбоксы с подписью — вся строка кликабельна, не меньше 44 px */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 0;
+  font-size: 15px;
+  color: var(--rt-black);
+  cursor: pointer;
+}
+
+.check input {
+  margin-top: 1px;
+}
+
+/* Схема финансирования — переключатель из трёх кнопок */
+.segments {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--rt-purple);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.segment {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 8px;
+  border: none;
+  background: var(--rt-white);
+  color: var(--rt-purple);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--rt-purple);
+}
+
+.segmentActive {
+  background: var(--rt-purple);
+  color: var(--rt-white);
+}

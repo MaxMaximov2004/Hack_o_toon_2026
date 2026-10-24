@@ -1,0 +1,160 @@
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group {
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 16px;
+  background: var(--rt-white);
+  overflow: hidden;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rt-black);
+}
+
+.counter {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--rt-lavender);
+  color: var(--rt-purple);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.arrow {
+  font-size: 10px;
+  color: var(--rt-gray);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--rt-cool-grey);
+}
+
+.rowSelected {
+  background: var(--gray-50);
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rt-black);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.nonStandard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--rt-black);
+  cursor: pointer;
+}
+
+.markup {
+  color: var(--rt-purple);
+  font-weight: 500;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.stepButton {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--gray-300);
+  background: var(--rt-white);
+  color: var(--rt-purple);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stepButton:first-child {
+  border-radius: 22px 0 0 22px;
+}
+
+.stepButton:last-child {
+  border-radius: 0 22px 22px 0;
+}
+
+.stepButton:disabled {
+  color: var(--gray-300);
+  cursor: not-allowed;
+}
+
+.qty {
+  width: 64px;
+  height: 44px;
+  border: 1px solid var(--gray-300);
+  border-left: none;
+  border-right: none;
+  background: var(--rt-white);
+  color: var(--rt-black);
+  font: inherit;
+  font-size: 15px;
+  text-align: center;
+}
+
+.qty:focus {
+  outline: 2px solid var(--rt-purple);
+  outline-offset: -2px;
+}
+
+@media (max-width: 380px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stepper {
+    align-self: flex-end;
+  }
+}

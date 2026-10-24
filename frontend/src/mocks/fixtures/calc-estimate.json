@@ -1,0 +1,244 @@
+{
+  "items": [
+    {
+      "componentId": "el_01",
+      "name": "Смарт-счетчик (3-фазный)",
+      "unit": "шт.",
+      "qty": 10,
+      "unitPrice": 8500.0,
+      "complexity": 1.2,
+      "lineTotal": 102000.0,
+      "nonStandardMarkup": 0,
+      "isNonStandard": false
+    },
+    {
+      "componentId": "ht_01",
+      "name": "Тепловычислитель (узел учета)",
+      "unit": "шт.",
+      "qty": 2,
+      "unitPrice": 22000.0,
+      "complexity": 1.4,
+      "lineTotal": 61600.0,
+      "nonStandardMarkup": 0,
+      "isNonStandard": false
+    },
+    {
+      "componentId": "vn_02",
+      "name": "Датчик CO2",
+      "unit": "шт.",
+      "qty": 6,
+      "unitPrice": 7500.0,
+      "complexity": 1.6,
+      "lineTotal": 72000.0,
+      "nonStandardMarkup": 14400.0,
+      "isNonStandard": true
+    },
+    {
+      "name": "ПО диспетчеризации",
+      "unit": "лиц.",
+      "qty": 1,
+      "unitPrice": 150000.0,
+      "complexity": 1.0,
+      "lineTotal": 150000.0,
+      "nonStandardMarkup": 30000.0,
+      "isNonStandard": true,
+      "isCustom": true
+    }
+  ],
+  "costs": {
+    "equipment": 385600.0,
+    "works": 115680.0,
+    "direct": 501280.0
+  },
+  "price": {
+    "min": 550029.48,
+    "optimal": 578978.4,
+    "max": 665825.16,
+    "minBasis": "analogs_p25",
+    "urgent": null
+  },
+  "margin": {
+    "minPct": 8.86,
+    "optimalPct": 13.42,
+    "maxPct": 24.71,
+    "curve": [
+      {
+        "price": 522528.01,
+        "marginPct": 4.07
+      },
+      {
+        "price": 531822.13,
+        "marginPct": 5.74
+      },
+      {
+        "price": 541116.26,
+        "marginPct": 7.36
+      },
+      {
+        "price": 550410.39,
+        "marginPct": 8.93
+      },
+      {
+        "price": 559704.51,
+        "marginPct": 10.44
+      },
+      {
+        "price": 568998.64,
+        "marginPct": 11.9
+      },
+      {
+        "price": 578292.77,
+        "marginPct": 13.32
+      },
+      {
+        "price": 587586.89,
+        "marginPct": 14.69
+      },
+      {
+        "price": 596881.02,
+        "marginPct": 16.02
+      },
+      {
+        "price": 606175.15,
+        "marginPct": 17.3
+      },
+      {
+        "price": 615469.28,
+        "marginPct": 18.55
+      },
+      {
+        "price": 624763.4,
+        "marginPct": 19.76
+      },
+      {
+        "price": 634057.53,
+        "marginPct": 20.94
+      },
+      {
+        "price": 643351.66,
+        "marginPct": 22.08
+      },
+      {
+        "price": 652645.78,
+        "marginPct": 23.19
+      },
+      {
+        "price": 661939.91,
+        "marginPct": 24.27
+      },
+      {
+        "price": 671234.04,
+        "marginPct": 25.32
+      },
+      {
+        "price": 680528.16,
+        "marginPct": 26.34
+      },
+      {
+        "price": 689822.29,
+        "marginPct": 27.33
+      },
+      {
+        "price": 699116.42,
+        "marginPct": 28.3
+      }
+    ]
+  },
+  "breakdown": [
+    {
+      "key": "direct",
+      "label": "Прямые затраты (себестоимость)",
+      "amount": 501280.0
+    },
+    {
+      "key": "region",
+      "label": "Регион: Южный",
+      "amount": 50128.0
+    },
+    {
+      "key": "level",
+      "label": "Уровень: Базовый",
+      "amount": 0.0
+    },
+    {
+      "key": "urgent",
+      "label": "Срочность",
+      "amount": 0
+    },
+    {
+      "key": "unique",
+      "label": "Уникальное решение",
+      "amount": 0
+    },
+    {
+      "key": "financing",
+      "label": "Финансирование (prepay, 12 мес)",
+      "amount": 27570.4
+    },
+    {
+      "key": "volume",
+      "label": "Скидка за объём",
+      "amount": 0
+    },
+    {
+      "key": "non_standard",
+      "label": "Наценка за нестандартные позиции",
+      "amount": 44400.0
+    }
+  ],
+  "analogs": {
+    "available": true,
+    "source": "core-api-invest-projects",
+    "count": 63,
+    "percentile": "budgets_p25",
+    "distribution": {
+      "p10": 504000.0,
+      "p25": 1548000.0,
+      "p50": 24000000.0,
+      "p75": 81200000.0,
+      "p90": 430392000.0
+    },
+    "nearest": [
+      {
+        "id": 59,
+        "title": "Выращивание картофеля на территории х. Русский Колодец Неклиновского района Ростовской области",
+        "itBudget": 472000.0,
+        "industry": "agro",
+        "distance": 0.011298023677187092
+      },
+      {
+        "id": 12,
+        "title": "Строительство объекта потребительского рынка площадью 410 кв.м.",
+        "itBudget": 480000.0,
+        "industry": "trade",
+        "distance": 0.018597262418686533
+      },
+      {
+        "id": 54,
+        "title": "Реконструкция цеха для производства комбикормов в производственное здание по ремонту спецтехники",
+        "itBudget": 500000.0,
+        "industry": "manufacturing",
+        "distance": 0.03632602937911812
+      },
+      {
+        "id": 50,
+        "title": "Строительство магазина",
+        "itBudget": 520000.0,
+        "industry": "trade",
+        "distance": 0.05335936867789848
+      },
+      {
+        "id": 49,
+        "title": "Строительство магазина",
+        "itBudget": 400000.0,
+        "industry": "trade",
+        "distance": 0.06058398362893829
+      }
+    ]
+  },
+  "assumptions": [
+    "Максимальная цена: optimal × 1.15 (допущение)",
+    "Наценка за нестандарт: 20.0%",
+    "Наценка за уникальное решение: 15.0%"
+  ]
+}

@@ -32,6 +32,14 @@ export function AppHeader({ userName, onLogout }: AppHeaderProps) {
           >
             Навигатор
           </Link>
+          <span className={styles.navSeparator}>|</span>
+          <Link
+            to="/calc"
+            className={`${styles.navLink} ${currentPath === '/calc' ? styles.navLinkActive : ''}`}
+          >
+            <span className={styles.labelFull}>Калькулятор</span>
+            <span className={styles.labelShort}>Расчёт</span>
+          </Link>
         </nav>
         <div className={styles.headerActions}>
           <NotificationBell />

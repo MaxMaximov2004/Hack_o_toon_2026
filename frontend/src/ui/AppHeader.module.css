@@ -24,6 +24,8 @@
 }
 
 .navLink {
+  display: inline-flex;
+  align-items: center;
   color: var(--rt-white);
   text-decoration: none;
   font-size: 16px;
@@ -117,6 +119,17 @@
   }
 }
 
+/* Планшет: с тремя вкладками полные подписи не помещаются в строку — короткие, как на телефоне */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
+  }
+}
+
 /* Десктоп: имя пользователя — на планшете рядом с колокольчиком и «Подписками» не влезает */
 @media (min-width: 1280px) {
   .userNameDesktop {
@@ -157,6 +170,21 @@
 
   .nav {
     min-width: 0;
+  }
+
+  /* Три вкладки не помещаются в строку с логотипом — переносим их второй строкой на всю ширину */
+  .headerTop {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .headerActions {
+    margin-left: auto;
   }
 
   .labelFull {

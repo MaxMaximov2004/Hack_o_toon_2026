@@ -16,6 +16,10 @@ const SubscriptionsPage = lazy(() =>
   import('./pages/SubscriptionsPage').then((module) => ({ default: module.SubscriptionsPage }))
 )
 
+const CalcPage = lazy(() =>
+  import('./pages/CalcPage').then((module) => ({ default: module.CalcPage }))
+)
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -63,6 +67,16 @@ function App() {
                 <RequireAuth>
                   <Suspense fallback={<div>Загрузка...</div>}>
                     <SubscriptionsPage />
+                  </Suspense>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/calc"
+              element={
+                <RequireAuth>
+                  <Suspense fallback={<div>Загрузка...</div>}>
+                    <CalcPage />
                   </Suspense>
                 </RequireAuth>
               }
