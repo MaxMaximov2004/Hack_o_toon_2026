@@ -180,7 +180,8 @@ potential   = base_score × gap
 В команде `load` между шагами 4 и 6:
 
 - `etl.raw_invest` (63) → `core.invest_project`. Муниципалитет — той же нормализацией. Убрать переносы строк и двойные пробелы.
-- **Стадия:** `start_year > 2026` → `design`; `launch_year ≤ 2026` → `launch`; иначе `construction`.
+- **Стадия:** `start_year ≥ 2026` (текущий год) → `design`; `launch_year ≤ 2026` → `launch`; иначе `construction`.
+  Старт в текущем году считаем проектированием — лист МОД2 реестр планов, стартов позже 2026 в нём нет (допущение — в `etl/README.md`).
 - **Отрасль и потребности** — по ключевым словам в `title` (словарь `data/invest_keywords.csv`): склад, логистич, порт →
   `logistics` + `it_infra`, `phys_security`; завод, цех, производств → `manufacturing` + `apcs`, `it_infra`; тепличн, сад,
   выращиван, комбикорм → `agro` + `apcs`; ЖК, многоквартирн, застройщик → `construction` + `it_infra`, `phys_security`;

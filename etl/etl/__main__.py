@@ -152,7 +152,9 @@ def load_overrides(path):
 
 
 def invest_stage(start, launch):
-    if start is not None and start > model.CURRENT_YEAR:
+    # Лист МОД2 — реестр планов: проект со стартом в текущем году ещё на этапе проекта и разрешений,
+    # для продаж это лучшее окно (связь, ИТ и безопасность можно заложить в проект). Допущение — в README.
+    if start is not None and start >= model.CURRENT_YEAR:
         return "design"
     if launch is not None and launch <= model.CURRENT_YEAR:
         return "launch"
