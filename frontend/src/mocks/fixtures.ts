@@ -5,6 +5,8 @@ import type {
   CompanyShort,
   Company as ApiCompany,
   ProjectShort,
+  ProjectRelatedCompany,
+  ProjectRelatedCompaniesResponse,
   TimelineResponse,
   Subscription,
   Notification,
@@ -364,7 +366,7 @@ export function generateMapCells(
 
 // Получение детальной компании по ID
 export function getCompanyById(id: number): ApiCompany {
-  const company = getAllCompanies().find((c) => c.id === id)
+  const company = getAllCompanies().find((c) => c.id === id) ?? findRelatedSyntheticCompany(id)
 
   if (!company) {
     throw new Error(`Company ${id} not found`)
@@ -600,6 +602,84 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
     total: filtered.length,
     years,
   }
+}
+
+// Компании вокруг проекта (GET /api/projects/:id/related-companies)
+//
+// Моковые компании радара есть только в городах, а проекты — ещё и в районах. Поэтому: если в районе
+// проекта есть компании той же отрасли — берём их (клик откроет ту же карточку, что в радаре), иначе
+// досоздаём синтетические тем же SeededRandom. Синтетические id = RELATED_ID_BASE + projectId * 100 + n,
+// по id однозначно восстанавливается проект, так что GET /api/companies/:id их тоже находит.
+// Инициатор «находится в реестре» примерно у 60% проектов (на реальных данных 38 из 63) и никогда не клиент.
+const RELATED_ID_BASE = 1_000_000
+const RELATED_LIMIT = 20
+
+function syntheticRelatedCompany(
+  project: ProjectShort,
+  n: number,
+  kind: 'ours' | 'others',
+  rng: SeededRandom
+): CompanyShort {
+  const lat = project.lat + rng.range(-0.03, 0.03)
+  const lon = project.lon + rng.range(-0.03, 0.03)
+  const base = createCompanyShort(RELATED_ID_BASE + project.id * 100 + n, kind, lat, lon, '', rng)
+  return {
+    ...base,
+    industry: project.industry,
+    industryName: project.industryName,
+    municipalityId: project.municipalityId,
+    municipalityName: project.municipalityName,
+    settlement: null,
+  }
+}
+
+export function getProjectRelatedCompanies(projectId: number): ProjectRelatedCompaniesResponse | undefined {
+  const project = getProjectById(projectId)
+  if (!project) return undefined
+
+  const rng = new SeededRandom(projectId + 7000)
+  const items: ProjectRelatedCompany[] = []
+
+  if (rng.next() < 0.6) {
+    const initiator = syntheticRelatedCompany(project, 0, 'others', rng)
+    items.push({ ...initiator, name: project.initiator, relation: 'initiator' })
+  }
+
+  let pool = getAllCompanies().filter(
+    (c) =>
+      c.industry === project.industry &&
+      c.municipalityId === project.municipalityId &&
+      c.status === 'active'
+  )
+  if (pool.length === 0) {
+    const count = Math.floor(rng.range(3, 15))
+    pool = Array.from({ length: count }, (_, i) =>
+      syntheticRelatedCompany(project, i + 1, rng.next() < 0.2 ? 'ours' : 'others', rng)
+    )
+  }
+
+  // Сначала не клиенты (потенциальные), затем клиенты; внутри — по выручке убыв.
+  const sorted = [...pool].sort(
+    (a, b) => Number(a.isClient) - Number(b.isClient) || (b.revenueEst ?? 0) - (a.revenueEst ?? 0)
+  )
+  sorted.slice(0, RELATED_LIMIT).forEach((c) => items.push({ ...c, relation: 'same_area_industry' }))
+
+  return {
+    projectId,
+    items,
+    sameAreaIndustryTotal: pool.length,
+    radarQuery: `industry=${project.industry}&municipalityId=${project.municipalityId}`,
+  }
+}
+
+function findRelatedSyntheticCompany(id: number): CompanyShort | undefined {
+  if (id < RELATED_ID_BASE) return undefined
+  const projectId = Math.floor((id - RELATED_ID_BASE) / 100)
+  const found = getProjectRelatedCompanies(projectId)?.items.find((c) => c.id === id)
+  if (!found) return undefined
+  const company: CompanyShort & { relation?: unknown } = { ...found }
+  delete company.relation
+  return company
 }
 
 // Группировка проектов по районам для карты

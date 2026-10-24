@@ -263,23 +263,15 @@ export interface TimelineResponse {
 // Связанные компании проекта
 export type ProjectCompanyRelation = 'initiator' | 'same_area_industry'
 
-export interface ProjectRelatedCompany {
-  id: number
-  inn: string
-  name: string
-  industry: string
-  industryName: string
-  municipalityId: number
-  municipalityName: string
-  revenueEst: number | null
-  isEstimated: boolean
-  kind: CompanyKind
-  relation: ProjectCompanyRelation
-}
+/** Компания вокруг проекта — CompanyShort как в списке радара + отношение к проекту (контракт 08) */
+export type ProjectRelatedCompany = CompanyShort & { relation: ProjectCompanyRelation }
 
 export interface ProjectRelatedCompaniesResponse {
+  projectId: number
   items: ProjectRelatedCompany[]
+  /** Сколько всего действующих компаний той же отрасли в районе проекта */
   sameAreaIndustryTotal: number
+  /** Строка CompanyFilter для «Открыть в радаре»; null — у проекта нет отрасли */
   radarQuery: string | null
 }
 

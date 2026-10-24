@@ -24,6 +24,7 @@ import {
   filterProjects,
   getProjectById,
   getProjectTimeline,
+  getProjectRelatedCompanies,
   getSubscriptions,
   createSubscription,
   deleteSubscription,
@@ -33,7 +34,6 @@ import {
   type MockFilters,
   type ProjectMockFilters,
 } from './fixtures'
-import relatedCompaniesExample from '../../../contracts/examples/related-companies.json'
 import telegramLinkExample from '../../../contracts/examples/telegram-link.json'
 
 // Демо-пользователи
@@ -529,23 +529,7 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  // GET /api/projects/:id
-  http.get('/api/projects/:id', ({ params }) => {
-    const id = Number(params.id)
-    const project = getProjectById(id)
-
-    if (!project) {
-      return HttpResponse.json(
-        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
-        { status: 404 }
-      )
-    }
-
-    const response: Project = project
-    return HttpResponse.json(response)
-  }),
-
-  // GET /api/projects/timeline
+  // GET /api/projects/timeline — до /api/projects/:id, иначе MSW примет «timeline» за id
   http.get('/api/projects/timeline', ({ request }) => {
     const url = new URL(request.url)
 
@@ -565,16 +549,30 @@ export const handlers = [
     return HttpResponse.json(timeline)
   }),
 
+  // GET /api/projects/:id
+  http.get('/api/projects/:id', ({ params }) => {
+    const id = Number(params.id)
+    const project = getProjectById(id)
+
+    if (!project) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
+        { status: 404 }
+      )
+    }
+
+    const response: Project = project
+    return HttpResponse.json(response)
+  }),
+
   // GET /api/projects/:id/related-companies
-  http.get('/api/projects/:id/related-companies', () => {
-    // Возвращаем фиксированный пример
-    const response: ProjectRelatedCompaniesResponse = {
-      items: relatedCompaniesExample.items.map((item: any) => ({
-        ...item,
-        relation: item.relation as 'initiator' | 'same_area_industry',
-      })),
-      sameAreaIndustryTotal: relatedCompaniesExample.sameAreaIndustryTotal,
-      radarQuery: relatedCompaniesExample.radarQuery,
+  http.get('/api/projects/:id/related-companies', ({ params }) => {
+    const response: ProjectRelatedCompaniesResponse | undefined = getProjectRelatedCompanies(Number(params.id))
+    if (!response) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
+        { status: 404 }
+      )
     }
     return HttpResponse.json(response)
   }),

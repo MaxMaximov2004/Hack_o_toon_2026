@@ -7,6 +7,8 @@ import { ProjectFilterPanel } from '../projects/ProjectFilterPanel'
 import { ProjectList } from '../projects/ProjectList'
 import { ProjectTimeline } from '../projects/ProjectTimeline'
 import { ProjectMap } from '../projects/ProjectMap'
+import { ProjectCard } from '../projects/ProjectCard'
+import { CompanyCard } from '../company/CompanyCard'
 import type { ProjectSortField, ProjectSortDirection } from '../projects/types'
 import styles from './NavigatorPage.module.css'
 
@@ -16,6 +18,15 @@ export function NavigatorPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>()
   const [sort, setSort] = useState<`${ProjectSortField},${ProjectSortDirection}`>('amountMln,desc')
   const [activeTab, setActiveTab] = useState<'map' | 'list'>('map')
+  // Карточка компании радара поверх карточки проекта: закрыли — вернулись к проекту
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>()
+
+  const handleCloseProject = useCallback(() => {
+    setSelectedProjectId(undefined)
+    setSelectedCompanyId(undefined)
+  }, [])
+
+  const handleCloseCompany = useCallback(() => setSelectedCompanyId(undefined), [])
 
   const handleYearRangeChange = useCallback(
     (yearFrom: number | undefined, yearTo: number | undefined) => {
@@ -87,6 +98,18 @@ export function NavigatorPage() {
           </div>
         </div>
       </main>
+
+      {selectedProjectId !== undefined && (
+        <ProjectCard
+          key={selectedProjectId}
+          projectId={selectedProjectId}
+          onClose={handleCloseProject}
+          onOpenCompany={setSelectedCompanyId}
+        />
+      )}
+      {selectedCompanyId !== undefined && (
+        <CompanyCard companyId={selectedCompanyId} onClose={handleCloseCompany} />
+      )}
     </div>
   )
 }
