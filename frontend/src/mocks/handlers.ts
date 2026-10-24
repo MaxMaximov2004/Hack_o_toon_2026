@@ -104,7 +104,8 @@ export const handlers = [
     const authHeader = request.headers.get('Authorization')
     const token = authHeader?.replace('Bearer ', '')
 
-    if (token && validTokens.has(token)) {
+    // Принимаем любой токен с префиксом 'mock-access-token-'
+    if (token && token.startsWith('mock-access-token-')) {
       // Упрощённо возвращаем демо-пользователя
       return HttpResponse.json(DEMO_USER)
     }
@@ -316,5 +317,113 @@ export const handlers = [
         { status: 404 }
       )
     }
+  }),
+
+  // GET /api/export/companies
+  http.get('/api/export/companies', ({ request }) => {
+    const url = new URL(request.url)
+    const format = url.searchParams.get('format') || 'csv'
+
+    // Парсим фильтры так же, как в /api/companies
+    const filters: MockFilters = {
+      client: url.searchParams.get('client') || 'all',
+      status: url.searchParams.get('status') || 'active',
+    }
+
+    const minLat = url.searchParams.get('minLat')
+    const maxLat = url.searchParams.get('maxLat')
+    const minLon = url.searchParams.get('minLon')
+    const maxLon = url.searchParams.get('maxLon')
+
+    if (minLat && maxLat && minLon && maxLon) {
+      filters.bbox = {
+        minLat: parseFloat(minLat),
+        maxLat: parseFloat(maxLat),
+        minLon: parseFloat(minLon),
+        maxLon: parseFloat(maxLon),
+      }
+    }
+
+    const industries = url.searchParams.getAll('industry')
+    if (industries.length > 0) filters.industry = industries
+
+    const municipalities = url.searchParams.getAll('municipalityId').map(Number)
+    if (municipalities.length > 0) filters.municipalityId = municipalities
+
+    const sizeCategories = url.searchParams.getAll('sizeCategory')
+    if (sizeCategories.length > 0) filters.sizeCategory = sizeCategories
+
+    const revenueMin = url.searchParams.get('revenueMin')
+    if (revenueMin) filters.revenueMin = parseFloat(revenueMin)
+
+    const revenueMax = url.searchParams.get('revenueMax')
+    if (revenueMax) filters.revenueMax = parseFloat(revenueMax)
+
+    const growthMin = url.searchParams.get('growthMin')
+    if (growthMin) filters.growthMin = parseFloat(growthMin)
+
+    if (url.searchParams.get('isNew') === 'true') filters.isNew = true
+
+    const q = url.searchParams.get('q')
+    if (q) filters.q = q
+
+    const companies = filterCompanies(filters)
+
+    // Проверка лимита (максимум 10000 для экспорта)
+    if (companies.length > 10000) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'TOO_LARGE',
+            message: 'Слишком много компаний для экспорта',
+            details: { total: companies.length },
+          },
+        },
+        { status: 413 }
+      )
+    }
+
+    // Генерируем CSV с UTF-8 BOM и разделителем ;
+    const BOM = '\uFEFF'
+    const headers = [
+      'ID',
+      'ИНН',
+      'Название',
+      'Отрасль',
+      'Муниципалитет',
+      'Категория',
+      'Выручка (руб)',
+      'Рост выручки (%)',
+      'Статус',
+    ].join(';')
+
+    const rows = companies.map((c) =>
+      [
+        c.id,
+        c.inn,
+        `"${c.name.replace(/"/g, '""')}"`, // Экранирование кавычек
+        c.industryName,
+        c.municipalityName,
+        c.sizeCategory,
+        c.revenueEst || '',
+        c.revenueGrowthEst || '',
+        c.status,
+      ].join(';')
+    )
+
+    const csv = BOM + headers + '\n' + rows.join('\n')
+
+    const filename =
+      format === 'bitrix'
+        ? `export_bitrix_${new Date().toISOString().split('T')[0]}.csv`
+        : `export_${new Date().toISOString().split('T')[0]}.csv`
+
+    return new HttpResponse(csv, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+      },
+    })
   }),
 ]

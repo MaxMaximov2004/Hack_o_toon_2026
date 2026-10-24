@@ -7,7 +7,10 @@ describe('useFilter', () => {
   it('should preserve industry filters when updating bbox', () => {
     // Wrapper с начальным URL содержащим фильтры industry
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <MemoryRouter initialEntries={['/?industry=agro&industry=trade']}>
+      <MemoryRouter
+        initialEntries={['/?industry=agro&industry=trade']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/" element={children} />
         </Routes>
@@ -39,7 +42,10 @@ describe('useFilter', () => {
 
   it('should preserve bbox when updating industry', () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <MemoryRouter initialEntries={['/?minLat=46.1678&maxLat=48.9940&minLon=38.6302&maxLon=42.9698']}>
+      <MemoryRouter
+        initialEntries={['/?minLat=46.1678&maxLat=48.9940&minLon=38.6302&maxLon=42.9698']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/" element={children} />
         </Routes>
@@ -65,7 +71,10 @@ describe('useFilter', () => {
 
   it('should handle multiple filter types simultaneously', () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <MemoryRouter initialEntries={['/?industry=agro&industry=trade&client=ours&sizeCategory=small']}>
+      <MemoryRouter
+        initialEntries={['/?industry=agro&industry=trade&client=ours&sizeCategory=small']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <Routes>
           <Route path="/" element={children} />
         </Routes>
