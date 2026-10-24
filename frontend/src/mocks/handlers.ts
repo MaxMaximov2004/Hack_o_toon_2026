@@ -1,0 +1,320 @@
+import { http, HttpResponse } from 'msw'
+import type {
+  LoginResponse,
+  TwoFactorVerifyResponse,
+  User,
+  MapCellsResponse,
+  MapPointsResponse,
+  CompaniesResponse,
+  CompanyShort,
+} from '../api/types'
+import {
+  mockDictionaries,
+  generateMapCells,
+  filterCompanies,
+  getCompanyById,
+  type MockFilters
+} from './fixtures'
+
+// Демо-пользователи
+const DEMO_USER: User = {
+  id: 1,
+  email: 'demo@rt.ru',
+  fullName: 'Демо Пользователь',
+  roles: ['user'],
+}
+
+const ADMIN_USER: User = {
+  id: 2,
+  email: 'admin@rt.ru',
+  fullName: 'Администратор',
+  roles: ['user', 'admin'],
+}
+
+// Простое хранилище токенов (в памяти)
+const validTokens = new Set<string>()
+
+export const handlers = [
+  // POST /api/auth/login
+  http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json() as { email: string; password: string }
+
+    // Проверяем демо-аккаунты
+    if (
+      (body.email === 'demo@rt.ru' && body.password === 'Demo2026!') ||
+      (body.email === 'admin@rt.ru' && body.password === 'Admin2026!')
+    ) {
+      const response: LoginResponse = {
+        mfaToken: 'mock-mfa-token-' + Date.now(),
+        mfaSetupRequired: body.email === 'admin@rt.ru', // Админ показывает QR
+        ...(body.email === 'admin@rt.ru' && {
+          otpauthUrl: 'otpauth://totp/RadarRT:admin@rt.ru?secret=JBSWY3DPEHPK3PXP&issuer=RadarRT',
+          qrPngBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', // Заглушка, 1x1 пиксель
+        }),
+      }
+      return HttpResponse.json(response)
+    }
+
+    // Неверные учётные данные
+    return HttpResponse.json(
+      {
+        error: {
+          code: 'INVALID_CREDENTIALS',
+          message: 'Неверный email или пароль',
+        },
+      },
+      { status: 401 }
+    )
+  }),
+
+  // POST /api/auth/2fa/verify
+  http.post('/api/auth/2fa/verify', async ({ request }) => {
+    const body = await request.json() as { mfaToken: string; code: string }
+
+    // Принимаем любой 6-значный код
+    if (body.code.length === 6 && /^\d{6}$/.test(body.code)) {
+      const token = 'mock-access-token-' + Date.now()
+      validTokens.add(token)
+
+      // Определяем пользователя по mfaToken (упрощённо)
+      const user = body.mfaToken.includes('admin') ? ADMIN_USER : DEMO_USER
+
+      const response: TwoFactorVerifyResponse = {
+        accessToken: token,
+        expiresIn: 3600,
+        user,
+      }
+      return HttpResponse.json(response)
+    }
+
+    // Неверный код
+    return HttpResponse.json(
+      {
+        error: {
+          code: 'INVALID_CODE',
+          message: 'Неверный код',
+        },
+      },
+      { status: 401 }
+    )
+  }),
+
+  // GET /api/auth/me
+  http.get('/api/auth/me', ({ request }) => {
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (token && validTokens.has(token)) {
+      // Упрощённо возвращаем демо-пользователя
+      return HttpResponse.json(DEMO_USER)
+    }
+
+    return HttpResponse.json(
+      {
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Требуется авторизация',
+        },
+      },
+      { status: 401 }
+    )
+  }),
+
+  // GET /api/dictionaries
+  http.get('/api/dictionaries', () => {
+    return HttpResponse.json(mockDictionaries)
+  }),
+
+  // GET /api/map/cells - использует ОБЩУЮ функцию фильтрации
+  http.get('/api/map/cells', ({ request }) => {
+    const url = new URL(request.url)
+    const zoom = parseInt(url.searchParams.get('zoom') || '7', 10)
+
+    // Парсим ВСЕ фильтры из URL (те же, что у списка)
+    const filters: MockFilters = {
+      client: url.searchParams.get('client') || 'all',
+      status: url.searchParams.get('status') || 'active',
+    }
+
+    // bbox
+    const minLat = url.searchParams.get('minLat')
+    const maxLat = url.searchParams.get('maxLat')
+    const minLon = url.searchParams.get('minLon')
+    const maxLon = url.searchParams.get('maxLon')
+
+    if (minLat && maxLat && minLon && maxLon) {
+      filters.bbox = {
+        minLat: parseFloat(minLat),
+        maxLat: parseFloat(maxLat),
+        minLon: parseFloat(minLon),
+        maxLon: parseFloat(maxLon),
+      }
+    }
+
+    // Другие фильтры
+    const industries = url.searchParams.getAll('industry')
+    if (industries.length > 0) filters.industry = industries
+
+    const municipalities = url.searchParams.getAll('municipalityId').map(Number)
+    if (municipalities.length > 0) filters.municipalityId = municipalities
+
+    const sizeCategories = url.searchParams.getAll('sizeCategory')
+    if (sizeCategories.length > 0) filters.sizeCategory = sizeCategories
+
+    const revenueMin = url.searchParams.get('revenueMin')
+    if (revenueMin) filters.revenueMin = parseFloat(revenueMin)
+
+    const revenueMax = url.searchParams.get('revenueMax')
+    if (revenueMax) filters.revenueMax = parseFloat(revenueMax)
+
+    const growthMin = url.searchParams.get('growthMin')
+    if (growthMin) filters.growthMin = parseFloat(growthMin)
+
+    if (url.searchParams.get('isNew') === 'true') filters.isNew = true
+
+    const q = url.searchParams.get('q')
+    if (q) filters.q = q
+
+    // Генерируем данные через ОБЩУЮ функцию
+    const { cells, points, total } = generateMapCells(zoom, filters)
+
+    // Переключаемся в режим points при zoom >= 11 ИЛИ total <= 1500
+    if (points.length > 0) {
+      const response: MapPointsResponse = {
+        mode: 'points',
+        total,
+        points,
+      }
+      return HttpResponse.json(response)
+    }
+
+    // Режим cells
+    const cellDeg = 84 / Math.pow(2, zoom)
+
+    const response: MapCellsResponse = {
+      mode: 'cells',
+      cellDeg,
+      total,
+      cells,
+    }
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/companies - использует ОБЩУЮ функцию фильтрации
+  http.get('/api/companies', ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '0', 10)
+    const size = parseInt(url.searchParams.get('size') || '50', 10)
+    const sort = url.searchParams.get('sort') || 'revenueEst,desc'
+
+    // Парсим ВСЕ фильтры из URL (те же, что у карты)
+    const filters: MockFilters = {
+      client: url.searchParams.get('client') || 'all',
+      status: url.searchParams.get('status') || 'active',
+    }
+
+    // bbox - ОБЯЗАТЕЛЬНО должен быть в запросе списка!
+    const minLat = url.searchParams.get('minLat')
+    const maxLat = url.searchParams.get('maxLat')
+    const minLon = url.searchParams.get('minLon')
+    const maxLon = url.searchParams.get('maxLon')
+
+    if (minLat && maxLat && minLon && maxLon) {
+      filters.bbox = {
+        minLat: parseFloat(minLat),
+        maxLat: parseFloat(maxLat),
+        minLon: parseFloat(minLon),
+        maxLon: parseFloat(maxLon),
+      }
+    }
+
+    // Другие фильтры
+    const industries = url.searchParams.getAll('industry')
+    if (industries.length > 0) filters.industry = industries
+
+    const municipalities = url.searchParams.getAll('municipalityId').map(Number)
+    if (municipalities.length > 0) filters.municipalityId = municipalities
+
+    const sizeCategories = url.searchParams.getAll('sizeCategory')
+    if (sizeCategories.length > 0) filters.sizeCategory = sizeCategories
+
+    const revenueMin = url.searchParams.get('revenueMin')
+    if (revenueMin) filters.revenueMin = parseFloat(revenueMin)
+
+    const revenueMax = url.searchParams.get('revenueMax')
+    if (revenueMax) filters.revenueMax = parseFloat(revenueMax)
+
+    const growthMin = url.searchParams.get('growthMin')
+    if (growthMin) filters.growthMin = parseFloat(growthMin)
+
+    if (url.searchParams.get('isNew') === 'true') filters.isNew = true
+
+    const q = url.searchParams.get('q')
+    if (q) filters.q = q
+
+    // Фильтруем через ОБЩУЮ функцию - те же данные, что у карты!
+    let items = filterCompanies(filters)
+    const total = items.length
+
+    // Сортировка
+    const [sortField, sortDir] = sort.split(',')
+    items.sort((a, b) => {
+      let aVal: any = a[sortField as keyof CompanyShort]
+      let bVal: any = b[sortField as keyof CompanyShort]
+
+      // Обработка null значений
+      if (aVal === null) aVal = sortDir === 'desc' ? -Infinity : Infinity
+      if (bVal === null) bVal = sortDir === 'desc' ? -Infinity : Infinity
+
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+
+    // Пагинация
+    const start = page * size
+    const end = start + size
+    const pageItems = items.slice(start, end)
+
+    const response: CompaniesResponse = {
+      items: pageItems,
+      page,
+      size,
+      total,
+    }
+
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/companies/{id}
+  http.get('/api/companies/:id', ({ params }) => {
+    const id = parseInt(params.id as string, 10)
+
+    if (isNaN(id)) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Компания не найдена',
+          },
+        },
+        { status: 404 }
+      )
+    }
+
+    try {
+      const company = getCompanyById(id)
+      return HttpResponse.json(company)
+    } catch {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Компания не найдена',
+          },
+        },
+        { status: 404 }
+      )
+    }
+  }),
+]

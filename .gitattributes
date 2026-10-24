@@ -1,2 +1,18 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Всё, что исполняется внутри Linux-контейнеров, — строго LF даже на Windows
+# (core.autocrlf=true иначе выгрузит CRLF, и postgres не выполнит init-скрипты)
+*.sh        text eol=lf
+*.sql       text eol=lf
+*.conf      text eol=lf
+*.py        text eol=lf
+Dockerfile  text eol=lf
+*.json      text eol=lf
+*.pem       text eol=lf
+
+# Бинарные файлы
+*.xlsx      binary
+*.pdf       binary
+*.gz        binary
+*.png       binary

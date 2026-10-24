@@ -79,6 +79,29 @@ services:
     restart: unless-stopped
 
   # ------------------------------------------------------------------
+  # auth-stub: ПОДМЕНА auth-service для разработки, пока Go не готов.
+  # Отдаёт /health и тестовый JWKS (contracts/dev-keys), входа нет —
+  # токен выпускает contracts/dev-keys/mint-token.sh.
+  #   docker compose --profile auth-stub up -d --build postgres auth-stub core-api
+  # НЕ поднимать вместе с auth-service: оба отвечают на имя auth-service.
+  # Ведёт: техлид
+  # ------------------------------------------------------------------
+  auth-stub:
+    profiles: ["auth-stub"]
+    image: nginx:1.27-alpine
+    container_name: radar-auth-stub
+    volumes:
+      - ./contracts/dev-keys/auth-stub.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./contracts/dev-keys/jwks.json:/keys/jwks.json:ro
+    ports:
+      - "127.0.0.1:${AUTH_STUB_PORT:-18081}:8081"   # для запуска из IDE: AUTH_JWKS_URL=http://localhost:18081/internal/auth/jwks
+      # (не 8081: на Windows Hyper-V часто резервирует диапазон ~7900-8200)
+    networks:
+      default:
+        aliases: [auth-service]
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
   # Java — core-api: радар (и навигатор в продукте 2). Ведут: Java #1, Java #2
   # ------------------------------------------------------------------
   core-api:
