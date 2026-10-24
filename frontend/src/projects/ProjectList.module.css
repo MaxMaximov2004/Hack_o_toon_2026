@@ -1,0 +1,194 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--rt-white);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--rt-cool-grey);
+  flex-shrink: 0;
+}
+
+.count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rt-black);
+}
+
+.sortButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.sortButton {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--rt-black);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sortButton:hover {
+  background: var(--rt-lavender);
+  border-color: var(--rt-purple);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.row {
+  padding: 16px;
+  margin-bottom: 8px;
+  background: var(--rt-white);
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.row:hover {
+  border-color: var(--rt-purple);
+  box-shadow: 0 2px 8px rgba(119, 0, 255, 0.1);
+}
+
+.rowSelected {
+  border-color: var(--rt-purple);
+  background: var(--rt-lavender);
+}
+
+.rowHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--rt-black);
+}
+
+.keyBadge {
+  padding: 4px 8px;
+  background: var(--rt-orange);
+  color: var(--rt-white);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 4px;
+}
+
+.initiator {
+  font-size: 14px;
+  color: var(--rt-gray);
+  margin-bottom: 8px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.municipality {
+  font-size: 13px;
+  color: var(--rt-black);
+}
+
+.stageBadge {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  color: var(--rt-white);
+}
+
+.stage-design {
+  background: var(--stage-design);
+}
+
+.stage-construction {
+  background: var(--stage-construction);
+}
+
+.stage-launch {
+  background: var(--stage-launch);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.amount {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rt-purple);
+}
+
+.years {
+  font-size: 13px;
+  color: var(--rt-gray);
+}
+
+.jobs {
+  font-size: 13px;
+  color: var(--rt-black);
+}
+
+.loading,
+.error,
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--rt-gray);
+}
+
+.error {
+  color: #d32f2f;
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .sortButtons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sortButton {
+    flex: 1;
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .stats {
+    gap: 12px;
+  }
+}

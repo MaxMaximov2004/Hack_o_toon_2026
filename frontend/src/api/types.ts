@@ -191,3 +191,136 @@ export interface ImportClientsResponse {
   mode: 'append' | 'replace'
   whiteSpots: number
 }
+
+// Проекты (продукт 2 - Навигатор)
+export type ProjectStage = 'design' | 'construction' | 'launch'
+
+export interface RecommendedOffer {
+  need: string
+  needName: string
+  offers: string[]
+}
+
+export interface ProjectShort {
+  id: number
+  title: string
+  initiator: string
+  municipalityId: number
+  municipalityName: string
+  lat: number
+  lon: number
+  isKey: boolean
+  curator: string
+  startYear: number
+  launchYear: number
+  amountMln: number
+  jobs: number
+  stage: ProjectStage
+  stageName: string
+  industry: string
+  industryName: string
+  needs: string[]
+  recommendedOffers: RecommendedOffer[]
+  updatedAt: string
+}
+
+export interface Project extends ProjectShort {
+  // Все поля уже в ProjectShort, но явно обозначаем полную форму
+}
+
+export interface ProjectsResponse {
+  items: ProjectShort[]
+  page: number
+  size: number
+  total: number
+}
+
+// Таймлайн проектов
+export type TimelineEventType = 'start' | 'launch'
+
+export interface TimelineEvent {
+  projectId: number
+  type: TimelineEventType
+  title: string
+  municipalityId: number
+  municipalityName: string
+  stage: ProjectStage
+  amountMln: number
+}
+
+export interface TimelineYear {
+  year: number
+  events: TimelineEvent[]
+}
+
+export interface TimelineResponse {
+  minYear: number
+  maxYear: number
+  total: number
+  years: TimelineYear[]
+}
+
+// Связанные компании проекта
+export type ProjectCompanyRelation = 'initiator' | 'same_area_industry'
+
+export interface ProjectRelatedCompany {
+  id: number
+  inn: string
+  name: string
+  industry: string
+  industryName: string
+  municipalityId: number
+  municipalityName: string
+  revenueEst: number | null
+  isEstimated: boolean
+  kind: CompanyKind
+  relation: ProjectCompanyRelation
+}
+
+export interface ProjectRelatedCompaniesResponse {
+  items: ProjectRelatedCompany[]
+  sameAreaIndustryTotal: number
+  radarQuery: string | null
+}
+
+// Подписки
+export interface Subscription {
+  id: number
+  userId: number
+  industry: string | null
+  industryName: string | null
+  municipalityId: number | null
+  municipalityName: string | null
+  need: string | null
+  needName: string | null
+  stage: ProjectStage | null
+  stageName: string | null
+  createdAt: string
+}
+
+export interface SubscriptionsResponse {
+  items: Subscription[]
+}
+
+// Уведомления
+export interface Notification {
+  id: number
+  userId: number
+  projectId: number
+  projectTitle: string
+  municipalityName: string
+  read: boolean
+  createdAt: string
+}
+
+export interface NotificationsResponse {
+  items: Notification[]
+  unreadCount: number
+}
+
+// Telegram-линк
+export interface TelegramLinkResponse {
+  botConfigured: boolean
+  linked: boolean
+  url: string | null
+}

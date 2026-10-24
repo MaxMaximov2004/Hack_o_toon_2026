@@ -1,0 +1,2636 @@
+[
+  {
+    "id": 1,
+    "title": "Строительство комбикормового цеха производительностью 10 тонн в час гранулированных кормов для свиней",
+    "initiator": "АО «Батайское»",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": true,
+    "curator": "Министерство сельского  хозяйства и продовольствия",
+    "startYear": 2024,
+    "launchYear": 2026,
+    "amountMln": 877.6,
+    "jobs": 14,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 77Гб/с",
+          "ОБД-кабель 21Гб/с",
+          "ОБД-кабель 54Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v4",
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 2,
+    "title": "Строительство базы отдыха для активного семейного отдыха (Услуги проката и аренды спортивных товаров (серфинг), предоставление мест временного пребывания)",
+    "initiator": "ИП Ищенко Александр Сергеевич",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2030,
+    "amountMln": 250,
+    "jobs": 20,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security",
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v5",
+          "Контроллер SCADA v2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 3,
+    "title": "Строительство стадиона (Спортивная инфраструктура футбольной академии \"Приазовье\")",
+    "initiator": "ИП Есипенко Владимир Владимирович",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2021,
+    "launchYear": 2028,
+    "amountMln": 150,
+    "jobs": 15,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 81Гб/с",
+          "ОБД-кабель 86Гб/с",
+          "ОБД-кабель 21Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v5",
+          "Контроллер SCADA v4"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 4,
+    "title": "Выращивание и переработка австралийского рака",
+    "initiator": "ИП Трипута Светлана Владимировна",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 35,
+    "jobs": 10,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "phys_security",
+      "apcs",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v5"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 8Гб/с",
+          "ОБД-кабель 11Гб/с",
+          "ОБД-кабель 88Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 5,
+    "title": "Современный и многофункциональный аквакультурный центр по производству осетровых видов рыб",
+    "initiator": "ООО \"Органик Фудс Инвестмент\"",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2020,
+    "launchYear": 2026,
+    "amountMln": 295,
+    "jobs": 100,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 3"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 89Гб/с",
+          "ОБД-кабель 36Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 6,
+    "title": "Многофункциональная зона дорожного сервиса",
+    "initiator": "ООО \"МАК-Лоджистик\"",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Департамент потребительского рынка",
+    "startYear": 2023,
+    "launchYear": 2027,
+    "amountMln": 240,
+    "jobs": 70,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "info_security",
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп",
+          "IP-камера 4Мп",
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 7,
+    "title": "Строительство предприятия по выращиванию осетровых видов рыб и форели* * проект реализуется в Азовском и Каменском районах.",
+    "initiator": "ООО «РЫБНАЯ ФЕРМА «ЭКОДОН»",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Министерство сельского хозяйства и продовольствия",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 500,
+    "jobs": 50,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 90Гб/с",
+          "ОБД-кабель 15Гб/с",
+          "ОБД-кабель 54Гб/с"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 8,
+    "title": "Обустройство пляжа Павло-Очаковская коса",
+    "initiator": "ООО \"Русь-Транс\"",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2028,
+    "amountMln": 480,
+    "jobs": 15,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "apcs",
+      "it_infra",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v1"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 70Гб/с",
+          "ОБД-кабель 57Гб/с",
+          "ОБД-кабель 31Гб/с"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 9,
+    "title": "База отдыха \"Выдох\", с. Круглое, пер. Шолохова, д. 57",
+    "initiator": "ИП Гук Анна Валерьевна",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2028,
+    "amountMln": 50,
+    "jobs": 5,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "hospitality",
+    "industryName": "Гостиничный бизнес",
+    "needs": [
+      "phys_security",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 6Мп",
+          "IP-камера 5Мп",
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 47Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 10,
+    "title": "Строительство крытого картодрома Лемар (услуги проката картов)",
+    "initiator": "ООО \"Лемар\"",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2021,
+    "launchYear": 2026,
+    "amountMln": 75,
+    "jobs": 10,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 11,
+    "title": "ООО \"Северстройсервис\" Завод по производству СПГ мощностью 4500 кг/час",
+    "initiator": "ООО \"Северстройсервис\"",
+    "municipalityId": 22,
+    "municipalityName": "Азовский район",
+    "lat": 47.1167,
+    "lon": 39.4167,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2027,
+    "amountMln": 4500,
+    "jobs": 45,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 98Гб/с",
+          "ОБД-кабель 89Гб/с",
+          "ОБД-кабель 60Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.764Z"
+  },
+  {
+    "id": 12,
+    "title": "Строительство объекта потребительского рынка площадью 410 кв.м.",
+    "initiator": "Бесхлебнов Александр Иванович",
+    "municipalityId": 23,
+    "municipalityName": "Боковский район",
+    "lat": 48.4667,
+    "lon": 40.9333,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2027,
+    "amountMln": 6,
+    "jobs": 4,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 13,
+    "title": "Строительство объектов сельскохозяйственного назначения (склад площадью 120 кв.м)",
+    "initiator": "ООО \"Бок Дон\"",
+    "municipalityId": 23,
+    "municipalityName": "Боковский район",
+    "lat": 48.4667,
+    "lon": 40.9333,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2026,
+    "amountMln": 3.2,
+    "jobs": 2,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 2Гб/с",
+          "ОБД-кабель 54Гб/с",
+          "ОБД-кабель 4Гб/с"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп",
+          "IP-камера 3Мп",
+          "IP-камера 3Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 14,
+    "title": "Реконструкция здания в административно-производственное площадью 538 кв.м.",
+    "initiator": "ИП Крицкая Ольга Павловна",
+    "municipalityId": 23,
+    "municipalityName": "Боковский район",
+    "lat": 48.4667,
+    "lon": 40.9333,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2027,
+    "amountMln": 16,
+    "jobs": 4,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп",
+          "IP-камера 3Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 15,
+    "title": "Строительство объектов сельскохозяйственного назначения (склад №1 площадью 642,6 кв.м, склад №2 площадью 418,6 кв.м., ЗАВ)",
+    "initiator": "СПК \"Сельскохозяйственная артель Сатурн\"",
+    "municipalityId": 23,
+    "municipalityName": "Боковский район",
+    "lat": 48.4667,
+    "lon": 40.9333,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2027,
+    "amountMln": 18,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 3"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 16,
+    "title": "Создание и развитие промышленного технопарка \"Гранит Технопарк\"",
+    "initiator": "ПАО \"Гранит\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2021,
+    "launchYear": 2026,
+    "amountMln": 1500,
+    "jobs": 450,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 58Гб/с",
+          "ОБД-кабель 1Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 17,
+    "title": "Строительство многоквартирных домов по улице Пойменная в городе Ростове-на-Дону",
+    "initiator": "Общество с ограниченной ответственностью «Специализированный застройщик \"Проект-С-23»",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2041,
+    "amountMln": 150458.84,
+    "jobs": 510,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v2"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 18,
+    "title": "«Комплексное развитие территории в городе Ростове-на-Дону по улице Кумженской, 1г»",
+    "initiator": "Специализированный застройщик «Проект 12» (ГК DOGMA)",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2055,
+    "amountMln": 230000,
+    "jobs": 2000,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "services",
+    "industryName": "Услуги",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 62Гб/с",
+          "ОБД-кабель 88Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 19,
+    "title": "ЖК \"Малина Парк\"",
+    "initiator": "ООО СЗ \"СК10 №9\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2029,
+    "amountMln": 14903.25,
+    "jobs": 310,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "realestate",
+    "industryName": "Недвижимость",
+    "needs": [
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 20,
+    "title": "Строительство развлекательного комплекса с объектами общественного питания",
+    "initiator": "ИП Сичинава Д.Д.",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2026,
+    "amountMln": 350,
+    "jobs": 226,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 66Гб/с",
+          "ОБД-кабель 52Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 21,
+    "title": "Строительство многоквартирного жилого дома с автостоянкой и встроенными помещениями общественного назначения «ЖК Клубный дом Летний сад»",
+    "initiator": "ООО СЗ \"КОРИФЕЙ\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 1066,
+    "jobs": 0,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 22,
+    "title": "Строительство торгово-складского комплекса «Дверной хаб» по адресу г. Ростов-на-Дону, ул. Вавилова, земельный участок 63Ж",
+    "initiator": "Индивидуальный предприниматель Ибрагимов Эльдар Багадурович",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 300,
+    "jobs": 456,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 70Гб/с",
+          "ОБД-кабель 17Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 23,
+    "title": "Строительство торгового пространства Площадка «МАРКЕТ»",
+    "initiator": "ИП Баглаева Наталья Валентиновна",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2026,
+    "amountMln": 300,
+    "jobs": 250,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 2Мп",
+          "IP-камера 6Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 24,
+    "title": "«Строительство физкультурно-оздоровительного комплекса»",
+    "initiator": "ЗАО «Агротранс»",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2027,
+    "amountMln": 1500,
+    "jobs": 70,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 75Гб/с",
+          "ОБД-кабель 81Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 25,
+    "title": "«Расширение производства авто-компонентов»",
+    "initiator": "ООО \"Центр испытаний и экспертиз\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2027,
+    "amountMln": 500,
+    "jobs": 0,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "phys_security",
+      "apcs",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 26,
+    "title": "Строительство спортивного комплекса\"ДОСААФ\" (г. Ростов-на-Дону, Железнодорожный район, вертолетное поле (бывший аэродром участок VIXX)",
+    "initiator": "ООО ГК \"СОКОЛ\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 383,
+    "jobs": 17,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 5Мп",
+          "IP-камера 4Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 27,
+    "title": "Создание творческого кластера на территории бывшего вино-водочного завода по пр. Буденовский, 70/234",
+    "initiator": "ООО \"Винзаводъ\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2021,
+    "launchYear": 2026,
+    "amountMln": 1500,
+    "jobs": 2000,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "phys_security",
+      "apcs",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v5"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 28,
+    "title": "Расширение производственных мощностей. Расширение производственных мощностей предприятия путём установки дополнительной линии розлива в алюминиевую банку (1,2 млрд рублей). Строительство склада.",
+    "initiator": "ООО «Пивоваренная компания «Балтика» - «Пивзавод «Южная Заря 1974»",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Министерство сельского  хозяйства и продовольствия",
+    "startYear": 2025,
+    "launchYear": 2028,
+    "amountMln": 2000,
+    "jobs": 36,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 83Гб/с",
+          "ОБД-кабель 55Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 29,
+    "title": "Объект делового управления по адресу: г. Ростов-на-Дону, пер. Островского, 46",
+    "initiator": "ИП Меграбян Генрик Валерьевич",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2026,
+    "amountMln": 400,
+    "jobs": 200,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "apcs",
+      "phys_security",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 30,
+    "title": "Строительство \"Многоквартирного жилого дома с помещениями общественного назначения и подземной автостоянкой по адресу: г. Ростов-на-Дону, ул. Пушкинская, 40\"",
+    "initiator": "ООО Специализированный застройщик \"МИРТЭКС\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2027,
+    "amountMln": 350,
+    "jobs": 20,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 87Гб/с",
+          "ОБД-кабель 20Гб/с",
+          "ОБД-кабель 52Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 31,
+    "title": "Строительство в промышленной зоне «Заречная» комплекса портовых и логистических сооружений",
+    "initiator": "АО \"Ростовский порт\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2028,
+    "amountMln": 1150,
+    "jobs": 150,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security",
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп",
+          "IP-камера 5Мп",
+          "IP-камера 2Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v4",
+          "Контроллер SCADA v4"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 32,
+    "title": "Роботизированный склад для хранения и сортировки грузов с электрическим управлением и стеллажным оборудованием",
+    "initiator": "ООО \"Северо-Кавказское логистическое предприятие\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": true,
+    "curator": "Департамент потребительского рынка",
+    "startYear": 2025,
+    "launchYear": 2027,
+    "amountMln": 700,
+    "jobs": 41,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "logistics",
+    "industryName": "Логистика",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 33,
+    "title": "Строительство логистического комплекса по пер. Радиаторный, 5",
+    "initiator": "ИП Морозов В.А",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2019,
+    "launchYear": 2026,
+    "amountMln": 650,
+    "jobs": 50,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "it_infra",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 23Гб/с",
+          "ОБД-кабель 64Гб/с"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 6Мп",
+          "IP-камера 2Мп",
+          "IP-камера 2Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 34,
+    "title": "Строительство жилого комплекса \"ROYAL TOWERS\" по адресу: г. Ростов-на-Дону, ул. Привокзальная, 9",
+    "initiator": "ООО СЗ \"ДОМСТРОЙ\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2027,
+    "amountMln": 5028,
+    "jobs": 130,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 95Гб/с",
+          "ОБД-кабель 49Гб/с",
+          "ОБД-кабель 86Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 35,
+    "title": "Строительство завода по выпуску радиоэлектронной продукции",
+    "initiator": "ГК \"Бештау\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2021,
+    "launchYear": 2028,
+    "amountMln": 8000,
+    "jobs": 700,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "info_security",
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 2Мп",
+          "IP-камера 4Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v5"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 36,
+    "title": "Строительство завода по производству оборудования для пищевой промышленности",
+    "initiator": "ООО \"Иннотех\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2028,
+    "amountMln": 500,
+    "jobs": 450,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 99Гб/с",
+          "ОБД-кабель 14Гб/с",
+          "ОБД-кабель 97Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v5",
+          "Контроллер SCADA v3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 37,
+    "title": "Строительство физкультурно-оздоровительного комплекса с бассейном",
+    "initiator": "ООО \"МКС-Фитнес\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2032,
+    "amountMln": 600,
+    "jobs": 130,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security",
+      "apcs",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v4"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 77Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 38,
+    "title": "Строительство жилого комплекса \"Город у реки\" по ул. 23-я Линия, 54",
+    "initiator": "ООО \"МСК-КАПИТАЛ\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2019,
+    "launchYear": 2033,
+    "amountMln": 6514,
+    "jobs": 150,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 3Гб/с",
+          "ОБД-кабель 23Гб/с",
+          "ОБД-кабель 81Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v4",
+          "Контроллер SCADA v3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 39,
+    "title": "Медскан-Ростов-на-Дону",
+    "initiator": "ООО \"ИФК Аваль\", АО \"Медскан\"",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2026,
+    "amountMln": 1000,
+    "jobs": 281,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "services",
+    "industryName": "Услуги",
+    "needs": [
+      "info_security",
+      "apcs",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v1"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 86Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 40,
+    "title": "Строительство тракторного завода в городе Ростове-на-Дону",
+    "initiator": "ООО КЗ «Ростсельмаш»",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": true,
+    "curator": "Министерство промышленности и энергетики",
+    "startYear": 2021,
+    "launchYear": 2026,
+    "amountMln": 17142.1,
+    "jobs": 750,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 41,
+    "title": "Строительство третей очереди торгово-развлекательного комплекса \"МЕГАМАГ\"",
+    "initiator": "ООО ИНВЕСТГРУПП",
+    "municipalityId": 1,
+    "municipalityName": "г. Ростов-на-Дону",
+    "lat": 47.2357,
+    "lon": 39.7015,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2028,
+    "amountMln": 1600,
+    "jobs": 1030,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "it_infra",
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 60Гб/с"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп",
+          "IP-камера 5Мп",
+          "IP-камера 3Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 42,
+    "title": "капитальный ремонт здания дробильно-сортировочного центра",
+    "initiator": "ООО \"Репнянское карьероуправление\"",
+    "municipalityId": 24,
+    "municipalityName": "Каменский район",
+    "lat": 48.3178,
+    "lon": 40.2595,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2026,
+    "amountMln": 25,
+    "jobs": 1,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп",
+          "IP-камера 4Мп",
+          "IP-камера 4Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 43,
+    "title": "Создание суперинтенсивного сада лесного ореха с капельным орошением",
+    "initiator": "ИП Крютченко А.В.",
+    "municipalityId": 24,
+    "municipalityName": "Каменский район",
+    "lat": 48.3178,
+    "lon": 40.2595,
+    "isKey": true,
+    "curator": "Министерство сельского  хозяйства и продовольствия",
+    "startYear": 2021,
+    "launchYear": 2030,
+    "amountMln": 1030,
+    "jobs": 50,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra",
+      "apcs",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 64Гб/с",
+          "ОБД-кабель 35Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v4"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп",
+          "IP-камера 3Мп",
+          "IP-камера 3Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 44,
+    "title": "Строительство административно-бытового здания и кемпинга",
+    "initiator": "ООО \"Каменск Агро\"",
+    "municipalityId": 24,
+    "municipalityName": "Каменский район",
+    "lat": 48.3178,
+    "lon": 40.2595,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2027,
+    "amountMln": 20,
+    "jobs": 4,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v5"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 63Гб/с",
+          "ОБД-кабель 38Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 45,
+    "title": "Модернизация тепличного комплекса «Южный». Инвестпроектом предусмотрено внедрение системы ассимиляционного освещения на площади 11,34 га, строительство крупного энергоцентра для производства энергии и повышения технологичности всего производства.",
+    "initiator": "АО Агрокомбинат «Южный»",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Министерство сельского хозяйства и продовольствия",
+    "startYear": 2024,
+    "launchYear": 2026,
+    "amountMln": 3704,
+    "jobs": 240,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra",
+      "apcs",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 68Гб/с",
+          "ОБД-кабель 99Гб/с"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v4",
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 5Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 46,
+    "title": "Строительство производственного здания , с. Николаевка, территория Юго-Восточная,21",
+    "initiator": "Индивидуальный предприниматель Тригубко Артем Владимирович",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2027,
+    "amountMln": 6.8,
+    "jobs": 5,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "manufacturing",
+    "industryName": "Производство",
+    "needs": [
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп",
+          "IP-камера 5Мп",
+          "IP-камера 4Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v1",
+          "Контроллер SCADA v2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 47,
+    "title": "Мастерская по ремонту автомобилей",
+    "initiator": "ИП Саркисян Даниил Гагикович",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2027,
+    "amountMln": 7.5,
+    "jobs": 2,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "services",
+    "industryName": "Услуги",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 72Гб/с",
+          "ОБД-кабель 86Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 48,
+    "title": "Выращивание пекинской капусты, овощных салатных культур в закрытом грунте",
+    "initiator": "СПК колхоз \"Прогресс\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2034,
+    "amountMln": 12.4,
+    "jobs": 9,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 5Мп",
+          "IP-камера 6Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 49,
+    "title": "Строительство магазина",
+    "initiator": "ИП Атоян Артур Лёваевич",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2027,
+    "amountMln": 5,
+    "jobs": 2,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 5Мп",
+          "IP-камера 4Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 50,
+    "title": "Строительство магазина",
+    "initiator": "ИП Ткачев Геннадий Николаевич",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2028,
+    "amountMln": 6.5,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "phys_security",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 3Мп",
+          "IP-камера 4Мп",
+          "IP-камера 5Мп"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 51,
+    "title": "Для закладки сада ореха и виноградника",
+    "initiator": "ИП Пономарев Евгений Вячеславович",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2030,
+    "amountMln": 131.1,
+    "jobs": 5,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 52,
+    "title": "Строительство спортивного клуба, Ростовская область, Неклиновский район, х. Герасимовка, ул. Центральная, 6",
+    "initiator": "Индивидуальный предприниматель Тараненко Валерий Анатольевич",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2030,
+    "amountMln": 18.7,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "phys_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2",
+          "Контроллер SCADA v4",
+          "Контроллер SCADA v3"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 5Мп",
+          "IP-камера 6Мп",
+          "IP-камера 5Мп"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 53,
+    "title": "Закладка сада фундука",
+    "initiator": "ООО \"2Т Моторс\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2022,
+    "launchYear": 2030,
+    "amountMln": 4.5,
+    "jobs": 9,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 84Гб/с",
+          "ОБД-кабель 80Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 54,
+    "title": "Реконструкция цеха для производства комбикормов в производственное здание по ремонту спецтехники",
+    "initiator": "ИП Экнадиосов Алексей Артемович",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2027,
+    "amountMln": 5,
+    "jobs": 2,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v3",
+          "Контроллер SCADA v2"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 55,
+    "title": "Строительство склада для напольного хранения №2, №3, Ростовская область, Неклиновский район, южная часть с. Троицкое",
+    "initiator": "ООО \"Агропрайм\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2024,
+    "launchYear": 2027,
+    "amountMln": 20,
+    "jobs": 5,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 56,
+    "title": "Строительство склада готовой продукции №4",
+    "initiator": "ООО \"Агроцентр Покровский\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2028,
+    "amountMln": 7.5,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "phys_security",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 57,
+    "title": "Магазин с. Новобессергеневка, мкр. Авиатор, ул. Куликова А.С., 1",
+    "initiator": "ООО \"Специализированный застройщик Авиатор\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2026,
+    "amountMln": 5,
+    "jobs": 10,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "trade",
+    "industryName": "Торговля",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 93Гб/с",
+          "ОБД-кабель 54Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 58,
+    "title": "Строительство здания магазина, Ростовская область, Неклиновский район, с. Весело-Вознесенка, ул. Октябрьская, 93-б",
+    "initiator": "Индивидуальный предприниматель Мироненко Сергей Александрович, \nИндивидуальный предприниматель Дубовик Роман Сергеевич",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2027,
+    "amountMln": 8.5,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "info_security",
+      "phys_security",
+      "apcs"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2"
+        ]
+      },
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 2Мп",
+          "IP-камера 2Мп",
+          "IP-камера 2Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 59,
+    "title": "Выращивание картофеля на территории х. Русский Колодец Неклиновского района Ростовской области",
+    "initiator": "СПК колхоз \"Прогресс\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2035,
+    "amountMln": 5.9,
+    "jobs": 9,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 97Гб/с",
+          "ОБД-кабель 19Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 60,
+    "title": "Строительство столовой",
+    "initiator": "ООО \" Морской воздух\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2033,
+    "amountMln": 10,
+    "jobs": 3,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "apcs",
+      "info_security",
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v3"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 1"
+        ]
+      },
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 50Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 61,
+    "title": "Строительство склада напольного хранения сельскохозяйственной продукции, Ростовская область, Неклиновский район, южная часть с. Троицкое",
+    "initiator": "ООО \"Агропрайм\"",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2023,
+    "launchYear": 2027,
+    "amountMln": 65.5,
+    "jobs": 10,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "agro",
+    "industryName": "Сельское хозяйство",
+    "needs": [
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 1",
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 62,
+    "title": "Строительство склада-мастерской по ремонту автомобилей \"Придорожного комплекса \"Полюшко\" с СТО, гостинецей и складом",
+    "initiator": "ИП Погиба Ксения Юрьевна",
+    "municipalityId": 25,
+    "municipalityName": "Неклиновский район",
+    "lat": 47.3333,
+    "lon": 38.6667,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2026,
+    "launchYear": 2027,
+    "amountMln": 10,
+    "jobs": 16,
+    "stage": "construction",
+    "stageName": "Строительство",
+    "industry": "construction",
+    "industryName": "Строительство",
+    "needs": [
+      "phys_security",
+      "apcs",
+      "info_security"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "phys_security",
+        "needName": "Физическая безопасность",
+        "offers": [
+          "IP-камера 4Мп"
+        ]
+      },
+      {
+        "need": "apcs",
+        "needName": "АСУ ТП и промышленный интернет вещей",
+        "offers": [
+          "Контроллер SCADA v2"
+        ]
+      },
+      {
+        "need": "info_security",
+        "needName": "Информационная безопасность",
+        "offers": [
+          "Решение ИБ класса 2",
+          "Решение ИБ класса 3",
+          "Решение ИБ класса 3"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  },
+  {
+    "id": 63,
+    "title": "Возведение быстровозводимого сборно-разборного строения - Кафе \"Кукуруза\", расположенное по адресу: РФ, Ростовская области, Тарасовский район, Дячкинское поселение, северо-восточнее, восточнее сл.Дячкино, км 894+495 автомобильной дороги М-4 \"Дон",
+    "initiator": "ООО \"Мак-Лоджистик\"",
+    "municipalityId": 26,
+    "municipalityName": "Тарасовский район",
+    "lat": 48.7833,
+    "lon": 40.75,
+    "isKey": false,
+    "curator": "Муниципальное образование",
+    "startYear": 2025,
+    "launchYear": 2026,
+    "amountMln": 36.6,
+    "jobs": 10,
+    "stage": "launch",
+    "stageName": "Запуск",
+    "industry": "other",
+    "industryName": "Прочее",
+    "needs": [
+      "it_infra"
+    ],
+    "recommendedOffers": [
+      {
+        "need": "it_infra",
+        "needName": "ИТ-инфраструктура и связь",
+        "offers": [
+          "ОБД-кабель 5Гб/с",
+          "ОБД-кабель 48Гб/с"
+        ]
+      }
+    ],
+    "updatedAt": "2026-10-24T12:12:01.765Z"
+  }
+]

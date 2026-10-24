@@ -7,6 +7,12 @@ import type {
   MapPointsResponse,
   CompaniesResponse,
   CompanyShort,
+  ProjectsResponse,
+  Project,
+  ProjectRelatedCompaniesResponse,
+  SubscriptionsResponse,
+  NotificationsResponse,
+  TelegramLinkResponse,
 } from '../api/types'
 import {
   mockDictionaries,
@@ -15,8 +21,21 @@ import {
   getCompanyById,
   generateMunicipalityStats,
   generateWhiteSpots,
-  type MockFilters
+  filterProjects,
+  getProjectById,
+  getProjectTimeline,
+  getProjectClusters,
+  getSubscriptions,
+  createSubscription,
+  deleteSubscription,
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  type MockFilters,
+  type ProjectMockFilters,
 } from './fixtures'
+import relatedCompaniesExample from '../../../contracts/examples/related-companies.json'
+import telegramLinkExample from '../../../contracts/examples/telegram-link.json'
 
 // Демо-пользователи
 const DEMO_USER: User = {
@@ -447,5 +466,198 @@ export const handlers = [
 
     const whiteSpots = generateWhiteSpots(industry, limit)
     return HttpResponse.json(whiteSpots)
+  }),
+
+  // ============ Продукт 2 - Навигатор ============
+
+  // GET /api/projects
+  http.get('/api/projects', ({ request }) => {
+    const url = new URL(request.url)
+
+    const filters: ProjectMockFilters = {
+      stage: url.searchParams.getAll('stage'),
+      industry: url.searchParams.getAll('industry'),
+      need: url.searchParams.getAll('need'),
+      municipalityId: url.searchParams.getAll('municipalityId').map(Number),
+      yearFrom: url.searchParams.get('yearFrom') ? Number(url.searchParams.get('yearFrom')) : undefined,
+      yearTo: url.searchParams.get('yearTo') ? Number(url.searchParams.get('yearTo')) : undefined,
+      isKey: url.searchParams.get('isKey') === 'true',
+      amountMin: url.searchParams.get('amountMin') ? Number(url.searchParams.get('amountMin')) : undefined,
+      q: url.searchParams.get('q') || undefined,
+    }
+
+    const page = parseInt(url.searchParams.get('page') || '0', 10)
+    const size = parseInt(url.searchParams.get('size') || '50', 10)
+    const sort = url.searchParams.get('sort') || 'amountMln,desc'
+
+    let filtered = filterProjects(filters)
+
+    // Сортировка
+    const [sortField, sortDir] = sort.split(',')
+    const desc = sortDir === 'desc'
+    filtered.sort((a, b) => {
+      let aVal: any
+      let bVal: any
+      if (sortField === 'amountMln') {
+        aVal = a.amountMln
+        bVal = b.amountMln
+      } else if (sortField === 'jobs') {
+        aVal = a.jobs
+        bVal = b.jobs
+      } else if (sortField === 'startYear') {
+        aVal = a.startYear
+        bVal = b.startYear
+      } else if (sortField === 'launchYear') {
+        aVal = a.launchYear
+        bVal = b.launchYear
+      } else if (sortField === 'title') {
+        aVal = a.title
+        bVal = b.title
+      } else {
+        aVal = a.amountMln
+        bVal = b.amountMln
+      }
+
+      if (aVal < bVal) return desc ? 1 : -1
+      if (aVal > bVal) return desc ? -1 : 1
+      return 0
+    })
+
+    const total = filtered.length
+    const items = filtered.slice(page * size, (page + 1) * size)
+
+    const response: ProjectsResponse = { items, page, size, total }
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/projects/:id
+  http.get('/api/projects/:id', ({ params }) => {
+    const id = Number(params.id)
+    const project = getProjectById(id)
+
+    if (!project) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
+        { status: 404 }
+      )
+    }
+
+    const response: Project = project
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/projects/timeline
+  http.get('/api/projects/timeline', ({ request }) => {
+    const url = new URL(request.url)
+
+    const filters: ProjectMockFilters = {
+      stage: url.searchParams.getAll('stage'),
+      industry: url.searchParams.getAll('industry'),
+      need: url.searchParams.getAll('need'),
+      municipalityId: url.searchParams.getAll('municipalityId').map(Number),
+      yearFrom: url.searchParams.get('yearFrom') ? Number(url.searchParams.get('yearFrom')) : undefined,
+      yearTo: url.searchParams.get('yearTo') ? Number(url.searchParams.get('yearTo')) : undefined,
+      isKey: url.searchParams.get('isKey') === 'true',
+      amountMin: url.searchParams.get('amountMin') ? Number(url.searchParams.get('amountMin')) : undefined,
+      q: url.searchParams.get('q') || undefined,
+    }
+
+    const timeline = getProjectTimeline(filters)
+    return HttpResponse.json(timeline)
+  }),
+
+  // GET /api/projects/:id/related-companies
+  http.get('/api/projects/:id/related-companies', () => {
+    // Возвращаем фиксированный пример
+    const response: ProjectRelatedCompaniesResponse = {
+      items: relatedCompaniesExample.items.map((item: any) => ({
+        ...item,
+        relation: item.relation as 'initiator' | 'same_area_industry',
+      })),
+      sameAreaIndustryTotal: relatedCompaniesExample.sameAreaIndustryTotal,
+      radarQuery: relatedCompaniesExample.radarQuery,
+    }
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/subscriptions
+  http.get('/api/subscriptions', () => {
+    const items = getSubscriptions()
+    const response: SubscriptionsResponse = { items }
+    return HttpResponse.json(response)
+  }),
+
+  // POST /api/subscriptions
+  http.post('/api/subscriptions', async ({ request }) => {
+    const body = (await request.json()) as {
+      industry?: string
+      municipalityId?: number
+      need?: string
+      stage?: string
+    }
+
+    // Валидация: хотя бы одно поле должно быть заполнено
+    if (!body.industry && !body.municipalityId && !body.need && !body.stage) {
+      return HttpResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Укажите хотя бы одно условие подписки' } },
+        { status: 400 }
+      )
+    }
+
+    const newSub = createSubscription(body)
+    return HttpResponse.json(newSub, { status: 201 })
+  }),
+
+  // DELETE /api/subscriptions/:id
+  http.delete('/api/subscriptions/:id', ({ params }) => {
+    const id = Number(params.id)
+    deleteSubscription(id)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // GET /api/notifications
+  http.get('/api/notifications', () => {
+    const result = getNotifications()
+    const response: NotificationsResponse = result
+    return HttpResponse.json(response)
+  }),
+
+  // POST /api/notifications/:id/read
+  http.post('/api/notifications/:id/read', ({ params }) => {
+    const id = Number(params.id)
+    markNotificationRead(id)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // POST /api/notifications/read-all
+  http.post('/api/notifications/read-all', () => {
+    markAllNotificationsRead()
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // GET /api/notifications/telegram-link
+  http.get('/api/notifications/telegram-link', () => {
+    const response: TelegramLinkResponse = telegramLinkExample as TelegramLinkResponse
+    return HttpResponse.json(response)
+  }),
+
+  // GET /api/projects/map/clusters - кластеры проектов по районам
+  http.get('/api/projects/map/clusters', ({ request }) => {
+    const url = new URL(request.url)
+
+    const filters: ProjectMockFilters = {
+      stage: url.searchParams.getAll('stage'),
+      industry: url.searchParams.getAll('industry'),
+      need: url.searchParams.getAll('need'),
+      municipalityId: url.searchParams.getAll('municipalityId').map(Number),
+      yearFrom: url.searchParams.get('yearFrom') ? Number(url.searchParams.get('yearFrom')) : undefined,
+      yearTo: url.searchParams.get('yearTo') ? Number(url.searchParams.get('yearTo')) : undefined,
+      isKey: url.searchParams.get('isKey') === 'true',
+      amountMin: url.searchParams.get('amountMin') ? Number(url.searchParams.get('amountMin')) : undefined,
+      q: url.searchParams.get('q') || undefined,
+    }
+
+    const clusters = getProjectClusters(filters)
+    return HttpResponse.json(clusters)
   }),
 ]
