@@ -1,0 +1,126 @@
+.header {
+  background: var(--rt-purple);
+  color: var(--rt-white);
+  padding: 12px 24px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.navLink {
+  color: var(--rt-white);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  opacity: 0.8;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.navLinkActive {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+}
+
+.navSeparator {
+  color: var(--rt-orange);
+  font-size: 20px;
+  font-weight: 300;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.userNameDesktop {
+  font-size: 14px;
+  display: none;
+}
+
+.logoutButtonDesktop {
+  display: none;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--rt-white);
+  border-radius: 4px;
+  color: var(--rt-white);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logoutButtonDesktop:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profileMenuMobile {
+  display: block;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .userNameDesktop {
+    display: block;
+  }
+
+  .logoutButtonDesktop {
+    display: block;
+  }
+
+  .profileMenuMobile {
+    display: none;
+  }
+}
+
+/* Phone */
+@media (max-width: 767px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .headerTop {
+    gap: 12px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .nav {
+    gap: 8px;
+  }
+
+  .navLink {
+    font-size: 14px;
+    padding: 6px 8px;
+  }
+
+  .navSeparator {
+    font-size: 16px;
+  }
+}

@@ -1,4 +1,17 @@
-import type { Dictionaries, MapCell, MapPoint, CompanyShort, Company as ApiCompany } from '../api/types'
+import type {
+  Dictionaries,
+  MapCell,
+  MapPoint,
+  CompanyShort,
+  Company as ApiCompany,
+  ProjectShort,
+  TimelineResponse,
+  Subscription,
+  Notification,
+} from '../api/types'
+import projectsFixture from './fixtures/projects.json'
+import subscriptionsExample from '../../../contracts/examples/subscriptions.json'
+import notificationsExample from '../../../contracts/examples/notifications.json'
 
 // Справочники с реальными данными Ростовской области
 export const mockDictionaries: Dictionaries = {
@@ -42,8 +55,18 @@ export const mockDictionaries: Dictionaries = {
     { code: 'medium', name: 'Среднее' },
   ],
 
-  stages: [],
-  needs: [],
+  stages: [
+    { code: 'design', name: 'Проектирование' },
+    { code: 'construction', name: 'Строительство' },
+    { code: 'launch', name: 'Запуск' },
+  ],
+
+  needs: [
+    { code: 'it_infra', name: 'ИТ-инфраструктура и связь' },
+    { code: 'apcs', name: 'АСУ ТП и промышленный интернет вещей' },
+    { code: 'phys_security', name: 'Физическая безопасность' },
+    { code: 'info_security', name: 'Информационная безопасность' },
+  ],
 }
 
 // Города с количеством компаний
@@ -436,4 +459,288 @@ export function generateWhiteSpots(industryFilter: string, limit: number) {
     }))
 
   return whiteSpots
+}
+
+// Продукт 2 - Проекты
+// Базовые данные проектов из fixtures/projects.json (сгенерировано из SQL)
+export const mockProjects: ProjectShort[] = projectsFixture as ProjectShort[]
+
+export function getAllProjects(): ProjectShort[] {
+  return mockProjects
+}
+
+export function getProjectById(id: number): ProjectShort | undefined {
+  return mockProjects.find((p) => p.id === id)
+}
+
+// Фильтрация проектов
+export interface ProjectMockFilters {
+  stage?: string[]
+  industry?: string[]
+  need?: string[]
+  municipalityId?: number[]
+  yearFrom?: number
+  yearTo?: number
+  isKey?: boolean
+  amountMin?: number
+  q?: string
+}
+
+export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
+  let result = [...mockProjects]
+
+  if (filters.stage && filters.stage.length > 0) {
+    result = result.filter((p) => filters.stage!.includes(p.stage))
+  }
+
+  if (filters.industry && filters.industry.length > 0) {
+    result = result.filter((p) => filters.industry!.includes(p.industry))
+  }
+
+  if (filters.need && filters.need.length > 0) {
+    result = result.filter((p) => p.needs.some((n) => filters.need!.includes(n)))
+  }
+
+  if (filters.municipalityId && filters.municipalityId.length > 0) {
+    result = result.filter((p) => filters.municipalityId!.includes(p.municipalityId))
+  }
+
+  if (filters.yearFrom !== undefined || filters.yearTo !== undefined) {
+    const yearFrom = filters.yearFrom || 0
+    const yearTo = filters.yearTo || 9999
+    result = result.filter((p) => {
+      // Проект попадает в диапазон, если он идёт в эти годы (между startYear и launchYear)
+      return p.startYear <= yearTo && p.launchYear >= yearFrom
+    })
+  }
+
+  if (filters.isKey) {
+    result = result.filter((p) => p.isKey)
+  }
+
+  if (filters.amountMin !== undefined) {
+    result = result.filter((p) => p.amountMln >= filters.amountMin!)
+  }
+
+  if (filters.q && filters.q.length >= 2) {
+    const query = filters.q.toLowerCase()
+    result = result.filter(
+      (p) => p.title.toLowerCase().includes(query) || p.initiator.toLowerCase().includes(query)
+    )
+  }
+
+  return result
+}
+
+// Таймлайн
+export function getProjectTimeline(filters: ProjectMockFilters): TimelineResponse {
+  const filtered = filterProjects(filters)
+
+  if (filtered.length === 0) {
+    return {
+      minYear: 2020,
+      maxYear: 2030,
+      total: 0,
+      years: [],
+    }
+  }
+
+  // Собираем все события (старты и запуски)
+  const events: { year: number; type: 'start' | 'launch'; projectId: number; title: string }[] = []
+
+  filtered.forEach((project) => {
+    events.push({
+      year: project.startYear,
+      type: 'start',
+      projectId: project.id,
+      title: project.title,
+    })
+    events.push({
+      year: project.launchYear,
+      type: 'launch',
+      projectId: project.id,
+      title: project.title,
+    })
+  })
+
+  // Группируем по годам
+  const yearMap = new Map<number, typeof events>()
+  events.forEach((event) => {
+    if (!yearMap.has(event.year)) {
+      yearMap.set(event.year, [])
+    }
+    yearMap.get(event.year)!.push(event)
+  })
+
+  // Формируем years
+  const years = Array.from(yearMap.entries())
+    .map(([year, yearEvents]) => ({
+      year,
+      events: yearEvents.map((e) => {
+        const project = filtered.find((p) => p.id === e.projectId)!
+        return {
+          projectId: e.projectId,
+          title: e.title,
+          type: e.type,
+          municipalityId: project.municipalityId,
+          municipalityName: project.municipalityName,
+          stage: project.stage,
+          amountMln: project.amountMln,
+        }
+      }),
+    }))
+    .sort((a, b) => a.year - b.year)
+
+  const minYear = Math.min(...filtered.map((p) => Math.min(p.startYear, p.launchYear)))
+  const maxYear = Math.max(...filtered.map((p) => Math.max(p.startYear, p.launchYear)))
+
+  return {
+    minYear,
+    maxYear,
+    total: filtered.length,
+    years,
+  }
+}
+
+// Группировка проектов по районам для карты
+export interface ProjectMunicipalityCluster {
+  municipalityId: number
+  municipalityName: string
+  lat: number
+  lon: number
+  total: number
+  design: number
+  construction: number
+  launch: number
+  projects: ProjectShort[]
+}
+
+export function getProjectClusters(filters: ProjectMockFilters): ProjectMunicipalityCluster[] {
+  const filtered = filterProjects(filters)
+
+  // Группируем по municipalityId
+  const grouped = new Map<number, ProjectShort[]>()
+  filtered.forEach((project) => {
+    if (!grouped.has(project.municipalityId)) {
+      grouped.set(project.municipalityId, [])
+    }
+    grouped.get(project.municipalityId)!.push(project)
+  })
+
+  // Формируем кластеры
+  const clusters: ProjectMunicipalityCluster[] = []
+  grouped.forEach((projects, municipalityId) => {
+    const first = projects[0]
+    const design = projects.filter((p) => p.stage === 'design').length
+    const construction = projects.filter((p) => p.stage === 'construction').length
+    const launch = projects.filter((p) => p.stage === 'launch').length
+
+    clusters.push({
+      municipalityId,
+      municipalityName: first.municipalityName,
+      lat: first.lat,
+      lon: first.lon,
+      total: projects.length,
+      design,
+      construction,
+      launch,
+      projects,
+    })
+  })
+
+  return clusters
+}
+
+// Подписки (из примера)
+const baseSubscriptions: Subscription[] = subscriptionsExample.map((sub: any) => ({
+  id: sub.id,
+  userId: 1, // demo user
+  industry: sub.industry,
+  industryName: sub.industry
+    ? mockDictionaries.industries.find((i) => i.code === sub.industry)?.name || null
+    : null,
+  municipalityId: sub.municipalityId,
+  municipalityName: sub.municipalityId
+    ? mockDictionaries.municipalities.find((m) => m.id === sub.municipalityId)?.name || null
+    : null,
+  need: sub.need,
+  needName: sub.need ? mockDictionaries.needs.find((n) => n.code === sub.need)?.name || null : null,
+  stage: sub.stage,
+  stageName: sub.stage
+    ? mockDictionaries.stages.find((s) => s.code === sub.stage)?.name || null
+    : null,
+  createdAt: sub.createdAt,
+}))
+
+let subscriptions: Subscription[] = [...baseSubscriptions]
+let nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
+
+export function getSubscriptions(): Subscription[] {
+  return subscriptions
+}
+
+export function createSubscription(data: {
+  industry?: string
+  municipalityId?: number
+  need?: string
+  stage?: string
+}): Subscription {
+  const newSub: Subscription = {
+    id: nextSubscriptionId++,
+    userId: 1,
+    industry: data.industry || null,
+    industryName: data.industry
+      ? mockDictionaries.industries.find((i) => i.code === data.industry)?.name || null
+      : null,
+    municipalityId: data.municipalityId || null,
+    municipalityName: data.municipalityId
+      ? mockDictionaries.municipalities.find((m) => m.id === data.municipalityId)?.name || null
+      : null,
+    need: data.need || null,
+    needName: data.need
+      ? mockDictionaries.needs.find((n) => n.code === data.need)?.name || null
+      : null,
+    stage: data.stage ? (data.stage as 'design' | 'construction' | 'launch') : null,
+    stageName: data.stage
+      ? mockDictionaries.stages.find((s) => s.code === data.stage)?.name || null
+      : null,
+    createdAt: new Date('2026-01-01T00:00:00Z').toISOString(),
+  }
+  subscriptions.push(newSub)
+  return newSub
+}
+
+export function deleteSubscription(id: number): void {
+  subscriptions = subscriptions.filter((s) => s.id !== id)
+}
+
+// Уведомления (из примера)
+const baseNotifications: Notification[] = notificationsExample.items.map((notif: any) => ({
+  id: notif.id,
+  userId: 1,
+  projectId: notif.projectId,
+  projectTitle: notif.title, // title из JSON -> projectTitle в типе
+  municipalityName: notif.municipalityName,
+  read: notif.isRead,
+  createdAt: notif.createdAt,
+}))
+
+let notifications: Notification[] = [...baseNotifications]
+
+export function getNotifications(): { items: Notification[]; unreadCount: number } {
+  const unreadCount = notifications.filter((n) => !n.read).length
+  return { items: notifications, unreadCount }
+}
+
+export function markNotificationRead(id: number): void {
+  const notif = notifications.find((n) => n.id === id)
+  if (notif) {
+    notif.read = true
+  }
+}
+
+export function markAllNotificationsRead(): void {
+  notifications.forEach((n) => {
+    n.read = true
+  })
 }

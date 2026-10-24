@@ -12,7 +12,7 @@ import { CompanyList } from '../list/CompanyList'
 import { CompanyCard } from '../company/CompanyCard'
 import { Tabs } from '../ui/Tabs'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
-import { ProfileMenu } from '../ui/ProfileMenu'
+import { AppHeader } from '../ui/AppHeader'
 import { useCallback, useState, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getMunicipalityStats, getWhiteSpots, getCompanies } from '../api/endpoints'
@@ -207,27 +207,13 @@ export function RadarPage() {
   return (
     <ErrorBoundary>
       <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerTop}>
-            <div className={styles.logo}>Ростелеком</div>
-            <h1 className={styles.titleMobile}>Радар присутствия</h1>
-            <div className={styles.headerActions}>
-              <span className={styles.userNameDesktop}>{user?.fullName}</span>
-              <button onClick={logout} className={styles.logoutButtonDesktop}>
-                Выйти
-              </button>
-              <div className={styles.profileMenuMobile}>
-                <ProfileMenu userName={user?.fullName || ''} onLogout={logout} />
-              </div>
-            </div>
-          </div>
-          <div className={styles.headerBottom}>
-            <ClientToggle
-              value={filters.client}
-              onChange={(client) => updateFilters({ client })}
-            />
-          </div>
-        </header>
+        <AppHeader userName={user?.fullName || ''} onLogout={logout} />
+        <div className={styles.headerBottom}>
+          <ClientToggle
+            value={filters.client}
+            onChange={(client) => updateFilters({ client })}
+          />
+        </div>
 
       <div className={styles.mobileTabs}>
         <Tabs

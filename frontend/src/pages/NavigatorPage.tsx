@@ -1,0 +1,92 @@
+import { useState, useCallback } from 'react'
+import { useAuth } from '../auth/AuthProvider'
+import { AppHeader } from '../ui/AppHeader'
+import { Tabs } from '../ui/Tabs'
+import { useProjectFilter } from '../projects/useProjectFilter'
+import { ProjectFilterPanel } from '../projects/ProjectFilterPanel'
+import { ProjectList } from '../projects/ProjectList'
+import { ProjectTimeline } from '../projects/ProjectTimeline'
+import { ProjectMap } from '../projects/ProjectMap'
+import type { ProjectSortField, ProjectSortDirection } from '../projects/types'
+import styles from './NavigatorPage.module.css'
+
+export function NavigatorPage() {
+  const { user, logout } = useAuth()
+  const { filters, updateFilters, resetFilters } = useProjectFilter()
+  const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>()
+  const [sort, setSort] = useState<`${ProjectSortField},${ProjectSortDirection}`>('amountMln,desc')
+  const [activeTab, setActiveTab] = useState<'map' | 'list'>('map')
+
+  const handleYearRangeChange = useCallback(
+    (yearFrom: number | undefined, yearTo: number | undefined) => {
+      updateFilters({ yearFrom, yearTo })
+    },
+    [updateFilters]
+  )
+
+  const handleSelectMunicipality = useCallback(
+    (municipalityId: number) => {
+      updateFilters({ municipalityId: [municipalityId] })
+    },
+    [updateFilters]
+  )
+
+  return (
+    <div className={styles.container}>
+      <AppHeader userName={user?.fullName || ''} onLogout={logout} />
+
+      {/* Мобильные вкладки */}
+      <div className={styles.mobileTabs}>
+        <Tabs
+          tabs={[
+            { id: 'map', label: 'Карта' },
+            { id: 'list', label: 'Список' },
+          ]}
+          activeTab={activeTab}
+          onChange={(tab) => setActiveTab(tab as 'map' | 'list')}
+        />
+      </div>
+
+      <main className={styles.main}>
+        <div className={styles.filterContainer}>
+          <ProjectFilterPanel
+            filters={filters}
+            onFiltersChange={updateFilters}
+            onReset={resetFilters}
+          />
+        </div>
+
+        <div className={styles.rightPanel}>
+          <div className={styles.timelineContainer}>
+            <ProjectTimeline
+              filters={filters}
+              onSelectProject={setSelectedProjectId}
+              onYearRangeChange={handleYearRangeChange}
+            />
+          </div>
+
+          <div className={styles.contentContainer}>
+            {/* Десктоп: карта и список бок о бок */}
+            <div className={`${styles.mapContainer} ${activeTab === 'map' ? styles.active : ''}`}>
+              <ProjectMap
+                filters={filters}
+                selectedProjectId={selectedProjectId}
+                onSelectMunicipality={handleSelectMunicipality}
+              />
+            </div>
+
+            <div className={`${styles.listContainer} ${activeTab === 'list' ? styles.active : ''}`}>
+              <ProjectList
+                filters={filters}
+                selectedId={selectedProjectId}
+                onSelectProject={setSelectedProjectId}
+                sort={sort}
+                onSortChange={setSort}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}

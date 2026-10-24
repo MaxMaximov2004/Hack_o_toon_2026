@@ -1,0 +1,107 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--rt-white);
+}
+
+.mobileTabs {
+  display: none;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.filterContainer {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.timelineContainer {
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.contentContainer {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.mapContainer {
+  flex: 1;
+  overflow: hidden;
+}
+
+.listContainer {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Tablet */
+@media (max-width: 1279px) {
+  .filterContainer {
+    width: 280px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .mobileTabs {
+    display: block;
+    background: var(--rt-white);
+    border-bottom: 1px solid var(--rt-cool-grey);
+  }
+
+  .main {
+    flex-direction: column;
+  }
+
+  .filterContainer {
+    width: 100%;
+    max-height: 35vh;
+    border-right: none;
+    border-bottom: 1px solid var(--rt-cool-grey);
+  }
+
+  .rightPanel {
+    flex: 1;
+  }
+
+  .timelineContainer {
+    flex-shrink: 0;
+  }
+
+  .contentContainer {
+    flex: 1;
+    position: relative;
+  }
+
+  /* На мобайле карта и список не бок о бок, а переключаются вкладками */
+  .mapContainer,
+  .listContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+  }
+
+  .mapContainer.active,
+  .listContainer.active {
+    display: block;
+  }
+}
