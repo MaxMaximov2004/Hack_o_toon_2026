@@ -3,7 +3,7 @@ package ru.rt.radar.radar.filter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import ru.rt.radar.radar.error.ValidationException;
+import ru.rt.radar.common.exception.ValidationException;
 
 import java.math.BigDecimal;
 import java.util.List;

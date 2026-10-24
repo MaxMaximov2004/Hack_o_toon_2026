@@ -1,6 +1,6 @@
 package ru.rt.radar.radar.company;
 
-import ru.rt.radar.radar.error.ValidationException;
+import ru.rt.radar.common.exception.ValidationException;
 
 import java.util.List;
 

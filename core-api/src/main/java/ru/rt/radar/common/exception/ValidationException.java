@@ -1,6 +1,5 @@
-package ru.rt.radar.radar.error;
+package ru.rt.radar.common.exception;
 
-// TEMP: заменить на common/ (Java #2)
 /** Неверный параметр запроса → 400 VALIDATION_ERROR с details.field. */
 public class ValidationException extends RuntimeException {
 

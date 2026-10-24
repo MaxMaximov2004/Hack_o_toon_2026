@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.rt.radar.radar.error.NotFoundException;
-import ru.rt.radar.radar.error.ValidationException;
+import ru.rt.radar.common.exception.NotFoundException;
+import ru.rt.radar.common.exception.ValidationException;
 import ru.rt.radar.radar.filter.CompanyFilter;
 import ru.rt.radar.radar.web.PageResponse;
 
