@@ -17,12 +17,19 @@ bad()  { printf '  \033[31mFAIL\033[0m %s\n' "$1"; fail=1; }
 check(){ [ "$2" = "$3" ] && ok "$1 ($2)" || bad "$1: ожидали '$3', получили '$2'"; }
 
 echo "1. Контейнеры"
-for s in postgres auth-service core-api export-service nginx; do
+for s in postgres etl auth-service core-api export-service nginx; do
   st=$(docker compose ps --format '{{.State}}' "$s" 2>/dev/null)
   check "$s запущен" "${st:-нет}" "running"
 done
-etl_exit=$(docker compose ps -a --format '{{.ExitCode}}' etl 2>/dev/null)
-check "etl завершился успешно" "${etl_exit:-нет}" "0"
+# ETL — сервис: грузит данные при старте. Ждём окончания загрузки (до ETL_WAIT секунд)
+etl_run=""
+for _ in $(seq 1 "${ETL_WAIT:-300}"); do
+  etl_run=$($PSQL "select status from etl.load_run order by id desc limit 1" 2>/dev/null)
+  [ "$etl_run" = ok ] || [ "$etl_run" = failed ] && break
+  sleep 1
+done
+check "загрузка ETL (etl.load_run)" "${etl_run:-нет запусков}" "ok"
+[ "$etl_run" = ok ] || echo "  детали: $($PSQL "select details from etl.load_run order by id desc limit 1" 2>/dev/null) — docker compose logs etl"
 stub=$(docker ps --filter 'name=^radar-auth-stub$' --format '{{.State}}' 2>/dev/null)
 [ -z "$stub" ] && ok "auth-stub не запущен" || bad "auth-stub запущен — подменяет auth-service: docker compose --profile auth-stub down"
 

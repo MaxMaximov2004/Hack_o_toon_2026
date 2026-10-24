@@ -95,8 +95,8 @@ docker compose up -d --build
 git pull
 docker compose down -v               # чистая БД, как на чужой машине
 docker compose up -d --build         # ОДНА команда, без ручных шагов
-docker compose ps                    # все running, etl — exited (0)
-bash infra/smoke.sh                  # контейнеры, /healthz, данные, изоляция схем
+docker compose ps                    # все running (etl — тоже: это сервис, грузит данные при старте)
+bash infra/smoke.sh                  # контейнеры, загрузка ETL, /healthz, данные, изоляция схем, демо-сценарий
 ```
 
 Затем вручную проходится демо-сценарий в браузере на телефоне. Если что-то красное — `docker compose logs <сервис>`,

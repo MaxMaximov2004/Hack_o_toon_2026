@@ -80,7 +80,7 @@
 git pull
 docker compose down -v
 docker compose up -d --build
-docker compose ps            # все running, etl — exited (0)
+docker compose ps            # все running (etl — сервис, готовность: etl.load_run.status = 'ok')
 bash infra/smoke.sh          # «ВСЁ ЗЕЛЁНОЕ»
 ```
 

@@ -39,8 +39,11 @@ services:
     restart: unless-stopped
 
   # ------------------------------------------------------------------
-  # Python — ETL: одноразовый запуск, нормализует etl.raw_* -> core.*
-  # Завершается с кодом 0. Ведёт: Python
+  # Python — ETL-сервис :8084: нормализует etl.raw_* -> core.*
+  # При старте грузит данные, если успешной загрузки ещё не было (AUTO_LOAD=if-empty).
+  # Готовность — etl.load_run.status = 'ok'. Перезалить без пересборки —
+  # POST /internal/etl/load (см. etl/README.md).
+  # Наружу порт не пробрасываем: /internal/* — только для docker-сети. Ведёт: Python
   # ------------------------------------------------------------------
   etl:
     build: ./etl
@@ -50,8 +53,6 @@ services:
       DATABASE_URL: postgresql://etl_loader:${ETL_DB_PASSWORD:-etl_dev}@postgres:5432/radar
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
       AUTO_LOAD: if-empty
-    ports:
-      - "127.0.0.1:8084:8084"
     depends_on:
       postgres:
         condition: service_healthy
