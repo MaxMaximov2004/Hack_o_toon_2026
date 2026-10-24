@@ -13,6 +13,8 @@ import {
   generateMapCells,
   filterCompanies,
   getCompanyById,
+  generateMunicipalityStats,
+  generateWhiteSpots,
   type MockFilters
 } from './fixtures'
 
@@ -425,5 +427,24 @@ export const handlers = [
         'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
       },
     })
+  }),
+
+  // GET /api/municipalities/stats
+  http.get('/api/municipalities/stats', ({ request }) => {
+    const url = new URL(request.url)
+    const industry = url.searchParams.get('industry') || 'all'
+
+    const stats = generateMunicipalityStats(industry)
+    return HttpResponse.json(stats)
+  }),
+
+  // GET /api/white-spots
+  http.get('/api/white-spots', ({ request }) => {
+    const url = new URL(request.url)
+    const industry = url.searchParams.get('industry') || 'all'
+    const limit = parseInt(url.searchParams.get('limit') || '10', 10)
+
+    const whiteSpots = generateWhiteSpots(industry, limit)
+    return HttpResponse.json(whiteSpots)
   }),
 ]

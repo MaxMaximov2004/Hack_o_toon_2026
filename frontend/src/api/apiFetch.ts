@@ -50,11 +50,21 @@ function normalizeError(status: number, data: unknown): ApiError {
   }
 }
 
+export interface ApiFetchOptions extends RequestInit {
+  responseType?: 'json' | 'blob'
+}
+
+export interface BlobResponse {
+  blob: Blob
+  filename: string | null
+}
+
 export async function apiFetch<T>(
   url: string,
-  options: RequestInit = {}
+  options: ApiFetchOptions = {}
 ): Promise<T> {
   const token = getToken()
+  const responseType = options.responseType || 'json'
 
   const headers: Record<string, string> = {}
 
@@ -94,8 +104,49 @@ export async function apiFetch<T>(
         const next = currentPath !== '/' ? `?next=${encodeURIComponent(currentPath)}` : ''
         window.location.href = `/login${next}`
       }
+      throw {
+        code: 'UNAUTHORIZED',
+        message: 'Требуется авторизация',
+      } as ApiError
     }
 
+    // Для blob-ответов
+    if (responseType === 'blob') {
+      if (!response.ok) {
+        // Попытаться распарсить JSON ошибку
+        const contentType = response.headers.get('content-type')
+        if (contentType?.includes('application/json')) {
+          const data = await response.json()
+          const error = normalizeError(response.status, data)
+          throw error
+        }
+        // Фолбэк
+        const error = normalizeError(response.status, null)
+        throw error
+      }
+
+      const blob = await response.blob()
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename: string | null = null
+
+      if (contentDisposition) {
+        // Сначала пробуем filename*=UTF-8''...
+        const filenameStarMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/)
+        if (filenameStarMatch) {
+          filename = decodeURIComponent(filenameStarMatch[1])
+        } else {
+          // Потом filename=...
+          const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+          }
+        }
+      }
+
+      return { blob, filename } as T
+    }
+
+    // Для JSON-ответов
     const contentType = response.headers.get('content-type')
     const isJson = contentType?.includes('application/json')
 

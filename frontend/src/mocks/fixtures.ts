@@ -341,3 +341,79 @@ export function getCompanyById(id: number): ApiCompany {
     isSocial: rng.next() > 0.9,
   }
 }
+
+// Генерация статистики по районам
+export function generateMunicipalityStats(industryFilter: string) {
+  const allComps = getAllCompanies()
+  const rng = new SeededRandom(54321)
+
+  return mockDictionaries.municipalities.map((muni) => {
+    // Фильтруем компании этого района
+    let muniCompanies = allComps.filter((c) => c.municipalityId === muni.id)
+
+    // Если указана отрасль и это не 'all', фильтруем по отрасли
+    if (industryFilter !== 'all') {
+      muniCompanies = muniCompanies.filter((c) => c.industry === industryFilter)
+    }
+
+    const companies = muniCompanies.filter((c) => c.status === 'active').length
+    const clients = muniCompanies.filter((c) => c.isClient && c.status === 'active').length
+    const excludedClients = muniCompanies.filter((c) => c.isClient && c.status === 'excluded').length
+    const coverage = companies > 0 ? (clients / companies) * 100 : 0
+    const newCompanies = muniCompanies.filter((c) => c.isNew).length
+    const newShare = companies > 0 ? (newCompanies / companies) * 100 : 0
+    const revenueEstSum = muniCompanies.reduce((sum, c) => sum + (c.revenueEst || 0), 0)
+
+    // Потенциал: от 0 до 100, зависит от количества компаний, охвата и выручки
+    const basePotential = Math.min(100, companies / 10) // Больше компаний = больше потенциал
+    const coverageFactor = 100 - coverage // Меньше охват = больше потенциал
+    const potentialScore = Math.min(100, Math.max(0, (basePotential + coverageFactor) / 2 + rng.range(-10, 10)))
+
+    // Белое пятно: потенциал > 60 и охват < 15%
+    const isWhiteSpot = potentialScore > 60 && coverage < 15
+    const reason = isWhiteSpot
+      ? `Низкий охват (${coverage.toFixed(1)}%), ${companies} потенциальных клиентов`
+      : ''
+
+    return {
+      municipalityId: muni.id,
+      name: muni.name,
+      kind: muni.kind,
+      lat: muni.lat,
+      lon: muni.lon,
+      industry: industryFilter,
+      companies,
+      clients,
+      excludedClients,
+      coverage,
+      newShare,
+      revenueEstSum,
+      potentialScore: Math.round(potentialScore),
+      isWhiteSpot,
+      reason,
+    }
+  })
+}
+
+// Генерация белых пятен
+export function generateWhiteSpots(industryFilter: string, limit: number) {
+  const stats = generateMunicipalityStats(industryFilter)
+
+  // Фильтруем белые пятна и сортируем по потенциалу
+  const whiteSpots = stats
+    .filter((s) => s.isWhiteSpot)
+    .sort((a, b) => b.potentialScore - a.potentialScore)
+    .slice(0, limit)
+    .map((s) => ({
+      municipalityId: s.municipalityId,
+      name: s.name,
+      lat: s.lat,
+      lon: s.lon,
+      potentialScore: s.potentialScore,
+      companies: s.companies,
+      clients: s.clients,
+      reason: s.reason,
+    }))
+
+  return whiteSpots
+}

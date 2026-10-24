@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '../api/apiFetch'
-import type { MapDataResponse } from '../api/types'
+import type { MapDataResponse, MunicipalityStats, WhiteSpot } from '../api/types'
 import { filterToQuery } from '../filters/filterToQuery'
 import type { CompanyFilters } from '../filters/types'
 import { createClusterMarker } from './clusterMarker'
@@ -15,12 +15,24 @@ interface RadarMapProps {
   onBoundsChange: (bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number }) => void
   onSelectCompany: (id: number) => void
   onMapReady?: (map: maplibregl.Map) => void
+  potentialStats?: MunicipalityStats[]
+  whiteSpots?: WhiteSpot[]
+  onDistrictClick?: (stats: MunicipalityStats) => void
 }
 
 const ROSTOV_CENTER: [number, number] = [40.8, 47.6] // [lon, lat] для MapLibre
 const INITIAL_ZOOM = 7
 
-export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectCompany, onMapReady }: RadarMapProps) {
+export function RadarMap({
+  filters,
+  selectedCompanyId,
+  onBoundsChange,
+  onSelectCompany,
+  onMapReady,
+  potentialStats,
+  whiteSpots,
+  onDistrictClick
+}: RadarMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
@@ -126,10 +138,59 @@ export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectC
       }
       resizeObserver.disconnect()
       mapInstance.remove()
-      map.current = null
+      map.current = null // Обнуляем ref после удаления карты
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // ПУСТЫЕ зависимости - карта создаётся ОДИН РАЗ
+
+  // Функция объединения близких кластеров
+  const mergeClusters = (cells: Array<{ lat: number; lon: number; total: number; ours: number; others: number; excluded: number }>, mapInstance: maplibregl.Map) => {
+    if (cells.length === 0) return []
+
+    const MERGE_DISTANCE_PX = 48
+    const merged: typeof cells = []
+    const used = new Set<number>()
+
+    cells.forEach((cell: typeof cells[0], i: number) => {
+      if (used.has(i)) return
+
+      const cellPx = mapInstance.project([cell.lon, cell.lat])
+      const cluster = { ...cell }
+      let totalWeight = cell.total
+      let sumLat = cell.lat * cell.total
+      let sumLon = cell.lon * cell.total
+
+      // Ищем близкие кластеры
+      cells.forEach((other: typeof cells[0], j: number) => {
+        if (i === j || used.has(j)) return
+
+        const otherPx = mapInstance.project([other.lon, other.lat])
+        const dist = Math.sqrt(
+          Math.pow(cellPx.x - otherPx.x, 2) + Math.pow(cellPx.y - otherPx.y, 2)
+        )
+
+        if (dist < MERGE_DISTANCE_PX) {
+          // Объединяем
+          cluster.total += other.total
+          cluster.ours += other.ours
+          cluster.others += other.others
+          cluster.excluded += other.excluded
+          sumLat += other.lat * other.total
+          sumLon += other.lon * other.total
+          totalWeight += other.total
+          used.add(j)
+        }
+      })
+
+      // Взвешенный центр
+      cluster.lat = sumLat / totalWeight
+      cluster.lon = sumLon / totalWeight
+      merged.push(cluster)
+      used.add(i)
+    })
+
+    return merged
+  }
 
   // Отрисовка маркеров
   useEffect(() => {
@@ -140,9 +201,22 @@ export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectC
     markersRef.current = []
 
     if (data.mode === 'cells') {
-      // Рисуем кластеры
-      data.cells.forEach((cell) => {
+      // Объединяем близкие кластеры
+      const mergedCells = mergeClusters(data.cells || [], map.current)
+
+      // Рисуем объединённые кластеры
+      mergedCells.forEach((cell: typeof mergedCells[0]) => {
         const element = createClusterMarker(cell, filters.client)
+
+        // Размер от 28 до 48 px
+        const size = Math.min(48, Math.max(28, 28 + Math.log(cell.total) * 4))
+        element.style.width = `${size}px`
+        element.style.height = `${size}px`
+
+        // Приглушаем если слой потенциала активен
+        if (potentialStats) {
+          element.style.opacity = '0.5'
+        }
 
         // ВАЖНО: порядок [lon, lat] для MapLibre и anchor: 'center'
         const marker = new maplibregl.Marker({ element, anchor: 'center' })
@@ -190,7 +264,297 @@ export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectC
         markersRef.current.push(marker)
       })
     }
-  }, [data, filters.client, selectedCompanyId, onSelectCompany])
+  }, [data, filters.client, selectedCompanyId, onSelectCompany, potentialStats])
+
+  // Отрисовка слоёв аналитики через GeoJSON
+  useEffect(() => {
+    const mapInstance = map.current
+    if (!mapInstance) return
+
+    // Проверяем, что карта жива и стиль загружен
+    let isStyleLoaded = false
+    try {
+      isStyleLoaded = mapInstance.isStyleLoaded() || false
+    } catch {
+      return
+    }
+
+    if (!isStyleLoaded) {
+      // Ждём загрузки стиля
+      const onLoad = () => {
+        // Перезапускаем эффект после загрузки
+        if (map.current) {
+          renderLayers()
+        }
+      }
+      mapInstance.once('load', onLoad)
+      return () => {
+        mapInstance.off('load', onLoad)
+      }
+    }
+
+    renderLayers()
+
+    function renderLayers() {
+      const mapInstance = map.current
+      if (!mapInstance) return
+
+      // Проверяем что карта жива
+      try {
+        if (!mapInstance.getStyle()) return
+      } catch {
+        return
+      }
+
+      // Удаляем старые слои если есть
+      try {
+        if (mapInstance.getLayer('white-spots-circle')) {
+          mapInstance.removeLayer('white-spots-circle')
+        }
+        if (mapInstance.getLayer('white-spots-label')) {
+          mapInstance.removeLayer('white-spots-label')
+        }
+        if (mapInstance.getLayer('potential-circle')) {
+          mapInstance.removeLayer('potential-circle')
+        }
+        if (mapInstance.getSource('white-spots')) {
+          mapInstance.removeSource('white-spots')
+        }
+        if (mapInstance.getSource('potential')) {
+          mapInstance.removeSource('potential')
+        }
+      } catch {
+        // Игнорируем ошибки если карта уже уничтожена
+        return
+      }
+
+    // Слой "Потенциал"
+    if (potentialStats && potentialStats.length > 0) {
+      const features = potentialStats.map((stats) => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [stats.lon, stats.lat],
+        },
+        properties: {
+          name: stats.name,
+          potentialScore: stats.potentialScore,
+          kind: stats.kind,
+          municipalityId: stats.municipalityId,
+          companies: stats.companies,
+          clients: stats.clients,
+          coverage: stats.coverage,
+          excludedClients: stats.excludedClients,
+          revenueEstSum: stats.revenueEstSum,
+          // Радиус в метрах: 8км для городов, 20км для районов
+          radiusM: stats.kind === 'city' ? 8000 : 20000,
+        },
+      }))
+
+      mapInstance.addSource('potential', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features,
+        },
+      })
+
+      mapInstance.addLayer({
+        id: 'potential-circle',
+        type: 'circle',
+        source: 'potential',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['exponential', 2],
+            ['zoom'],
+            0, ['/', ['get', 'radiusM'], 106760],
+            20, ['*', ['/', ['get', 'radiusM'], 106760], 1048576],
+          ],
+          'circle-color': '#7700FF',
+          'circle-opacity': [
+            'interpolate',
+            ['linear'],
+            ['get', 'potentialScore'],
+            0, 0.15,
+            100, 0.45,
+          ],
+        },
+      })
+
+      // Клик и hover
+      mapInstance.on('click', 'potential-circle', (e) => {
+        if (e.features && e.features[0] && onDistrictClick) {
+          const props = e.features[0].properties
+          onDistrictClick({
+            municipalityId: props.municipalityId,
+            name: props.name,
+            kind: props.kind,
+            lat: e.lngLat.lat,
+            lon: e.lngLat.lng,
+            industry: '',
+            companies: props.companies,
+            clients: props.clients,
+            excludedClients: props.excludedClients,
+            coverage: props.coverage,
+            newShare: 0,
+            revenueEstSum: props.revenueEstSum,
+            potentialScore: props.potentialScore,
+            isWhiteSpot: false,
+            reason: '',
+          })
+        }
+      })
+
+      mapInstance.on('mouseenter', 'potential-circle', (e) => {
+        mapInstance.getCanvas().style.cursor = 'pointer'
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties
+          new maplibregl.Popup({ closeButton: false })
+            .setLngLat(e.lngLat)
+            .setHTML(`${props.name} · потенциал ${props.potentialScore}`)
+            .addTo(mapInstance)
+        }
+      })
+
+      mapInstance.on('mouseleave', 'potential-circle', () => {
+        mapInstance.getCanvas().style.cursor = ''
+        const popups = document.getElementsByClassName('maplibregl-popup')
+        if (popups.length) {
+          Array.from(popups).forEach((p) => p.remove())
+        }
+      })
+    }
+
+    // Слой "Белые пятна"
+    if (whiteSpots && whiteSpots.length > 0) {
+      // Определяем kind для белых пятен по municipalityId из справочника
+      const features = whiteSpots.map((spot) => {
+        // Определяем тип по имени (города обычно короче, районы содержат "район" или "р-н")
+        const isCity = !spot.name.toLowerCase().includes('район') &&
+                       !spot.name.toLowerCase().includes('р-н') &&
+                       !spot.name.toLowerCase().includes('р.')
+
+        return {
+          type: 'Feature' as const,
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [spot.lon, spot.lat],
+          },
+          properties: {
+            name: spot.name,
+            reason: spot.reason,
+            potentialScore: spot.potentialScore,
+            // Радиус в метрах: 8км для городов, 20км для районов
+            radiusM: isCity ? 8000 : 20000,
+          },
+        }
+      })
+
+      mapInstance.addSource('white-spots', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features,
+        },
+      })
+
+      // Круг - под точками компаний
+      mapInstance.addLayer(
+        {
+          id: 'white-spots-circle',
+          type: 'circle',
+          source: 'white-spots',
+          paint: {
+            'circle-radius': [
+              'interpolate',
+              ['exponential', 2],
+              ['zoom'],
+              0, ['/', ['get', 'radiusM'], 106760],
+              20, ['*', ['/', ['get', 'radiusM'], 106760], 1048576],
+            ],
+            'circle-color': '#FF4F12',
+            'circle-opacity': 0.08,
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#FF4F12',
+            'circle-stroke-opacity': 0.8,
+          },
+          layout: {},
+        },
+        // Вставляем под первый слой маркеров (если они есть)
+        mapInstance.getLayer('osm') ? undefined : 'osm'
+      )
+
+      // Подписи
+      mapInstance.addLayer({
+        id: 'white-spots-label',
+        type: 'symbol',
+        source: 'white-spots',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+          'text-size': 12,
+          'text-offset': [0, -2],
+          'text-anchor': 'top',
+        },
+        paint: {
+          'text-color': '#FF4F12',
+          'text-halo-color': '#FFFFFF',
+          'text-halo-width': 2,
+        },
+      })
+
+      // Hover и popup
+      mapInstance.on('mouseenter', 'white-spots-circle', (e) => {
+        mapInstance.getCanvas().style.cursor = 'pointer'
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties
+          new maplibregl.Popup({ closeButton: false })
+            .setLngLat(e.lngLat)
+            .setText(props.reason)
+            .addTo(mapInstance)
+        }
+      })
+
+      mapInstance.on('mouseleave', 'white-spots-circle', () => {
+        mapInstance.getCanvas().style.cursor = ''
+        const popups = document.getElementsByClassName('maplibregl-popup')
+        if (popups.length) {
+          Array.from(popups).forEach((p) => p.remove())
+        }
+      })
+    }
+    } // Закрываем функцию renderLayers
+
+    // Cleanup - проверяем что карта жива
+    return () => {
+      const mapInstance = map.current
+      if (!mapInstance) return
+
+      // Проверяем что карта не уничтожена
+      try {
+        if (!mapInstance.getStyle()) return
+      } catch {
+        return
+      }
+
+      const mapAny = mapInstance as any
+
+      try {
+        if (mapInstance.getLayer('white-spots-circle')) {
+          mapAny.off('mouseenter', 'white-spots-circle')
+          mapAny.off('mouseleave', 'white-spots-circle')
+        }
+        if (mapInstance.getLayer('potential-circle')) {
+          mapAny.off('click', 'potential-circle')
+          mapAny.off('mouseenter', 'potential-circle')
+          mapAny.off('mouseleave', 'potential-circle')
+        }
+      } catch {
+        // Игнорируем ошибки если карта уже уничтожена
+      }
+    }
+  }, [potentialStats, whiteSpots, onDistrictClick])
 
   return (
     <div className={styles.container}>

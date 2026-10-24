@@ -1,0 +1,99 @@
+.panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--rt-white);
+  border: 1px solid var(--rt-purple);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--rt-black);
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--rt-gray);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  color: var(--rt-black);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+}
+
+.label {
+  color: var(--rt-gray);
+}
+
+.value {
+  font-weight: 500;
+  color: var(--rt-black);
+}
+
+.potential {
+  color: var(--rt-purple);
+  font-weight: 600;
+}
+
+.showButton {
+  margin-top: 8px;
+  padding: 10px 16px;
+  background: var(--rt-purple);
+  color: var(--rt-white);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.showButton:hover {
+  background: #6600dd;
+}
+
+@media (max-width: 767px) {
+  .panel {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
