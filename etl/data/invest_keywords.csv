@@ -1,19 +1,48 @@
 keyword,industry,needs
-склад,logistics,it_infra|phys_security
-логистич,logistics,it_infra|phys_security
-порт,logistics,it_infra|phys_security
+жк,construction,it_infra|phys_security
+жилого комплекса,construction,it_infra|phys_security
+жилой комплекс,construction,it_infra|phys_security
+жилого дома,construction,it_infra|phys_security
+многоквартирн,construction,it_infra|phys_security
+застройщик,construction,it_infra|phys_security
+комплексное развитие территории,construction,it_infra|phys_security
+тепличн,agro,it_infra|apcs
+аквакультур,agro,it_infra|apcs
+осетров,agro,it_infra|apcs
+выращиван,agro,it_infra|apcs
+комбикорм,agro,it_infra|apcs
+сада,agro,it_infra|apcs
+сад ,agro,it_infra|apcs
+виноградник,agro,it_infra|apcs
+спг,energy,apcs|it_infra|info_security
+дробильно,energy,apcs|it_infra|info_security
+карьер,energy,apcs|it_infra|info_security
+технопарк,realestate,it_infra|phys_security|info_security
+творческ,realestate,it_infra|phys_security|info_security
+делового управления,realestate,it_infra|phys_security|info_security
+бизнес-центр,realestate,it_infra|phys_security|info_security
 завод,manufacturing,apcs|it_infra
 цех,manufacturing,apcs|it_infra
 производств,manufacturing,apcs|it_infra
-тепличн,agro,apcs
-сад,agro,apcs
-выращиван,agro,apcs
-комбикорм,agro,apcs
-жк,construction,it_infra|phys_security
-многоквартирн,construction,it_infra|phys_security
-застройщик,construction,it_infra|phys_security
+склад,logistics,it_infra|phys_security
+логистич,logistics,it_infra|phys_security
+порт,logistics,it_infra|phys_security
 магазин,trade,it_infra|info_security
 торгов,trade,it_infra|info_security
-база отдыха,hospitality,it_infra
-пляж,hospitality,it_infra
-кафе,hospitality,it_infra
+потребительского рынка,trade,it_infra|info_security
+ремонту автомобилей,trade,it_infra|phys_security
+база отдыха,hospitality,it_infra|phys_security
+базы отдыха,hospitality,it_infra|phys_security
+пляж,hospitality,it_infra|phys_security
+кафе,hospitality,it_infra|phys_security
+столов,hospitality,it_infra|phys_security
+общественного питания,hospitality,it_infra|phys_security
+развлекательн,hospitality,it_infra|phys_security
+кемпинг,hospitality,it_infra|phys_security
+гостиниц,hospitality,it_infra|phys_security
+стадион,services,it_infra|phys_security
+спортивн,services,it_infra|phys_security
+физкультурно,services,it_infra|phys_security
+картодром,services,it_infra|phys_security
+дорожного сервиса,services,it_infra|phys_security
+медицин,services,it_infra|info_security|phys_security

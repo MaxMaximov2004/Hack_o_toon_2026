@@ -1,1 +1,4 @@
 src_no,industry,needs,stage
+228,services,it_infra|info_security|phys_security,
+488,manufacturing,apcs|it_infra,
+496,trade,it_infra|phys_security,
