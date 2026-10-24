@@ -1,4 +1,4 @@
-.legend {
+.legendDesktop {
   position: absolute;
   bottom: var(--spacing-lg);
   left: var(--spacing-lg);
@@ -8,6 +8,10 @@
   box-shadow: var(--shadow-lg);
   z-index: 10;
   min-width: 220px;
+}
+
+.legendMobile {
+  display: none;
 }
 
 .title {
@@ -38,4 +42,81 @@
   border: 2px solid white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .legendDesktop {
+    display: none;
+  }
+
+  .legendMobile {
+    display: block;
+    position: absolute;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    z-index: 10;
+  }
+
+  .legendButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--rt-cool-grey);
+    color: var(--rt-purple);
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+  }
+
+  .legendButton:hover {
+    background: var(--rt-white);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .legendExpanded {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .legendExpanded .items {
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .legendExpanded .item {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .legendExpanded .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .closeButton {
+    background: none;
+    border: none;
+    color: var(--rt-gray);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 }

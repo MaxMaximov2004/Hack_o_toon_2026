@@ -49,7 +49,8 @@ describe('filterCompanies', () => {
     const ours = filterCompanies(oursFilter)
     const others = filterCompanies(othersFilter)
 
-    ours.forEach((c) => expect(c.kind).toBe('ours'))
+    // "Наши" включают активных (kind='ours') И исключённых (kind='excluded'), т.к. isClient=true
+    ours.forEach((c) => expect(c.isClient).toBe(true))
     others.forEach((c) => expect(c.kind).toBe('others'))
 
     expect(ours.length).toBeGreaterThan(0)
@@ -151,5 +152,25 @@ describe('filterCompanies', () => {
     // total должен быть равен количеству отфильтрованных компаний
     expect(total).toBe(items.length)
     expect(total).toBeLessThan(getAllCompanies().length)
+  })
+
+  it('preset "Excluded Clients" filters correctly: client=ours + status=excluded', () => {
+    // Пресет «Исключённые клиенты» должен вернуть только наших клиентов, которые исключены из реестра МСП
+    const filters: MockFilters = {
+      client: 'ours',
+      status: 'excluded',
+    }
+
+    const filtered = filterCompanies(filters)
+
+    // Должно быть 110 исключённых клиентов в моке (15% от наших клиентов)
+    expect(filtered.length).toBe(110)
+
+    // Все компании должны быть нашими клиентами (isClient=true)
+    filtered.forEach((company) => {
+      expect(company.isClient).toBe(true)
+      expect(company.status).toBe('excluded')
+      expect(company.kind).toBe('excluded')
+    })
   })
 })

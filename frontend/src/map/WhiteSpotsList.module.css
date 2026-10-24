@@ -86,7 +86,7 @@
   .containerMobile {
     display: block;
     position: absolute;
-    bottom: 80px;
+    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     left: 10px;
     right: 10px;
     z-index: 10;
@@ -94,15 +94,16 @@
 
   .mobileToggle {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 16px;
     background: var(--rt-orange);
     color: var(--rt-white);
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-height: 48px;
   }
 
   .mobileList {
@@ -117,5 +118,12 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .item {
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 }

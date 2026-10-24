@@ -34,22 +34,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
+  /* Маленький крестик 18px, но с тач-зоной 44px через padding */
+  width: 18px;
+  height: 18px;
+  padding: 13px;
   border: none;
   border-radius: 50%;
-  background-color: var(--rt-purple);
-  color: var(--rt-white);
-  font-size: 16px;
+  background: none;
+  color: var(--rt-purple);
+  font-size: 18px;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: color 0.2s;
   flex-shrink: 0;
+  /* Общий размер с padding = 18 + 13*2 = 44px */
 }
 
 .chipRemove:hover {
-  background-color: var(--rt-orange);
+  color: var(--rt-orange);
 }
 
 .resetButton {

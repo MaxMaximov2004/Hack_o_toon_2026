@@ -11,9 +11,11 @@ interface FilterPanelProps {
   onFiltersChange: (updates: Partial<CompanyFilters>) => void
   onReset: () => void
   mapRef?: React.RefObject<Map | null>
+  hideHeader?: boolean
+  onExcludedPresetApply?: () => void
 }
 
-export function FilterPanel({ filters, onFiltersChange, onReset, mapRef }: FilterPanelProps) {
+export function FilterPanel({ filters, onFiltersChange, onReset, mapRef, hideHeader, onExcludedPresetApply }: FilterPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [revenueMinMln, setRevenueMinMln] = useState('')
   const [revenueMaxMln, setRevenueMaxMln] = useState('')
@@ -132,28 +134,51 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef }: Filte
     onFiltersChange({ sizeCategory: updated.length > 0 ? updated : undefined })
   }
 
-  // Подсчёт исключённых клиентов (759 - общее число клиентов из кейса)
-  const excludedClients = dictionaries?.municipalities
-    ? Math.floor(759 * 0.15) // Примерно 15% исключены (114 из 759)
-    : 114
+  // Подсчёт исключённых клиентов (110 из мока)
+  const excludedClients = 110
+
+  // Проверяем активен ли пресет
+  const isPresetActive = filters.client === 'ours' && filters.status === 'excluded'
 
   const handleExcludedPreset = () => {
-    onFiltersChange({ client: 'ours', status: 'excluded' })
+    if (isPresetActive) {
+      // Снять пресет - вернуться к дефолтным значениям
+      onFiltersChange({ client: 'all', status: 'active' })
+    } else {
+      // Применить пресет - ВСЕ параметры одним вызовом
+      onFiltersChange({
+        client: 'ours',
+        status: 'excluded',
+        // Сбросить bbox
+        minLat: undefined,
+        maxLat: undefined,
+        minLon: undefined,
+        maxLon: undefined
+      })
+      // Вызвать callback для закрытия панели и других действий
+      onExcludedPresetApply?.()
+    }
   }
 
   return (
     <div className={styles.panel}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Фильтры</h2>
-        <button className={styles.resetButton} onClick={onReset}>
-          Сбросить
-        </button>
-      </div>
+      {!hideHeader && (
+        <div className={styles.header}>
+          <h2 className={styles.title}>Фильтры</h2>
+          <button className={styles.resetButton} onClick={onReset}>
+            Сбросить
+          </button>
+        </div>
+      )}
 
       <div className={styles.content}>
         {/* Пресет: Исключённые клиенты */}
         <div className={styles.section}>
-          <button className={styles.presetButton} onClick={handleExcludedPreset}>
+          <button
+            className={isPresetActive ? styles.presetButtonActive : styles.presetButtonOutline}
+            onClick={handleExcludedPreset}
+          >
+            {isPresetActive && <span className={styles.presetCross}>×</span>}
             Исключённые клиенты
           </button>
           <p className={styles.excludedInfo}>

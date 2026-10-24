@@ -36,7 +36,7 @@ export function FilterChips({ filters, onFiltersChange, onResetAll }: FilterChip
 
   // Статус
   if (filters.status && filters.status !== 'active') {
-    const label = filters.status === 'excluded' ? 'Только исключённые' : 'Все статусы'
+    const label = filters.status === 'excluded' ? 'Исключённые из реестра' : 'С исключёнными'
     chips.push({
       key: 'status',
       label,
