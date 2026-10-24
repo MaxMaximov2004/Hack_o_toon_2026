@@ -4,11 +4,19 @@ import { ClientToggle } from '../filters/ClientToggle'
 import { FilterPanel } from '../filters/FilterPanel'
 import { RadarMap } from '../map/RadarMap'
 import { MapLegend } from '../map/MapLegend'
+import { MapLayerToggles, type MapLayer } from '../map/MapLayerToggles'
+import { DistrictPanel } from '../map/DistrictPanel'
+import { WhiteSpotsList } from '../map/WhiteSpotsList'
+import { MapErrorBoundary } from '../map/MapErrorBoundary'
 import { CompanyList } from '../list/CompanyList'
 import { CompanyCard } from '../company/CompanyCard'
 import { Tabs } from '../ui/Tabs'
+import { ErrorBoundary } from '../ui/ErrorBoundary'
 import { useCallback, useState, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { getMunicipalityStats, getWhiteSpots } from '../api/endpoints'
 import type { Map } from 'maplibre-gl'
+import type { MunicipalityStats } from '../api/types'
 import styles from './RadarPage.module.css'
 
 export function RadarPage() {
@@ -17,6 +25,8 @@ export function RadarPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>()
   const [activeTab, setActiveTab] = useState<'map' | 'list'>('map')
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [activeLayer, setActiveLayer] = useState<MapLayer>('none')
+  const [selectedDistrict, setSelectedDistrict] = useState<MunicipalityStats | null>(null)
   const mapRef = useRef<Map | null>(null)
 
   // Ref для updateFilters чтобы moveend всегда вызывал актуальную версию
@@ -44,9 +54,66 @@ export function RadarPage() {
     mapRef.current = map
   }, [])
 
+  // Определяем industry для аналитики
+  const industryParam = filters.industry && filters.industry.length > 0
+    ? filters.industry.length === 1
+      ? filters.industry[0]
+      : 'all'
+    : 'all'
+
+  // Запрос статистики районов для слоя "Потенциал"
+  const { data: municipalityStats } = useQuery({
+    queryKey: ['municipality-stats', industryParam],
+    queryFn: () => getMunicipalityStats(industryParam),
+    enabled: activeLayer === 'potential',
+    staleTime: 60000,
+  })
+
+  // Запрос белых пятен
+  const { data: whiteSpots } = useQuery({
+    queryKey: ['white-spots', industryParam],
+    queryFn: () => getWhiteSpots(industryParam, 10),
+    enabled: activeLayer === 'whiteSpots',
+    staleTime: 60000,
+  })
+
+  const handleLayerChange = useCallback((layer: MapLayer) => {
+    setActiveLayer(layer)
+    setSelectedDistrict(null)
+  }, [])
+
+  const handleDistrictClick = useCallback((stats: MunicipalityStats) => {
+    setSelectedDistrict(stats)
+  }, [])
+
+  const handleShowDistrictCompanies = useCallback((municipalityId: number) => {
+    // Найти район в справочнике
+    const municipality = municipalityStats?.find((s) => s.municipalityId === municipalityId)
+    if (municipality && mapRef.current) {
+      // Перелететь к району
+      mapRef.current.flyTo({
+        center: [municipality.lon, municipality.lat],
+        zoom: 11,
+      })
+      // Установить фильтр по району
+      updateFilters({ municipalityId: [municipalityId] })
+      setSelectedDistrict(null)
+    }
+  }, [municipalityStats, updateFilters])
+
+  const handleWhiteSpotClick = useCallback((lat: number, lon: number) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [lon, lat],
+        zoom: 11,
+      })
+    }
+  }, [])
+
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
+    <ErrorBoundary>
+      <div className={styles.container}>
+        <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.logoSection}>
             <div className={styles.logo}>Ростелеком</div>
@@ -98,14 +165,37 @@ export function RadarPage() {
         </button>
 
         <div className={`${styles.mapContainer} ${activeTab === 'map' ? styles.active : ''}`}>
-          <RadarMap
-            filters={filters}
-            selectedCompanyId={selectedCompanyId}
-            onBoundsChange={handleBoundsChange}
-            onSelectCompany={handleSelectCompany}
-            onMapReady={handleMapReady}
-          />
-          <MapLegend />
+          <div className={styles.mapControls}>
+            <MapLayerToggles activeLayer={activeLayer} onChange={handleLayerChange} />
+          </div>
+          <MapErrorBoundary>
+            <RadarMap
+              filters={filters}
+              selectedCompanyId={selectedCompanyId}
+              onBoundsChange={handleBoundsChange}
+              onSelectCompany={handleSelectCompany}
+              onMapReady={handleMapReady}
+              potentialStats={activeLayer === 'potential' ? municipalityStats : undefined}
+              whiteSpots={activeLayer === 'whiteSpots' ? whiteSpots : undefined}
+              onDistrictClick={handleDistrictClick}
+            />
+          </MapErrorBoundary>
+          {/* Легенда - скрывается когда показаны белые пятна */}
+          {activeLayer !== 'whiteSpots' && <MapLegend />}
+
+          {/* Панель района при клике на кружок потенциала */}
+          {selectedDistrict && (
+            <DistrictPanel
+              stats={selectedDistrict}
+              onShowCompanies={handleShowDistrictCompanies}
+              onClose={() => setSelectedDistrict(null)}
+            />
+          )}
+
+          {/* Список белых пятен - заменяет легенду */}
+          {activeLayer === 'whiteSpots' && whiteSpots && (
+            <WhiteSpotsList spots={whiteSpots} onSelectSpot={handleWhiteSpotClick} />
+          )}
         </div>
 
         <div className={`${styles.listContainer} ${activeTab === 'list' ? styles.active : ''}`}>
@@ -141,5 +231,6 @@ export function RadarPage() {
         <CompanyCard companyId={selectedCompanyId} onClose={handleCloseCard} />
       )}
     </div>
+    </ErrorBoundary>
   )
 }

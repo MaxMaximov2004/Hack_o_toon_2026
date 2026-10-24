@@ -102,6 +102,13 @@
   height: 100%;
 }
 
+.mapControls {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
 .listContainer {
   position: relative;
   border-left: 1px solid var(--rt-cool-grey);

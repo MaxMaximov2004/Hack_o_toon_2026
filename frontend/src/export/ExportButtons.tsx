@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { filterToQuery } from '../filters/filterToQuery'
 import type { CompanyFilters } from '../filters/types'
 import { downloadBlob } from './downloadBlob'
-import { getToken } from '../api/apiFetch'
+import { apiFetch, type BlobResponse } from '../api/apiFetch'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Toast } from '../ui/Toast'
+import type { ApiError } from '../api/types'
 import styles from './ExportButtons.module.css'
 
 interface ExportButtonsProps {
@@ -34,36 +35,27 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
       const query = filterToQuery(filters)
       const url = `/api/export/companies?${query}&format=${format}`
 
-      // Получаем токен
-      const token = getToken()
-      if (!token) {
-        throw new Error('Требуется авторизация')
-      }
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const { blob, filename } = await apiFetch<BlobResponse>(url, {
+        responseType: 'blob',
       })
 
-      if (!response.ok) {
-        if (response.status === 413) {
-          const data = await response.json()
-          const count = data.error?.details?.total || total
-          throw new Error(`Слишком много, сузьте фильтр (${count} компаний)`)
-        }
-
-        const data = await response.json()
-        throw new Error(data.error?.message || 'Ошибка экспорта')
-      }
-
-      // Скачиваем blob
-      const blob = await response.blob()
-      const contentDisposition = response.headers.get('Content-Disposition')
       const fallbackFilename = format === 'csv' ? 'export.csv' : 'export_bitrix.csv'
-      downloadBlob(blob, contentDisposition, fallbackFilename)
+      downloadBlob(blob, null, filename || fallbackFilename)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка экспорта')
+      // Обработка ApiError
+      if (err && typeof err === 'object' && 'code' in err && 'message' in err) {
+        const apiError = err as ApiError
+
+        // Специальная обработка для 413
+        if (apiError.code === 'TOO_LARGE' || apiError.code === 'PAYLOAD_TOO_LARGE') {
+          const count = apiError.details?.total || total
+          setError(`Слишком много, сузьте фильтр (${count} компаний)`)
+        } else {
+          setError(apiError.message)
+        }
+      } else {
+        setError('Ошибка экспорта')
+      }
     } finally {
       setIsExporting(false)
     }
