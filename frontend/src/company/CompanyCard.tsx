@@ -4,6 +4,14 @@ import { Badge } from '../ui/Badge'
 import { WhereWorks } from './WhereWorks'
 import styles from './CompanyCard.module.css'
 import { useState } from 'react'
+import type { GeoPrecision } from '../api/types'
+
+// Адреса в реестре МСП нет — честно говорим, насколько точна точка на карте
+const GEO_PRECISION_HINT: Record<GeoPrecision, string> = {
+  settlement: 'Точка на карте условная: здание в этом населённом пункте, адреса в реестре нет',
+  municipality: 'Точка на карте условная: здание в пределах района, адреса в реестре нет',
+  approx: 'Точка на карте приблизительная: около центра района',
+}
 
 interface CompanyCardProps {
   companyId: number
@@ -126,6 +134,7 @@ export function CompanyCard({ companyId, onClose }: CompanyCardProps) {
               {company.municipalityName}
               {company.settlement && `, ${company.settlement}`}
             </span>
+            <span className={styles.hint}>{GEO_PRECISION_HINT[company.geoPrecision]}</span>
           </div>
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Размер:</span>

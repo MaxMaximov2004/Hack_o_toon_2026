@@ -36,7 +36,8 @@ public class CompanyRepository {
     /** Все колонки полной карточки. Общие для списка, карточки и /internal/companies. */
     static final String SELECT = """
             SELECT c.id, c.inn, c.name, c.industry, c.okved_code, c.okved_name, c.municipality_id,
-                   m.name AS municipality_name, c.settlement, c.lat, c.lon, c.size_category, c.employees,
+                   m.name AS municipality_name, c.settlement, c.lat, c.lon, c.geo_precision,
+                   c.size_category, c.employees,
                    c.revenue_est, c.revenue_growth_est, c.revenue_source, c.is_estimated, c.is_client, c.status,
                    %s AS kind, c.excluded_at, c.is_new, c.registered_at, %s AS relocated,
                    c.ogrn, c.subject_type, c.phone, c.email, c.website, c.has_licenses, c.is_innovative, c.is_social
@@ -127,6 +128,7 @@ public class CompanyRepository {
                 rs.getString("settlement"),
                 rs.getDouble("lat"),
                 rs.getDouble("lon"),
+                rs.getString("geo_precision"),
                 rs.getString("size_category"),
                 rs.getObject("employees", Integer.class),
                 rubles(rs.getBigDecimal("revenue_est")),

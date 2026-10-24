@@ -104,6 +104,7 @@ export type CompanyKind = 'ours' | 'others' | 'excluded'
 export type CompanyStatus = 'active' | 'excluded'
 export type SubjectType = 'ip' | 'legal'
 export type SizeCategoryCode = 'micro' | 'small' | 'medium'
+export type GeoPrecision = 'settlement' | 'municipality' | 'approx'
 export type RevenueSource = 'fns' | 'model'
 
 export interface CompanyShort {
@@ -119,6 +120,8 @@ export interface CompanyShort {
   settlement: string | null
   lat: number
   lon: number
+  // Адресов в реестре МСП нет: точка — здание из OSM в населённом пункте, в районе или (approx) около центра района
+  geoPrecision: GeoPrecision
   sizeCategory: SizeCategoryCode
   employees: number | null
   revenueEst: number | null

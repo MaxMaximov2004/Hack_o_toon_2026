@@ -66,6 +66,47 @@ def norm_municipality(district, city):
     return _cap(s) + " р-н", "district"
 
 
+# Тип населённого пункта -> сокращение. В реестре один и тот же хутор пишут «Хутор Победа», «х. Победа», «ХУТОР ПОБЕДА».
+_SETTLEMENT_TYPES = [
+    (r"городской округ|город|гор\.?|г\.?", "г."),
+    (r"рабочий поселок|рабочий посёлок|рп\.?|р\.п\.", "рп."),
+    (r"поселок городского типа|посёлок городского типа|пгт\.?", "пгт."),
+    (r"поселок|посёлок|пос\.?|п\.?", "п."),
+    (r"станица|ст-ца\.?|ст-ца", "ст-ца"),
+    (r"станция|ст\.?", "ст."),
+    (r"слобода|сл\.?", "сл."),
+    (r"хутор|х\.?", "х."),
+    (r"село|с\.?", "с."),
+    (r"деревня|дер\.?|д\.?", "д."),
+]
+_SETTLEMENT_RE = [(re.compile(rf"^(?:{p})(?:\s+|(?<=\.))(.+)$"), a) for p, a in _SETTLEMENT_TYPES]
+
+
+def norm_settlement(s):
+    """'ХУТОР ПОБЕДА' | 'х.Победа' | 'Победа' -> 'х. Победа' (без типа — просто имя с заглавной) или None."""
+    s = " ".join((s or "").replace("ё", "е").replace("Ё", "Е").split()).lower()
+    if not s:
+        return None
+    for rx, abbr in _SETTLEMENT_RE:
+        m = rx.match(s)
+        if m:
+            return f"{abbr} {_cap(m.group(1).strip())}"
+    return _cap(s)
+
+
+def settlement_of(district, city, settlement, place):
+    """Населённый пункт внутри муниципалитета `place` (результат norm_municipality) или None.
+
+    Пустой «Населённый пункт» у районных компаний — часто райцентр в поле «Город» (Аксай, Сальск; в т. ч. без района —
+    norm_municipality относит такой город к району): берём его.
+    У городского округа сам город — это и есть муниципалитет, уточнять нечего.
+    """
+    s = norm_settlement(settlement)
+    if not s and place[1] == "district":
+        s = norm_settlement(city)
+    return None if not s or s == place[0] else s
+
+
 def parse_date(s):
     s = (s or "").strip()
     m = re.match(r"^(\d{2})\.(\d{2})\.(\d{4})", s)
