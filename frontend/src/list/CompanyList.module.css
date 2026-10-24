@@ -59,8 +59,8 @@
 /* Мобильные устройства: отступ для кнопки фильтров */
 @media (max-width: 767px) {
   .list {
-    /* Кнопка фильтров = 48px высота + 60px от низа + safe-area */
-    padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+    /* Кнопка фильтров = 48px высота + 16px зазор + 60px bottom + safe-area */
+    padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px));
   }
 }
 
