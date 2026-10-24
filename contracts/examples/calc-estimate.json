@@ -1,0 +1,89 @@
+{
+  "items": [
+    {
+      "componentId": "el_01",
+      "name": "Смарт-счетчик (3-фазный)",
+      "unit": "шт.",
+      "qty": 10,
+      "unitPrice": 8500.0,
+      "complexity": 1.2,
+      "lineTotal": 102000.0,
+      "nonStandardMarkup": 0,
+      "isNonStandard": false
+    },
+    {
+      "componentId": "ht_01",
+      "name": "Кабель витая пара",
+      "unit": "м",
+      "qty": 500,
+      "unitPrice": 45.0,
+      "complexity": 1.0,
+      "lineTotal": 22500.0,
+      "nonStandardMarkup": 0,
+      "isNonStandard": false
+    }
+  ],
+  "costs": {
+    "equipment": 124500.0,
+    "works": 37350.0,
+    "direct": 161850.0
+  },
+  "price": {
+    "min": 130000.0,
+    "optimal": 242775.0,
+    "max": 279191.25,
+    "minBasis": "fallback_0.9",
+    "urgent": null
+  },
+  "margin": {
+    "minPct": 46.37,
+    "optimalPct": 33.33,
+    "maxPct": 42.05,
+    "curve": [
+      {"price": 123500.0, "marginPct": 69.02},
+      {"price": 137222.5, "marginPct": 61.06},
+      {"price": 150945.0, "marginPct": 54.17},
+      {"price": 164667.5, "marginPct": 48.12},
+      {"price": 178390.0, "marginPct": 43.05},
+      {"price": 192112.5, "marginPct": 38.48},
+      {"price": 205835.0, "marginPct": 34.15},
+      {"price": 219557.5, "marginPct": 30.25},
+      {"price": 233280.0, "marginPct": 26.67},
+      {"price": 247002.5, "marginPct": 23.51},
+      {"price": 260725.0, "marginPct": 20.64},
+      {"price": 274447.5, "marginPct": 18.04},
+      {"price": 288170.0, "marginPct": 15.71},
+      {"price": 301892.5, "marginPct": 13.62},
+      {"price": 315615.0, "marginPct": 11.73},
+      {"price": 329337.5, "marginPct": 10.05},
+      {"price": 343060.0, "marginPct": 8.55},
+      {"price": 356782.5, "marginPct": 7.21},
+      {"price": 370505.0, "marginPct": 6.04},
+      {"price": 384227.5, "marginPct": 5.0}
+    ]
+  },
+  "breakdown": [
+    {"key": "direct", "label": "Прямые затраты (себестоимость)", "amount": 161850.0},
+    {"key": "region", "label": "Регион: Центральный", "amount": 0.0},
+    {"key": "level", "label": "Уровень: Базовый", "amount": 0.0},
+    {"key": "urgent", "label": "Срочность", "amount": 0.0},
+    {"key": "unique", "label": "Уникальное решение", "amount": 0.0},
+    {"key": "financing", "label": "Финансирование (prepay, 12 мес)", "amount": 8092.5},
+    {"key": "volume", "label": "Скидка за объём", "amount": 0.0}
+  ],
+  "analogs": {
+    "available": false,
+    "source": null,
+    "count": 0,
+    "percentile": null,
+    "distribution": {},
+    "nearest": []
+  },
+  "assumptions": [
+    "Минимальная цена рассчитана как optimal × 0.9 (аналогов недостаточно)",
+    "Аналоги недоступны — расчёт минимума по запасному правилу",
+    "Максимальная цена: optimal × 1.15 (допущение)",
+    "Наценка за нестандарт: 20%",
+    "Наценка за уникальное решение: 15%"
+  ]
+}
