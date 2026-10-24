@@ -1,0 +1,8 @@
+**/*.md
+.git/
+.gitignore
+*.log
+.env
+.env.*
+.vscode/
+.idea/

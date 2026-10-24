@@ -1,0 +1,10 @@
+# Скрипты выполняются внутри linux-контейнера: CRLF ломает shebang
+# ("/bin/bash^M: bad interpreter"). Только LF.
+*.sh text eol=lf
+*.sql text eol=lf
+
+# Go-исходники — LF (иначе diff'ы между Windows и Linux машинами)
+*.go text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf
+Dockerfile text eol=lf
