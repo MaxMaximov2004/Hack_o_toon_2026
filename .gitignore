@@ -12,3 +12,6 @@ data-raw/
 .vscode/
 # Исключение: ТЕСТОВЫЕ ключи JWT для разработки без auth-service (не секрет, в полной сборке не принимаются)
 !contracts/dev-keys/*.pem
+# Служебные файлы ОС (macOS, Windows)
+.DS_Store
+Thumbs.db

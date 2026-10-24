@@ -1,4 +1,5 @@
 import { apiFetch } from './apiFetch'
+import { groupByMunicipality, type ProjectMunicipalityCluster } from '../projects/groupByMunicipality'
 import type {
   CompaniesResponse,
   Company,
@@ -90,6 +91,11 @@ export async function getTelegramLink(): Promise<TelegramLinkResponse> {
   return apiFetch<TelegramLinkResponse>('/api/notifications/telegram-link')
 }
 
-export async function getProjectClusters(query: string) {
-  return apiFetch<any[]>(`/api/projects/map/clusters?${query}`)
+/**
+ * Маркеры районов для карты Навигатора. Отдельного эндпоинта нет (контракт 08): берём все проекты
+ * по фильтру — их десятки, size ≤ 200 — и группируем по району на клиенте.
+ */
+export async function getProjectClusters(query: string): Promise<ProjectMunicipalityCluster[]> {
+  const page = await getProjects(query ? `${query}&size=200` : 'size=200')
+  return groupByMunicipality(page.items)
 }

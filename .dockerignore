@@ -22,7 +22,9 @@ export-service
 notifier
 etl
 tools
-contracts
+# contracts — кроме examples: их импортируют моки фронта (см. infra/nginx/Dockerfile)
+contracts/*
+!contracts/examples
 docs
 infra/db
 data-raw

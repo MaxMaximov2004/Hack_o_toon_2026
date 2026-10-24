@@ -298,9 +298,8 @@ export interface Subscription {
   createdAt: string
 }
 
-export interface SubscriptionsResponse {
-  items: Subscription[]
-}
+/** GET /api/subscriptions — массив подписок, новые сверху (contracts/examples/subscriptions.json) */
+export type SubscriptionsResponse = Subscription[]
 
 // Уведомления
 export interface Notification {

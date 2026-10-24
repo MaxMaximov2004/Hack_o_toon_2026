@@ -24,7 +24,6 @@ import {
   filterProjects,
   getProjectById,
   getProjectTimeline,
-  getProjectClusters,
   getSubscriptions,
   createSubscription,
   deleteSubscription,
@@ -582,8 +581,7 @@ export const handlers = [
 
   // GET /api/subscriptions
   http.get('/api/subscriptions', () => {
-    const items = getSubscriptions()
-    const response: SubscriptionsResponse = { items }
+    const response: SubscriptionsResponse = getSubscriptions()
     return HttpResponse.json(response)
   }),
 
@@ -641,23 +639,4 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  // GET /api/projects/map/clusters - кластеры проектов по районам
-  http.get('/api/projects/map/clusters', ({ request }) => {
-    const url = new URL(request.url)
-
-    const filters: ProjectMockFilters = {
-      stage: url.searchParams.getAll('stage'),
-      industry: url.searchParams.getAll('industry'),
-      need: url.searchParams.getAll('need'),
-      municipalityId: url.searchParams.getAll('municipalityId').map(Number),
-      yearFrom: url.searchParams.get('yearFrom') ? Number(url.searchParams.get('yearFrom')) : undefined,
-      yearTo: url.searchParams.get('yearTo') ? Number(url.searchParams.get('yearTo')) : undefined,
-      isKey: url.searchParams.get('isKey') === 'true',
-      amountMin: url.searchParams.get('amountMin') ? Number(url.searchParams.get('amountMin')) : undefined,
-      q: url.searchParams.get('q') || undefined,
-    }
-
-    const clusters = getProjectClusters(filters)
-    return HttpResponse.json(clusters)
-  }),
 ]

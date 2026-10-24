@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { getProjectClusters } from '../api/endpoints'
+import type { ProjectMunicipalityCluster } from './groupByMunicipality'
 import { projectFilterToQuery } from './projectFilterToQuery'
 import { formatMoney } from '../utils/formatMoney'
 import type { ProjectFilters } from './types'
@@ -69,7 +70,7 @@ export function ProjectMap({ filters, onSelectMunicipality }: ProjectMapProps) {
     existingMarkers.forEach((marker) => marker.remove())
 
     // Добавляем новые маркеры
-    clusters.forEach((cluster: any) => {
+    clusters.forEach((cluster: ProjectMunicipalityCluster) => {
       // Определяем преобладающую стадию
       const maxCount = Math.max(cluster.design, cluster.construction, cluster.launch)
       let dominantStage = 'construction'
@@ -77,7 +78,7 @@ export function ProjectMap({ filters, onSelectMunicipality }: ProjectMapProps) {
       else if (cluster.launch === maxCount) dominantStage = 'launch'
 
       // Считаем средний объём инвестиций кластера
-      const totalAmount = cluster.projects.reduce((sum: number, p: any) => sum + p.amountMln, 0)
+      const totalAmount = cluster.projects.reduce((sum, p) => sum + (p.amountMln ?? 0), 0)
       const avgAmount = cluster.total > 0 ? totalAmount / cluster.total : 0
 
       // Размер маркера по объёму инвестиций: 24-48px
@@ -85,7 +86,7 @@ export function ProjectMap({ filters, onSelectMunicipality }: ProjectMapProps) {
       const size = Math.min(Math.max(24, 24 + (avgAmount / 10000) * 24), 48)
 
       // Проверяем, есть ли ключевые проекты в кластере
-      const hasKeyProjects = cluster.projects.some((p: any) => p.isKey)
+      const hasKeyProjects = cluster.projects.some((p) => p.isKey)
 
       // Создаём HTML-элемент маркера
       const el = document.createElement('div')

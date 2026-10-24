@@ -603,53 +603,6 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
 }
 
 // Группировка проектов по районам для карты
-export interface ProjectMunicipalityCluster {
-  municipalityId: number
-  municipalityName: string
-  lat: number
-  lon: number
-  total: number
-  design: number
-  construction: number
-  launch: number
-  projects: ProjectShort[]
-}
-
-export function getProjectClusters(filters: ProjectMockFilters): ProjectMunicipalityCluster[] {
-  const filtered = filterProjects(filters)
-
-  // Группируем по municipalityId
-  const grouped = new Map<number, ProjectShort[]>()
-  filtered.forEach((project) => {
-    if (!grouped.has(project.municipalityId)) {
-      grouped.set(project.municipalityId, [])
-    }
-    grouped.get(project.municipalityId)!.push(project)
-  })
-
-  // Формируем кластеры
-  const clusters: ProjectMunicipalityCluster[] = []
-  grouped.forEach((projects, municipalityId) => {
-    const first = projects[0]
-    const design = projects.filter((p) => p.stage === 'design').length
-    const construction = projects.filter((p) => p.stage === 'construction').length
-    const launch = projects.filter((p) => p.stage === 'launch').length
-
-    clusters.push({
-      municipalityId,
-      municipalityName: first.municipalityName,
-      lat: first.lat,
-      lon: first.lon,
-      total: projects.length,
-      design,
-      construction,
-      launch,
-      projects,
-    })
-  })
-
-  return clusters
-}
 
 // Подписки (из примера)
 const baseSubscriptions: Subscription[] = subscriptionsExample.map((sub: any) => ({
