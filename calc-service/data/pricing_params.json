@@ -1,0 +1,78 @@
+{
+  "unique_markup": 15,
+  "non_standard_markup": 20,
+  "max_factor": 1.15,
+  "min_margin": 10,
+  "financing_rates": {
+    "1": 0.5,
+    "3": 1.0,
+    "6": 2.5,
+    "12": 5.0,
+    "24": 9.0,
+    "36": 13.0
+  },
+  "volume_discounts": {
+    "1000000": 0,
+    "5000000": 1,
+    "10000000": 2,
+    "50000000": 3,
+    "100000000": 5
+  },
+  "it_share": {
+    "agro": 0.08,
+    "energy": 0.10,
+    "manufacturing": 0.10,
+    "construction": 0.07,
+    "trade": 0.08,
+    "logistics": 0.10,
+    "hospitality": 0.08,
+    "it": 0.15,
+    "realestate": 0.08,
+    "services": 0.08,
+    "other": 0.10
+  },
+  "assumptions": [
+    {
+      "param": "unique_markup",
+      "value": 15,
+      "comment": "Наценка за уникальное решение, % от direct",
+      "assumption": true
+    },
+    {
+      "param": "non_standard_markup",
+      "value": 20,
+      "comment": "Наценка за нестандартные позиции, % от стоимости позиции",
+      "assumption": true
+    },
+    {
+      "param": "financing_rates",
+      "value": "от 0.5% (1 мес) до 13% (36 мес)",
+      "comment": "Ставка финансирования, % за весь срок. Консервативная оценка.",
+      "assumption": true
+    },
+    {
+      "param": "volume_discounts",
+      "value": "от 0% до 5%",
+      "comment": "Скидка за объём прямых затрат. Ступени: 1М, 5М, 10М, 50М, 100М руб.",
+      "assumption": true
+    },
+    {
+      "param": "max_factor",
+      "value": 1.15,
+      "comment": "Максимальная цена = optimal × 1.15. Допущение, согласуется с куратором.",
+      "assumption": true
+    },
+    {
+      "param": "min_margin",
+      "value": 10,
+      "comment": "Минимальная маржа, %. Правило минимума согласуется с куратором.",
+      "assumption": true
+    },
+    {
+      "param": "it_share",
+      "value": "0.07-0.15",
+      "comment": "Доля ИТ-бюджета в инвестиционных проектах. Консервативные значения. ИТ-бюджет = amountMln × 1e6 × itShare[industry].",
+      "assumption": true
+    }
+  ]
+}

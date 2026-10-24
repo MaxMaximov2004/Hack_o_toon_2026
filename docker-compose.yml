@@ -125,6 +125,25 @@ services:
     restart: unless-stopped
 
   # ------------------------------------------------------------------
+  # Python — calc-service: калькулятор :8085. Ведёт: Python
+  # ------------------------------------------------------------------
+  calc-service:
+    build: ./calc-service
+    container_name: radar-calc
+    environment:
+      PORT: "8085"
+      DATABASE_URL: postgresql://calc_svc:${CALC_DB_PASSWORD:-calc_dev}@postgres:5432/radar
+      CORE_API_URL: http://core-api:8080
+      AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+    ports:
+      - "127.0.0.1:${CALC_PORT:-8085}:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
   # C# — export-service: CSV / CRM (и калькулятор в резерве). Ведёт: C#
   # ------------------------------------------------------------------
   export-service:
