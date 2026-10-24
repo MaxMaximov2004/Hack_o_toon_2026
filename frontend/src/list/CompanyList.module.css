@@ -7,8 +7,12 @@
 }
 
 .header {
-  padding: 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--rt-cool-grey);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .title {
@@ -16,6 +20,23 @@
   font-size: 16px;
   font-weight: 600;
   color: var(--rt-black);
+  flex-shrink: 0;
+}
+
+.sortSelect {
+  padding: 6px 8px;
+  border: 1px solid var(--rt-cool-grey);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--rt-black);
+  background: var(--rt-white);
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.sortSelect:focus {
+  outline: 2px solid var(--rt-purple);
+  outline-offset: -1px;
 }
 
 .list {
@@ -45,6 +66,13 @@
   align-items: flex-start;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+.rowTitleLine {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .rowTitle {
@@ -79,7 +107,7 @@
 }
 
 .loading,
-.error,
+.errorContainer,
 .empty {
   display: flex;
   flex-direction: column;
@@ -101,4 +129,52 @@
 
 .error {
   color: var(--rt-orange);
+  margin-bottom: 16px;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  background: var(--rt-purple);
+  color: var(--rt-white);
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
+}
+
+.loadMore {
+  width: 100%;
+  padding: 12px;
+  background: var(--rt-white);
+  border: 1px solid var(--rt-purple);
+  color: var(--rt-purple);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loadMore:hover:not(:disabled) {
+  background: var(--rt-lavender);
+}
+
+.loadMore:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.growthPositive {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.growthNegative {
+  color: var(--rt-orange);
+  font-weight: 600;
 }

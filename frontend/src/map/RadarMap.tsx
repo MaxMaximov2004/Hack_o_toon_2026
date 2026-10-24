@@ -14,12 +14,13 @@ interface RadarMapProps {
   selectedCompanyId?: number
   onBoundsChange: (bounds: { minLat: number; maxLat: number; minLon: number; maxLon: number }) => void
   onSelectCompany: (id: number) => void
+  onMapReady?: (map: maplibregl.Map) => void
 }
 
 const ROSTOV_CENTER: [number, number] = [40.8, 47.6] // [lon, lat] для MapLibre
 const INITIAL_ZOOM = 7
 
-export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectCompany }: RadarMapProps) {
+export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectCompany, onMapReady }: RadarMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
@@ -75,6 +76,11 @@ export function RadarMap({ filters, selectedCompanyId, onBoundsChange, onSelectC
     })
 
     map.current = mapInstance
+
+    // Вызываем callback когда карта готова
+    if (onMapReady) {
+      onMapReady(mapInstance)
+    }
 
     // ResizeObserver для реакции на изменение размера контейнера
     // (появление списка, вкладки на телефоне, открытие карточки)

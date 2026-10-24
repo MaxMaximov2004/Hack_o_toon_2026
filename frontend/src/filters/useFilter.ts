@@ -16,81 +16,57 @@ export function useFilter() {
   }, [searchParams])
 
   // Обновление фильтров (replace, чтобы не засорять history)
+  // ВАЖНО: функциональное обновление от текущего URL, не перезаписываем всё
   const updateFilters = useCallback(
     (updates: Partial<CompanyFilters>) => {
-      const newFilters = { ...filters, ...updates }
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev)
 
-      const params = new URLSearchParams()
+        // Обрабатываем каждый ключ из updates
+        Object.keys(updates).forEach((key) => {
+          const value = updates[key as keyof CompanyFilters]
 
-      // client
-      if (newFilters.client && newFilters.client !== 'all') {
-        params.append('client', newFilters.client)
-      }
+          // Сначала удаляем старые значения этого ключа
+          params.delete(key)
 
-      // status
-      if (newFilters.status && newFilters.status !== 'active') {
-        params.append('status', newFilters.status)
-      }
+          // Затем добавляем новые, если они не дефолтные
+          if (key === 'client' && value && value !== 'all') {
+            params.set('client', value as string)
+          } else if (key === 'status' && value && value !== 'active') {
+            params.set('status', value as string)
+          } else if (key === 'industry' && Array.isArray(value) && value.length > 0) {
+            value.forEach((v) => params.append('industry', String(v)))
+          } else if (key === 'municipalityId' && Array.isArray(value) && value.length > 0) {
+            value.forEach((v) => params.append('municipalityId', String(v)))
+          } else if (key === 'sizeCategory' && Array.isArray(value) && value.length > 0) {
+            value.forEach((v) => params.append('sizeCategory', String(v)))
+          } else if (key === 'revenueMin' && value !== undefined && value !== null) {
+            params.set('revenueMin', value.toString())
+          } else if (key === 'revenueMax' && value !== undefined && value !== null) {
+            params.set('revenueMax', value.toString())
+          } else if (key === 'growthMin' && value !== undefined && value !== null) {
+            params.set('growthMin', value.toString())
+          } else if (key === 'isNew' && value) {
+            params.set('isNew', 'true')
+          } else if (key === 'q' && value && (value as string).length >= 2) {
+            params.set('q', value as string)
+          } else if (key === 'relocated' && value) {
+            params.set('relocated', 'true')
+          } else if (key === 'minLat' && value !== undefined) {
+            params.set('minLat', (value as number).toFixed(4))
+          } else if (key === 'maxLat' && value !== undefined) {
+            params.set('maxLat', (value as number).toFixed(4))
+          } else if (key === 'minLon' && value !== undefined) {
+            params.set('minLon', (value as number).toFixed(4))
+          } else if (key === 'maxLon' && value !== undefined) {
+            params.set('maxLon', (value as number).toFixed(4))
+          }
+        })
 
-      // industry
-      if (newFilters.industry && newFilters.industry.length > 0) {
-        newFilters.industry.forEach((ind) => params.append('industry', ind))
-      }
-
-      // revenueMin/Max
-      if (newFilters.revenueMin !== undefined && newFilters.revenueMin !== null) {
-        params.append('revenueMin', newFilters.revenueMin.toString())
-      }
-      if (newFilters.revenueMax !== undefined && newFilters.revenueMax !== null) {
-        params.append('revenueMax', newFilters.revenueMax.toString())
-      }
-
-      // municipalityId
-      if (newFilters.municipalityId && newFilters.municipalityId.length > 0) {
-        newFilters.municipalityId.forEach((id) => params.append('municipalityId', id.toString()))
-      }
-
-      // sizeCategory
-      if (newFilters.sizeCategory && newFilters.sizeCategory.length > 0) {
-        newFilters.sizeCategory.forEach((cat) => params.append('sizeCategory', cat))
-      }
-
-      // growthMin
-      if (newFilters.growthMin !== undefined && newFilters.growthMin !== null) {
-        params.append('growthMin', newFilters.growthMin.toString())
-      }
-
-      // isNew
-      if (newFilters.isNew) {
-        params.append('isNew', 'true')
-      }
-
-      // q
-      if (newFilters.q && newFilters.q.length >= 2) {
-        params.append('q', newFilters.q)
-      }
-
-      // relocated
-      if (newFilters.relocated) {
-        params.append('relocated', 'true')
-      }
-
-      // bbox
-      if (
-        newFilters.minLat !== undefined &&
-        newFilters.maxLat !== undefined &&
-        newFilters.minLon !== undefined &&
-        newFilters.maxLon !== undefined
-      ) {
-        params.append('minLat', newFilters.minLat.toFixed(4))
-        params.append('maxLat', newFilters.maxLat.toFixed(4))
-        params.append('minLon', newFilters.minLon.toFixed(4))
-        params.append('maxLon', newFilters.maxLon.toFixed(4))
-      }
-
-      setSearchParams(params, { replace: true })
+        return params
+      }, { replace: true })
     },
-    [filters, setSearchParams]
+    [setSearchParams]
   )
 
   // Сброс фильтров
