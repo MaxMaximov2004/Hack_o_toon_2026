@@ -45,6 +45,10 @@
   font-weight: 600;
 }
 
+.labelShort {
+  display: none;
+}
+
 .navSeparator {
   color: var(--rt-orange);
   font-size: 20px;
@@ -55,6 +59,21 @@
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.subscriptionsLinkDesktop {
+  display: none;
+  color: var(--rt-white);
+  text-decoration: none;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+.subscriptionsLinkDesktop:hover {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
 }
 
 .userNameDesktop {
@@ -84,16 +103,24 @@
 
 /* Tablet and up */
 @media (min-width: 768px) {
-  .userNameDesktop {
-    display: block;
-  }
 
   .logoutButtonDesktop {
     display: block;
   }
 
+  .subscriptionsLinkDesktop {
+    display: block;
+  }
+
   .profileMenuMobile {
     display: none;
+  }
+}
+
+/* Десктоп: имя пользователя — на планшете рядом с колокольчиком и «Подписками» не влезает */
+@media (min-width: 1280px) {
+  .userNameDesktop {
+    display: block;
   }
 }
 
@@ -104,7 +131,11 @@
   }
 
   .headerTop {
-    gap: 12px;
+    gap: 8px;
+  }
+
+  .headerActions {
+    gap: 0;
   }
 
   .logo {
@@ -122,5 +153,17 @@
 
   .navSeparator {
     font-size: 16px;
+  }
+
+  .nav {
+    min-width: 0;
+  }
+
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
   }
 }

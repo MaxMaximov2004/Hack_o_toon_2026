@@ -233,6 +233,7 @@ function SubscribeButton({ project }: { project: Project }) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
       setToast({ message: 'Подписка оформлена', type: 'success' })
     },
     onError: (err) => setToast({ message: (err as unknown as ApiError).message, type: 'error' }),

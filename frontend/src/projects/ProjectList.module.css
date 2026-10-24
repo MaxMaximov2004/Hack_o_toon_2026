@@ -128,6 +128,7 @@
 
 .stage-launch {
   background: var(--stage-launch);
+  color: var(--rt-black);
 }
 
 .stats {

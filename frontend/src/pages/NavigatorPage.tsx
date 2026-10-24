@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { AppHeader } from '../ui/AppHeader'
 import { Tabs } from '../ui/Tabs'
@@ -10,6 +11,7 @@ import { ProjectMap } from '../projects/ProjectMap'
 import { ProjectCard } from '../projects/ProjectCard'
 import { CompanyCard } from '../company/CompanyCard'
 import type { ProjectSortField, ProjectSortDirection } from '../projects/types'
+import type { OpenProjectState } from '../notifications/NotificationBell'
 import styles from './NavigatorPage.module.css'
 
 export function NavigatorPage() {
@@ -27,6 +29,18 @@ export function NavigatorPage() {
   }, [])
 
   const handleCloseCompany = useCallback(() => setSelectedCompanyId(undefined), [])
+
+  // Клик по уведомлению в колокольчике → navigate('/navigator', { state: { openProjectId } })
+  const location = useLocation()
+  const navigate = useNavigate()
+  const openProjectId = (location.state as OpenProjectState | null)?.openProjectId
+  useEffect(() => {
+    if (openProjectId === undefined) return
+    setSelectedProjectId(openProjectId)
+    setSelectedCompanyId(undefined)
+    // Стираем state, чтобы «назад»/перезагрузка не открывали карточку снова; фильтр в URL сохраняем
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })
+  }, [openProjectId, navigate, location.pathname, location.search])
 
   const handleYearRangeChange = useCallback(
     (yearFrom: number | undefined, yearTo: number | undefined) => {

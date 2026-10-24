@@ -9,11 +9,12 @@ import type {
   ProjectRelatedCompaniesResponse,
   TimelineResponse,
   Subscription,
+  SubscriptionInput,
   Notification,
+  NotificationsResponse,
 } from '../api/types'
 import projectsFixture from './fixtures/projects.json'
 import subscriptionsExample from '../../../contracts/examples/subscriptions.json'
-import notificationsExample from '../../../contracts/examples/notifications.json'
 
 // Справочники с реальными данными Ростовской области
 export const mockDictionaries: Dictionaries = {
@@ -684,96 +685,146 @@ function findRelatedSyntheticCompany(id: number): CompanyShort | undefined {
 
 // Группировка проектов по районам для карты
 
-// Подписки (из примера)
-const baseSubscriptions: Subscription[] = subscriptionsExample.map((sub: any) => ({
-  id: sub.id,
-  userId: 1, // demo user
-  industry: sub.industry,
-  industryName: sub.industry
-    ? mockDictionaries.industries.find((i) => i.code === sub.industry)?.name || null
-    : null,
-  municipalityId: sub.municipalityId,
-  municipalityName: sub.municipalityId
-    ? mockDictionaries.municipalities.find((m) => m.id === sub.municipalityId)?.name || null
-    : null,
-  need: sub.need,
-  needName: sub.need ? mockDictionaries.needs.find((n) => n.code === sub.need)?.name || null : null,
-  stage: sub.stage,
-  stageName: sub.stage
-    ? mockDictionaries.stages.find((s) => s.code === sub.stage)?.name || null
-    : null,
-  createdAt: sub.createdAt,
-}))
+// Подписки и уведомления (notifier). Формы — contracts/examples/subscriptions.json и notifications.json.
+// Подписки стартуют с примера контракта; ленту уведомлений строим тем же SeededRandom по проектам фикстуры,
+// чтобы клик по уведомлению открывал существующую карточку проекта.
 
-let subscriptions: Subscription[] = [...baseSubscriptions]
+export type MockSubscriptionResult =
+  | { ok: true; subscription: Subscription }
+  | { ok: false; field: string; message: string }
+
+// В настоящем справочнике г. Ростов-на-Дону — id 53 (так в примере контракта), в моковом — id 1
+const EXAMPLE_TO_MOCK_MUNICIPALITY: Record<number, number> = { 53: 1 }
+
+function exampleSubscriptions(): Subscription[] {
+  return subscriptionsExample.map((sub) => ({
+    ...sub,
+    municipalityId:
+      sub.municipalityId === null ? null : EXAMPLE_TO_MOCK_MUNICIPALITY[sub.municipalityId] ?? sub.municipalityId,
+    stage: sub.stage as Subscription['stage'],
+  }))
+}
+
+let subscriptions: Subscription[] = exampleSubscriptions()
 let nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
 
 export function getSubscriptions(): Subscription[] {
   return subscriptions
 }
 
-export function createSubscription(data: {
-  industry?: string
-  municipalityId?: number
-  need?: string
-  stage?: string
-}): Subscription {
-  const newSub: Subscription = {
+/** Валидация как в notifier: хотя бы одно поле, известные коды; иначе 400 VALIDATION_ERROR */
+export function createSubscription(data: SubscriptionInput): MockSubscriptionResult {
+  if (!data.industry && !data.municipalityId && !data.need && !data.stage) {
+    return { ok: false, field: 'industry', message: 'Укажите хотя бы одно условие подписки' }
+  }
+  if (data.industry && !mockDictionaries.industries.some((i) => i.code === data.industry)) {
+    return { ok: false, field: 'industry', message: `Неизвестная отрасль: ${data.industry}` }
+  }
+  if (data.need && !mockDictionaries.needs.some((n) => n.code === data.need)) {
+    return { ok: false, field: 'need', message: `Неизвестная потребность: ${data.need}` }
+  }
+  if (data.stage && !mockDictionaries.stages.some((st) => st.code === data.stage)) {
+    return { ok: false, field: 'stage', message: `Неизвестная стадия: ${data.stage}` }
+  }
+
+  const subscription: Subscription = {
     id: nextSubscriptionId++,
-    userId: 1,
-    industry: data.industry || null,
-    industryName: data.industry
-      ? mockDictionaries.industries.find((i) => i.code === data.industry)?.name || null
-      : null,
-    municipalityId: data.municipalityId || null,
-    municipalityName: data.municipalityId
-      ? mockDictionaries.municipalities.find((m) => m.id === data.municipalityId)?.name || null
-      : null,
-    need: data.need || null,
-    needName: data.need
-      ? mockDictionaries.needs.find((n) => n.code === data.need)?.name || null
-      : null,
-    stage: data.stage ? (data.stage as 'design' | 'construction' | 'launch') : null,
-    stageName: data.stage
-      ? mockDictionaries.stages.find((s) => s.code === data.stage)?.name || null
-      : null,
-    createdAt: new Date('2026-01-01T00:00:00Z').toISOString(),
+    industry: data.industry ?? null,
+    municipalityId: data.municipalityId ?? null,
+    need: data.need ?? null,
+    stage: data.stage ?? null,
+    createdAt: new Date().toISOString(),
   }
-  subscriptions.push(newSub)
-  return newSub
+  subscriptions = [subscription, ...subscriptions]
+  simulateNewProjectFor(subscription)
+  return { ok: true, subscription }
 }
 
-export function deleteSubscription(id: number): void {
+export function deleteSubscription(id: number): boolean {
+  const before = subscriptions.length
   subscriptions = subscriptions.filter((s) => s.id !== id)
+  return subscriptions.length < before
 }
 
-// Уведомления (из примера)
-const baseNotifications: Notification[] = notificationsExample.items.map((notif: any) => ({
-  id: notif.id,
-  userId: 1,
-  projectId: notif.projectId,
-  projectTitle: notif.title, // title из JSON -> projectTitle в типе
-  municipalityName: notif.municipalityName,
-  read: notif.isRead,
-  createdAt: notif.createdAt,
-}))
-
-let notifications: Notification[] = [...baseNotifications]
-
-export function getNotifications(): { items: Notification[]; unreadCount: number } {
-  const unreadCount = notifications.filter((n) => !n.read).length
-  return { items: notifications, unreadCount }
+function projectMatches(project: ProjectShort, sub: Subscription): boolean {
+  return (
+    (sub.industry === null || project.industry === sub.industry) &&
+    (sub.municipalityId === null || project.municipalityId === sub.municipalityId) &&
+    (sub.need === null || project.needs.includes(sub.need)) &&
+    (sub.stage === null || project.stage === sub.stage)
+  )
 }
 
-export function markNotificationRead(id: number): void {
-  const notif = notifications.find((n) => n.id === id)
-  if (notif) {
-    notif.read = true
+function notificationFor(project: ProjectShort, id: number, sub: Subscription | null, createdAt: Date): Notification {
+  return {
+    id,
+    projectId: project.id,
+    title: project.title,
+    municipalityName: project.municipalityName,
+    subscriptionId: sub?.id ?? null,
+    isRead: false,
+    sentToTelegram: false,
+    createdAt: createdAt.toISOString(),
   }
+}
+
+/** Стартовая лента: 6 проектов фикстуры (seeded), новые сверху, непрочитано два самых свежих */
+export function buildMockNotifications(now: Date = new Date()): Notification[] {
+  const rng = new SeededRandom(2026)
+  const projects = getAllProjects()
+  const picked = new Set<number>()
+  while (picked.size < Math.min(6, projects.length)) {
+    picked.add(projects[Math.floor(rng.next() * projects.length)].id)
+  }
+
+  let minutesAgo = 0
+  return [...picked].map((projectId, i) => {
+    minutesAgo += Math.floor(rng.range(5, 600))
+    const project = getProjectById(projectId)!
+    const sub = subscriptions.find((s) => projectMatches(project, s)) ?? null
+    const notification = notificationFor(project, 100 - i, sub, new Date(now.getTime() - minutesAgo * 60_000))
+    notification.isRead = i >= 2
+    notification.sentToTelegram = rng.next() > 0.5
+    return notification
+  })
+}
+
+let notifications: Notification[] = buildMockNotifications()
+let nextNotificationId = 101
+
+/**
+ * Вместо `etl demo-project` на моках: новая подписка сразу получает уведомление о самом свежем подходящем
+ * проекте, которого ещё нет в ленте, — колокольчик показывает «+1».
+ */
+function simulateNewProjectFor(sub: Subscription): void {
+  const project = getAllProjects().find(
+    (p) => projectMatches(p, sub) && !notifications.some((n) => n.projectId === p.id)
+  )
+  if (!project) return
+  notifications = [notificationFor(project, nextNotificationId++, sub, new Date()), ...notifications]
+}
+
+export function getNotifications(unreadOnly = false): NotificationsResponse {
+  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const items = (unreadOnly ? notifications.filter((n) => !n.isRead) : notifications).slice(0, 50)
+  return { items, unreadCount }
+}
+
+export function markNotificationRead(id: number): boolean {
+  const found = notifications.find((n) => n.id === id)
+  if (!found) return false
+  notifications = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+  return true
 }
 
 export function markAllNotificationsRead(): void {
-  notifications.forEach((n) => {
-    n.read = true
-  })
+  notifications = notifications.map((n) => ({ ...n, isRead: true }))
+}
+
+/** Для тестов: вернуть подписки и ленту к стартовому состоянию */
+export function resetNotifierMocks(): void {
+  subscriptions = exampleSubscriptions()
+  nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
+  notifications = buildMockNotifications()
+  nextNotificationId = 101
 }

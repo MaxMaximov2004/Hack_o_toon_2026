@@ -13,6 +13,7 @@ import type {
   SubscriptionsResponse,
   NotificationsResponse,
   TelegramLinkResponse,
+  SubscriptionInput,
 } from '../api/types'
 import {
   mockDictionaries,
@@ -583,51 +584,50 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  // POST /api/subscriptions
+  // POST /api/subscriptions — 201 или 400 VALIDATION_ERROR (как notifier)
   http.post('/api/subscriptions', async ({ request }) => {
-    const body = (await request.json()) as {
-      industry?: string
-      municipalityId?: number
-      need?: string
-      stage?: string
-    }
-
-    // Валидация: хотя бы одно поле должно быть заполнено
-    if (!body.industry && !body.municipalityId && !body.need && !body.stage) {
+    const result = createSubscription((await request.json()) as SubscriptionInput)
+    if (!result.ok) {
       return HttpResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'Укажите хотя бы одно условие подписки' } },
+        { error: { code: 'VALIDATION_ERROR', message: result.message, details: { field: result.field } } },
         { status: 400 }
       )
     }
-
-    const newSub = createSubscription(body)
-    return HttpResponse.json(newSub, { status: 201 })
+    return HttpResponse.json(result.subscription, { status: 201 })
   }),
 
-  // DELETE /api/subscriptions/:id
+  // DELETE /api/subscriptions/:id — 204, нет такой → 404
   http.delete('/api/subscriptions/:id', ({ params }) => {
-    const id = Number(params.id)
-    deleteSubscription(id)
+    if (!deleteSubscription(Number(params.id))) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Подписка не найдена' } },
+        { status: 404 }
+      )
+    }
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // GET /api/notifications
-  http.get('/api/notifications', () => {
-    const result = getNotifications()
-    const response: NotificationsResponse = result
+  // GET /api/notifications?unread=true
+  http.get('/api/notifications', ({ request }) => {
+    const unreadOnly = new URL(request.url).searchParams.get('unread') === 'true'
+    const response: NotificationsResponse = getNotifications(unreadOnly)
     return HttpResponse.json(response)
-  }),
-
-  // POST /api/notifications/:id/read
-  http.post('/api/notifications/:id/read', ({ params }) => {
-    const id = Number(params.id)
-    markNotificationRead(id)
-    return new HttpResponse(null, { status: 204 })
   }),
 
   // POST /api/notifications/read-all
   http.post('/api/notifications/read-all', () => {
     markAllNotificationsRead()
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // POST /api/notifications/:id/read
+  http.post('/api/notifications/:id/read', ({ params }) => {
+    if (!markNotificationRead(Number(params.id))) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Уведомление не найдено' } },
+        { status: 404 }
+      )
+    }
     return new HttpResponse(null, { status: 204 })
   }),
 

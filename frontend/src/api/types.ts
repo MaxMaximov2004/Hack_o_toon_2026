@@ -275,19 +275,21 @@ export interface ProjectRelatedCompaniesResponse {
   radarQuery: string | null
 }
 
-// Подписки
+// Подписки (notifier, контракт 08). Названия кодов — из /api/dictionaries на фронте
 export interface Subscription {
   id: number
-  userId: number
   industry: string | null
-  industryName: string | null
   municipalityId: number | null
-  municipalityName: string | null
   need: string | null
-  needName: string | null
   stage: ProjectStage | null
-  stageName: string | null
   createdAt: string
+}
+
+export interface SubscriptionInput {
+  industry?: string
+  municipalityId?: number
+  need?: string
+  stage?: ProjectStage
 }
 
 /** GET /api/subscriptions — массив подписок, новые сверху (contracts/examples/subscriptions.json) */
@@ -296,11 +298,12 @@ export type SubscriptionsResponse = Subscription[]
 // Уведомления
 export interface Notification {
   id: number
-  userId: number
   projectId: number
-  projectTitle: string
-  municipalityName: string
-  read: boolean
+  title: string
+  municipalityName: string | null
+  subscriptionId: number | null
+  isRead: boolean
+  sentToTelegram: boolean
   createdAt: string
 }
 

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { ProfileMenu } from './ProfileMenu'
+import { NotificationBell } from '../notifications/NotificationBell'
 import styles from './AppHeader.module.css'
 
 interface AppHeaderProps {
@@ -20,7 +21,9 @@ export function AppHeader({ userName, onLogout }: AppHeaderProps) {
             to="/"
             className={`${styles.navLink} ${currentPath === '/' ? styles.navLinkActive : ''}`}
           >
-            Радар присутствия
+            {/* На телефоне в шапку влезает только короткое название */}
+            <span className={styles.labelFull}>Радар присутствия</span>
+            <span className={styles.labelShort}>Радар</span>
           </Link>
           <span className={styles.navSeparator}>|</span>
           <Link
@@ -31,6 +34,15 @@ export function AppHeader({ userName, onLogout }: AppHeaderProps) {
           </Link>
         </nav>
         <div className={styles.headerActions}>
+          <NotificationBell />
+          <Link
+            to="/subscriptions"
+            className={`${styles.subscriptionsLinkDesktop} ${
+              currentPath === '/subscriptions' ? styles.navLinkActive : ''
+            }`}
+          >
+            Подписки
+          </Link>
           <span className={styles.userNameDesktop}>{userName}</span>
           <button onClick={onLogout} className={styles.logoutButtonDesktop}>
             Выйти

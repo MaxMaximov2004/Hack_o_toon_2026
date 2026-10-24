@@ -12,6 +12,7 @@ import type {
   ProjectRelatedCompaniesResponse,
   SubscriptionsResponse,
   Subscription,
+  SubscriptionInput,
   NotificationsResponse,
   TelegramLinkResponse,
 } from './types'
@@ -58,15 +59,9 @@ export async function getSubscriptions(): Promise<SubscriptionsResponse> {
   return apiFetch<SubscriptionsResponse>('/api/subscriptions')
 }
 
-export async function createSubscription(data: {
-  industry?: string
-  municipalityId?: number
-  need?: string
-  stage?: string
-}): Promise<Subscription> {
+export async function createSubscription(data: SubscriptionInput): Promise<Subscription> {
   return apiFetch<Subscription>('/api/subscriptions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
 }
