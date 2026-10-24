@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiFetch } from '../api/apiFetch'
 import type { LoginResponse, ApiError } from '../api/types'
-import styles from './LoginPage.module.css'
+import styles from './authLayout.module.css'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -51,11 +51,13 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <div className={styles.logo}>Ростелеком</div>
-          <h1 className={styles.title}>Радар присутствия</h1>
+      <main className={styles.card}>
+        <div className={styles.brand}>
+          Ростелеком <span className={styles.brandSeparator}>|</span>{' '}
+          <span className={styles.product}>Радар присутствия</span>
         </div>
+        <h1 className={styles.title}>Вход</h1>
+        <p className={styles.subtitle}>Клиенты и инвестпроекты Ростовской области на одной карте</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
@@ -65,10 +67,12 @@ export function LoginPage() {
             <input
               id="email"
               type="email"
+              inputMode="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="username"
+              autoCapitalize="none"
               className={styles.input}
               disabled={isLoading}
             />
@@ -90,17 +94,19 @@ export function LoginPage() {
             />
           </div>
 
-          {error && <div className={styles.error}>{error}</div>}
+          {error && (
+            <div className={styles.error} role="alert">
+              {error}
+            </div>
+          )}
 
           <button type="submit" className={styles.button} disabled={isLoading}>
-            {isLoading ? 'Вход...' : 'Войти'}
+            {isLoading ? 'Входим…' : 'Войти'}
           </button>
         </form>
 
-        <div className={styles.demo}>
-          <p>Демо-аккаунт: demo@rt.ru / Demo2026!</p>
-        </div>
-      </div>
+        <p className={styles.footnote}>Демо-аккаунт: demo@rt.ru / Demo2026!</p>
+      </main>
     </div>
   )
 }
