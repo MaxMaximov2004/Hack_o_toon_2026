@@ -89,6 +89,14 @@ public class CompanyRepository {
     }
 
     /**
+     * Компании по готовому условию — те же колонки и маппинг, что у списка (related-companies продукта 2, Java #2).
+     * whereAndOrder — константа вызывающего кода с :параметрами, без пользовательского ввода.
+     */
+    public List<Company> findWhere(String whereAndOrder, MapSqlParameterSource params) {
+        return jdbc.query(SELECT + whereAndOrder, params, MAPPER);
+    }
+
+    /**
      * Все компании по фильтру, по name, — по одной в sink, без сбора в список (/internal/companies).
      * Транзакция обязательна: в автокоммите драйвер Postgres игнорирует fetchSize и читает весь результат в память.
      */
