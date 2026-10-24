@@ -50,6 +50,8 @@ services:
       DATABASE_URL: postgresql://etl_loader:${ETL_DB_PASSWORD:-etl_dev}@postgres:5432/radar
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
       AUTO_LOAD: if-empty
+    ports:
+      - "127.0.0.1:8084:8084"
     depends_on:
       postgres:
         condition: service_healthy
