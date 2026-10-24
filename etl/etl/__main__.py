@@ -344,7 +344,8 @@ def do_load(conn, run_id):
     details = {"companies": total, "clients_active": act, "clients_excluded": exc, "others": others,
                "municipalities": len(muni), "white_spots": white, "invest_projects": invest_n,
                "skipped": dict(ctx.skipped), "seconds": round(time.time() - t0, 1)}
-    cur.execute("UPDATE etl.load_run SET status='ok', finished_at=now(), details=%s WHERE id=%s",
+    # clock_timestamp(), а не now(): now() внутри транзакции — время её начала, длительность выходила ~0 с
+    cur.execute("UPDATE etl.load_run SET status='ok', finished_at=clock_timestamp(), details=%s WHERE id=%s",
                 (Jsonb(details), run_id))
     log.info("ГОТОВО: %s", json.dumps(details, ensure_ascii=False))
     print(json.dumps(details, ensure_ascii=False, indent=2))
@@ -358,7 +359,7 @@ def cmd_load(url):
             do_load(conn, run_id)
     except Exception as e:
         log.exception("ETL упал, транзакция откатена")
-        ctl.execute("UPDATE etl.load_run SET status='failed', finished_at=now(), details=%s WHERE id=%s",
+        ctl.execute("UPDATE etl.load_run SET status='failed', finished_at=clock_timestamp(), details=%s WHERE id=%s",
                     (Jsonb({"error": str(e)}), run_id))
         return 1
     return 0

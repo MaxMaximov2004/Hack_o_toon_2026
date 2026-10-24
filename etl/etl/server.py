@@ -60,6 +60,8 @@ def serve(url, connect, load_fn, demo_fn):
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):
+            if self.path.startswith("/health"):          # healthcheck Docker раз в 10 с — не засоряем лог
+                return
             log.info("%s %s", self.address_string(), fmt % args)
 
         def send(self, status, body):
@@ -71,7 +73,8 @@ def serve(url, connect, load_fn, demo_fn):
             self.wfile.write(data)
 
         def err(self, status, code, message):
-            self.send(status, {"error": {"code": code, "message": message}})
+            # формат ошибок как во всех сервисах (00-common): details присутствует, null — если уточнять нечего
+            self.send(status, {"error": {"code": code, "message": message, "details": None}})
 
         def authorized(self):
             got = self.headers.get("X-Internal-Token", "")
