@@ -203,6 +203,8 @@ export function RadarPage() {
             filters={filters}
             selectedId={selectedCompanyId}
             onSelectCompany={handleSelectCompany}
+            onFiltersChange={updateFilters}
+            onResetFilters={resetFilters}
           />
         </div>
       </main>

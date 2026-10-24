@@ -37,9 +37,9 @@ export const mockDictionaries: Dictionaries = {
   ],
 
   sizeCategories: [
-    { code: 'micro', name: 'Микро (до 15 человек)' },
-    { code: 'small', name: 'Малый (15-100 человек)' },
-    { code: 'medium', name: 'Средний (100-250 человек)' },
+    { code: 'micro', name: 'Микропредприятие' },
+    { code: 'small', name: 'Малое' },
+    { code: 'medium', name: 'Среднее' },
   ],
 
   stages: [],

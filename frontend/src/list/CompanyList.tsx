@@ -6,12 +6,17 @@ import type { CompanyFilters } from '../filters/types'
 import type { CompanyShort } from '../api/types'
 import { Badge } from '../ui/Badge'
 import { ExportButtons } from '../export/ExportButtons'
+import { SmartSearch } from '../search/SmartSearch'
+import { FilterChips } from '../search/FilterChips'
+import { highlightText } from '../search/highlightText'
 import styles from './CompanyList.module.css'
 
 interface CompanyListProps {
   filters: CompanyFilters
   selectedId?: number
   onSelectCompany: (id: number) => void
+  onFiltersChange: (updates: Partial<CompanyFilters>) => void
+  onResetFilters: () => void
 }
 
 const SORT_OPTIONS = [
@@ -27,11 +32,14 @@ const SORT_OPTIONS = [
   { value: 'registeredAt,asc', label: 'Старые сначала' },
 ]
 
-export function CompanyList({ filters, selectedId, onSelectCompany }: CompanyListProps) {
+export function CompanyList({ filters, selectedId, onSelectCompany, onFiltersChange, onResetFilters }: CompanyListProps) {
   const [sort, setSort] = useState('revenueEst,desc')
   const [page, setPage] = useState(0)
   const [allItems, setAllItems] = useState<CompanyShort[]>([])
   const size = 50
+
+  // Получаем название поля сортировки для отображения в строках
+  const sortField = sort.split(',')[0] as keyof CompanyShort
 
   const queryString = filterToQuery(filters) + `&page=${page}&size=${size}&sort=${sort}`
 
@@ -91,9 +99,24 @@ export function CompanyList({ filters, selectedId, onSelectCompany }: CompanyLis
   if (!data || data.total === 0) {
     return (
       <div className={styles.container}>
+        <div className={styles.searchSection}>
+          <SmartSearch
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            onSelectCompany={onSelectCompany}
+          />
+          <FilterChips
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            onResetAll={onResetFilters}
+          />
+        </div>
         <div className={styles.empty}>
-          <p>В этой области ничего нет</p>
-          <p className={styles.hint}>Отдалите карту или ослабьте фильтры</p>
+          <p>Ничего не найдено</p>
+          <p className={styles.hint}>Попробуйте изменить параметры поиска</p>
+          <button className={styles.resetButton} onClick={onResetFilters}>
+            Сбросить фильтры поиска
+          </button>
         </div>
       </div>
     )
@@ -103,6 +126,19 @@ export function CompanyList({ filters, selectedId, onSelectCompany }: CompanyLis
 
   return (
     <div className={styles.container}>
+      <div className={styles.searchSection}>
+        <SmartSearch
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onSelectCompany={onSelectCompany}
+        />
+        <FilterChips
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onResetAll={onResetFilters}
+        />
+      </div>
+
       <ExportButtons filters={filters} total={data.total} />
 
       <div className={styles.header}>
@@ -123,6 +159,8 @@ export function CompanyList({ filters, selectedId, onSelectCompany }: CompanyLis
             company={company}
             isSelected={company.id === selectedId}
             onClick={() => onSelectCompany(company.id)}
+            searchQuery={filters.q}
+            sortField={sortField}
           />
         ))}
 
@@ -140,9 +178,11 @@ interface CompanyRowProps {
   company: CompanyShort
   isSelected: boolean
   onClick: () => void
+  searchQuery?: string
+  sortField: keyof CompanyShort
 }
 
-function CompanyRow({ company, isSelected, onClick }: CompanyRowProps) {
+function CompanyRow({ company, isSelected, onClick, searchQuery, sortField }: CompanyRowProps) {
   const formatRevenue = (revenue: number | null) => {
     if (!revenue) return '—'
     const millions = revenue / 1_000_000
@@ -157,15 +197,24 @@ function CompanyRow({ company, isSelected, onClick }: CompanyRowProps) {
   const getSizeLabel = (size: string) => {
     switch (size) {
       case 'micro':
-        return 'Микро'
+        return 'Микропредприятие'
       case 'small':
-        return 'Малый'
+        return 'Малое'
       case 'medium':
-        return 'Средний'
+        return 'Среднее'
       default:
         return size
     }
   }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  // Проверяем, нужно ли показывать дополнительное поле
+  const showEmployees = sortField === 'employees'
+  const showRegisteredAt = sortField === 'registeredAt'
 
   const getKindLabel = (kind: string) => {
     switch (kind) {
@@ -191,11 +240,11 @@ function CompanyRow({ company, isSelected, onClick }: CompanyRowProps) {
       <div className={styles.rowHeader}>
         <div className={styles.rowTitleLine}>
           <Badge variant={kindColor}>{getKindLabel(company.kind)}</Badge>
-          <div className={styles.rowTitle}>{company.name}</div>
+          <div className={styles.rowTitle}>{highlightText(company.name, searchQuery)}</div>
         </div>
         <div className={styles.badges}>
           {company.isEstimated && <Badge variant="default">оценка</Badge>}
-          {company.isNew && <Badge variant={kindColor}>новая</Badge>}
+          {company.isNew && <Badge variant="purple">новая</Badge>}
         </div>
       </div>
 
@@ -218,6 +267,16 @@ function CompanyRow({ company, isSelected, onClick }: CompanyRowProps) {
         <div className={styles.detail}>
           <span className={styles.label}>Город:</span> {company.municipalityName}
         </div>
+        {showEmployees && (
+          <div className={styles.detail}>
+            <span className={styles.label}>Сотрудников:</span> {company.employees || '—'}
+          </div>
+        )}
+        {showRegisteredAt && (
+          <div className={styles.detail}>
+            <span className={styles.label}>Зарегистрирована:</span> {formatDate(company.registeredAt)}
+          </div>
+        )}
       </div>
     </div>
   )
