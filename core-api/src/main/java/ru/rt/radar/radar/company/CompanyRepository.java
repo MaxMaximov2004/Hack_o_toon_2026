@@ -2,15 +2,20 @@ package ru.rt.radar.radar.company;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import ru.rt.radar.radar.filter.CodedEnum;
 import ru.rt.radar.radar.filter.CompanyFilter;
 import ru.rt.radar.radar.filter.CompanyFilterSql;
 import ru.rt.radar.radar.filter.Industry;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
@@ -20,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /** Чтение компаний. WHERE — только из {@link CompanyFilterSql}, чтобы список, карта и экспорт сходились. */
 @Repository
@@ -41,10 +47,20 @@ public class CompanyRepository {
 
     static final RowMapper<Company> MAPPER = CompanyRepository::map;
 
-    private final NamedParameterJdbcTemplate jdbc;
+    /** Строк за один сетевой запрос к БД при потоковой выгрузке. */
+    static final int STREAM_FETCH_SIZE = 1000;
 
-    public CompanyRepository(NamedParameterJdbcTemplate jdbc) {
+    private final NamedParameterJdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate streamJdbc;
+    private final TransactionTemplate readOnlyTx;
+
+    public CompanyRepository(NamedParameterJdbcTemplate jdbc, DataSource dataSource, PlatformTransactionManager tx) {
         this.jdbc = jdbc;
+        JdbcTemplate streaming = new JdbcTemplate(dataSource);
+        streaming.setFetchSize(STREAM_FETCH_SIZE);
+        this.streamJdbc = new NamedParameterJdbcTemplate(streaming);
+        this.readOnlyTx = new TransactionTemplate(tx);
+        this.readOnlyTx.setReadOnly(true);
     }
 
     public long count(CompanyFilter filter) {
@@ -70,6 +86,17 @@ public class CompanyRepository {
     public Optional<Company> findById(int id) {
         return jdbc.query(SELECT + "WHERE c.id = :id", new MapSqlParameterSource("id", id), MAPPER)
                 .stream().findFirst();
+    }
+
+    /**
+     * Все компании по фильтру, по name, — по одной в sink, без сбора в список (/internal/companies).
+     * Транзакция обязательна: в автокоммите драйвер Postgres игнорирует fetchSize и читает весь результат в память.
+     */
+    public void streamByName(CompanyFilter filter, Consumer<Company> sink) {
+        CompanyFilterSql.Where w = CompanyFilterSql.build(filter);
+        String sql = SELECT + w.sql() + "\nORDER BY c.name, c.id";
+        readOnlyTx.executeWithoutResult(status -> streamJdbc.query(sql, w.params(),
+                (RowCallbackHandler) rs -> sink.accept(MAPPER.mapRow(rs, rs.getRow()))));
     }
 
     public record CompanyPage(List<CompanyShort> items, long total) {

@@ -105,4 +105,23 @@ public final class TestDb {
                        email = 'info@alfa.example', has_licenses = true WHERE id = 1
                 """);
     }
+
+    /**
+     * Добавляет n синтетических компаний (отрасль services, район 1 или 2) в квадрат lat 47.0–47.5, lon 39.0–40.0.
+     * С mixed = true: каждая 10-я — клиент, из клиентов каждый 5-й — исключён из реестра; выручка 0–99 млн.
+     * С mixed = false: все — действующие не клиенты. ИНН начинаются с 'B' и не пересекаются со стандартным набором.
+     */
+    public static void insertBulk(int n, boolean mixed) {
+        jdbc().update("""
+                INSERT INTO company (inn, name, subject_type, industry, municipality_id, lat, lon, size_category,
+                                     revenue_est, is_client, status)
+                SELECT 'B' || lpad(g::text, 11, '0'), 'Синтетика ' || g, 'legal', 'services', 1 + g % 2,
+                       47.0 + (g % 100) * 0.005, 39.0 + (g / 100 % 100) * 0.01, 'micro',
+                       (g % 100) * 1000000,
+                       ? AND g % 10 = 0,
+                       CASE WHEN ? AND g % 50 = 0 THEN 'excluded' ELSE 'active' END
+                FROM generate_series((SELECT count(*) FROM company WHERE inn LIKE 'B%') + 1,
+                                     (SELECT count(*) FROM company WHERE inn LIKE 'B%') + ?) g
+                """, mixed, mixed, n);
+    }
 }

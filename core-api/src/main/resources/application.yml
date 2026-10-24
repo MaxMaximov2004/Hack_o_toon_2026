@@ -17,6 +17,9 @@ spring:
       connection-timeout: 2000
       maximum-pool-size: 10
       pool-name: core-hikari
+      # План под реальные значения параметров. Иначе с 5-го вызова JDBC Postgres берёт общий план, для
+      # окна карты (lat/lon BETWEEN :…) ждёт 5 строк вместо десятков тысяч и идёт по индексу — в 2–3 раза медленнее.
+      connection-init-sql: SET plan_cache_mode = force_custom_plan
   sql:
     init:
       mode: never
@@ -28,6 +31,9 @@ spring:
   mvc:
     problemdetails:
       enabled: false
+    async:
+      # /internal/companies отдаётся потоком: до 100 000 строк медленному потребителю — не обрывать через 30 с
+      request-timeout: 5m
 
 springdoc:
   api-docs:
