@@ -127,20 +127,20 @@ services:
   # ------------------------------------------------------------------
   # C# — export-service: CSV / CRM (и калькулятор в резерве). Ведёт: C#
   # ------------------------------------------------------------------
-  # export-service:
-  #   build: ./export-service
-  #   container_name: radar-export
-  #   environment:
-  #     ASPNETCORE_URLS: http://+:8082
-  #     CORE_API_URL: http://core-api:8080
-  #     AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
-  #     INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
-  #     # Резерв (модуль 3), пока не используется:
-  #     CALC_DB: Host=postgres;Port=5432;Database=radar;Username=calc_svc;Password=${CALC_DB_PASSWORD:-calc_dev};Search Path=calc
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   restart: unless-stopped
+  export-service:
+    build: ./export-service
+    container_name: radar-export
+    environment:
+      ASPNETCORE_URLS: http://+:8082
+      CORE_API_URL: http://core-api:8080
+      AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+      # Резерв (модуль 3), пока не используется:
+      CALC_DB: Host=postgres;Port=5432;Database=radar;Username=calc_svc;Password=${CALC_DB_PASSWORD:-calc_dev};Search Path=calc
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   # ------------------------------------------------------------------
   # Java — notifier: подписки, лента, Telegram. ПРОДУКТ 2, по умолчанию не стартует:
