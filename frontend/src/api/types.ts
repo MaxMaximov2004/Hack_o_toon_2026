@@ -165,10 +165,10 @@ export interface MunicipalityStats {
   excludedClients: number
   coverage: number
   newShare: number
-  revenueEstSum: number
+  revenueEstSum: number | null
   potentialScore: number
   isWhiteSpot: boolean
-  reason: string
+  reason: string | null
 }
 
 // Белые пятна
@@ -210,15 +210,16 @@ export interface ProjectShort {
   lat: number
   lon: number
   isKey: boolean
-  curator: string
-  startYear: number
-  launchYear: number
-  amountMln: number
-  jobs: number
+  // В core-api (invest/Project.java) поля ниже могут быть null — в данных бывают пропуски
+  curator: string | null
+  startYear: number | null
+  launchYear: number | null
+  amountMln: number | null
+  jobs: number | null
   stage: ProjectStage
   stageName: string
-  industry: string
-  industryName: string
+  industry: string | null
+  industryName: string | null
   needs: string[]
   recommendedOffers: RecommendedOffer[]
   updatedAt: string
@@ -245,7 +246,7 @@ export interface TimelineEvent {
   municipalityId: number
   municipalityName: string
   stage: ProjectStage
-  amountMln: number
+  amountMln: number | null
 }
 
 export interface TimelineYear {
@@ -254,8 +255,9 @@ export interface TimelineYear {
 }
 
 export interface TimelineResponse {
-  minYear: number
-  maxYear: number
+  /** null — под фильтром нет ни одного события */
+  minYear: number | null
+  maxYear: number | null
   total: number
   years: TimelineYear[]
 }

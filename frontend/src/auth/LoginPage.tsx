@@ -24,7 +24,9 @@ export function LoginPage() {
       })
 
       // Сохраняем mfaToken в памяти (передадим через state)
-      const next = searchParams.get('next') || '/'
+      // Только свой относительный путь: «//evil.com» и «https://…» не пускаем
+      const rawNext = searchParams.get('next') || '/'
+      const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
       navigate('/login/2fa', {
         state: {
           mfaToken: response.mfaToken,

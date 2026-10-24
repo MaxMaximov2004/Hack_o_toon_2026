@@ -50,6 +50,9 @@ function normalizeError(status: number, data: unknown): ApiError {
   }
 }
 
+/** Шаги входа: их 401 — это «неверный пароль/код», а не «сессия истекла» */
+const AUTH_STEP_URLS = ['/api/auth/login', '/api/auth/2fa/verify']
+
 export interface ApiFetchOptions extends RequestInit {
   responseType?: 'json' | 'blob'
 }
@@ -96,18 +99,24 @@ export async function apiFetch<T>(
       headers,
     })
 
-    // Любой 401 - стереть токен и редирект на логин
     if (response.status === 401) {
-      clearToken()
-      const currentPath = window.location.pathname
-      if (currentPath !== '/login' && currentPath !== '/login/2fa') {
-        const next = currentPath !== '/' ? `?next=${encodeURIComponent(currentPath)}` : ''
-        window.location.href = `/login${next}`
+      // Сам код из тела: INVALID_CREDENTIALS / INVALID_CODE на входе, UNAUTHORIZED — протухший токен
+      const body = await response.json().catch(() => null)
+      const error = body && typeof body === 'object' && 'error' in body
+        ? (body as ErrorResponse).error
+        : { code: 'UNAUTHORIZED', message: 'Требуется авторизация' }
+
+      // Ошибка самого входа — не сессия: остаёмся на экране, показываем «Неверный код» и т. п.
+      if (!AUTH_STEP_URLS.some((u) => url.startsWith(u))) {
+        clearToken()
+        const { pathname, search } = window.location
+        if (pathname !== '/login' && pathname !== '/login/2fa') {
+          const back = pathname + search
+          const next = back !== '/' ? `?next=${encodeURIComponent(back)}` : ''
+          window.location.href = `/login${next}`
+        }
       }
-      throw {
-        code: 'UNAUTHORIZED',
-        message: 'Требуется авторизация',
-      } as ApiError
+      throw error
     }
 
     // Для blob-ответов

@@ -5,7 +5,7 @@ import { createSubscription, getProject, getProjectRelatedCompanies } from '../a
 import type { ApiError, Project, ProjectRelatedCompany } from '../api/types'
 import { Badge } from '../ui/Badge'
 import { Toast } from '../ui/Toast'
-import { formatMoney } from '../utils/formatMoney'
+import { formatMoney, formatYears } from '../utils/formatMoney'
 import styles from './ProjectCard.module.css'
 
 interface ProjectCardProps {
@@ -84,10 +84,10 @@ function ProjectSummary({ project }: { project: Project }) {
       <dl className={styles.fields}>
         <Field label="Инициатор" value={project.initiator} />
         <Field label="Район" value={project.municipalityName} />
-        <Field label="Отрасль" value={project.industryName} />
-        <Field label="Годы" value={`${project.startYear}–${project.launchYear}`} />
+        <Field label="Отрасль" value={project.industryName || '—'} />
+        <Field label="Годы" value={formatYears(project.startYear, project.launchYear)} />
         <Field label="Объём" value={formatMoney(project.amountMln)} />
-        <Field label="Рабочие места" value={project.jobs > 0 ? String(project.jobs) : '—'} />
+        <Field label="Рабочие места" value={project.jobs ? String(project.jobs) : '—'} />
         <Field label="Куратор" value={project.curator || '—'} />
       </dl>
     </>
@@ -249,7 +249,7 @@ function SubscribeButton({ project }: { project: Project }) {
         {mutation.isSuccess ? 'Вы подписаны ✓' : 'Подписаться на такие проекты'}
       </button>
       <p className={styles.hint}>
-        Уведомим о новых проектах: {project.industryName} · {project.municipalityName}
+        Уведомим о новых проектах: {[project.industryName, project.municipalityName].filter(Boolean).join(' · ')}
       </p>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </>

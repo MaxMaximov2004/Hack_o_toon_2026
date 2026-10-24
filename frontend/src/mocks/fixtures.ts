@@ -431,7 +431,7 @@ export function generateMunicipalityStats(industryFilter: string) {
       companies,
       clients,
       excludedClients,
-      coverage,
+      coverage: coverage / 100, // в контракте — доля 0..1 (stats.json: 0.0044)
       newShare,
       revenueEstSum,
       potentialScore: Math.round(potentialScore),
@@ -497,7 +497,7 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   }
 
   if (filters.industry && filters.industry.length > 0) {
-    result = result.filter((p) => filters.industry!.includes(p.industry))
+    result = result.filter((p) => p.industry !== null && filters.industry!.includes(p.industry))
   }
 
   if (filters.need && filters.need.length > 0) {
@@ -511,10 +511,10 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   if (filters.yearFrom !== undefined || filters.yearTo !== undefined) {
     const yearFrom = filters.yearFrom || 0
     const yearTo = filters.yearTo || 9999
-    result = result.filter((p) => {
-      // Проект попадает в диапазон, если он идёт в эти годы (между startYear и launchYear)
-      return p.startYear <= yearTo && p.launchYear >= yearFrom
-    })
+    // Как ProjectFilterSql: проект идёт в эти годы; пустой год условию не мешает
+    result = result.filter(
+      (p) => (p.startYear === null || p.startYear <= yearTo) && (p.launchYear === null || p.launchYear >= yearFrom)
+    )
   }
 
   if (filters.isKey) {
@@ -522,7 +522,7 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   }
 
   if (filters.amountMin !== undefined) {
-    result = result.filter((p) => p.amountMln >= filters.amountMin!)
+    result = result.filter((p) => p.amountMln !== null && p.amountMln >= filters.amountMin!)
   }
 
   if (filters.q && filters.q.length >= 2) {
@@ -551,19 +551,17 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
   // Собираем все события (старты и запуски)
   const events: { year: number; type: 'start' | 'launch'; projectId: number; title: string }[] = []
 
+  // Как Timeline.java: событие есть, если год известен; при yearFrom/yearTo — только внутри периода
+  const inPeriod = (year: number) =>
+    (filters.yearFrom === undefined || year >= filters.yearFrom) &&
+    (filters.yearTo === undefined || year <= filters.yearTo)
   filtered.forEach((project) => {
-    events.push({
-      year: project.startYear,
-      type: 'start',
-      projectId: project.id,
-      title: project.title,
-    })
-    events.push({
-      year: project.launchYear,
-      type: 'launch',
-      projectId: project.id,
-      title: project.title,
-    })
+    if (project.startYear !== null && inPeriod(project.startYear)) {
+      events.push({ year: project.startYear, type: 'start', projectId: project.id, title: project.title })
+    }
+    if (project.launchYear !== null && inPeriod(project.launchYear)) {
+      events.push({ year: project.launchYear, type: 'launch', projectId: project.id, title: project.title })
+    }
   })
 
   // Группируем по годам
@@ -594,8 +592,8 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
     }))
     .sort((a, b) => a.year - b.year)
 
-  const minYear = Math.min(...filtered.map((p) => Math.min(p.startYear, p.launchYear)))
-  const maxYear = Math.max(...filtered.map((p) => Math.max(p.startYear, p.launchYear)))
+  const minYear = years.length > 0 ? years[0].year : null
+  const maxYear = years.length > 0 ? years[years.length - 1].year : null
 
   return {
     minYear,
@@ -626,8 +624,8 @@ function syntheticRelatedCompany(
   const base = createCompanyShort(RELATED_ID_BASE + project.id * 100 + n, kind, lat, lon, '', rng)
   return {
     ...base,
-    industry: project.industry,
-    industryName: project.industryName,
+    industry: project.industry ?? 'other',
+    industryName: project.industryName ?? 'Прочее',
     municipalityId: project.municipalityId,
     municipalityName: project.municipalityName,
     settlement: null,

@@ -540,7 +540,7 @@ export function RadarMap({
           const props = e.features[0].properties
           new maplibregl.Popup({ closeButton: false })
             .setLngLat(e.lngLat)
-            .setText(props.reason)
+            .setText(props.reason || '')
             .addTo(mapInstance)
         }
       })
