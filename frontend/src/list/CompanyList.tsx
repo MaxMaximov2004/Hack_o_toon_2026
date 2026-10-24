@@ -5,6 +5,7 @@ import { filterToQuery } from '../filters/filterToQuery'
 import type { CompanyFilters } from '../filters/types'
 import type { CompanyShort } from '../api/types'
 import { Badge } from '../ui/Badge'
+import { ExportButtons } from '../export/ExportButtons'
 import styles from './CompanyList.module.css'
 
 interface CompanyListProps {
@@ -102,6 +103,8 @@ export function CompanyList({ filters, selectedId, onSelectCompany }: CompanyLis
 
   return (
     <div className={styles.container}>
+      <ExportButtons filters={filters} total={data.total} />
+
       <div className={styles.header}>
         <h3 className={styles.title}>Найдено: {data.total}</h3>
         <select className={styles.sortSelect} value={sort} onChange={handleSortChange}>

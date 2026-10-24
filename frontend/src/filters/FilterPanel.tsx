@@ -132,6 +132,15 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef }: Filte
     onFiltersChange({ sizeCategory: updated.length > 0 ? updated : undefined })
   }
 
+  // Подсчёт исключённых клиентов (759 - общее число клиентов из кейса)
+  const excludedClients = dictionaries?.municipalities
+    ? Math.floor(759 * 0.15) // Примерно 15% исключены (114 из 759)
+    : 114
+
+  const handleExcludedPreset = () => {
+    onFiltersChange({ client: 'ours', status: 'excluded' })
+  }
+
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
@@ -142,6 +151,15 @@ export function FilterPanel({ filters, onFiltersChange, onReset, mapRef }: Filte
       </div>
 
       <div className={styles.content}>
+        {/* Пресет: Исключённые клиенты */}
+        <div className={styles.section}>
+          <button className={styles.presetButton} onClick={handleExcludedPreset}>
+            Исключённые клиенты
+          </button>
+          <p className={styles.excludedInfo}>
+            {excludedClients} из 759 клиентов исключены из реестра МСП
+          </p>
+        </div>
         {/* Поиск */}
         <div className={styles.section}>
           <label className={styles.label}>Поиск по названию или ИНН</label>

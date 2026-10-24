@@ -44,10 +44,19 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Тач-цели минимум 44px */
-button, a, input[type="checkbox"], input[type="radio"] {
+/* Тач-цели минимум 44px (кроме checkbox/radio - они внутри label с padding) */
+button, a {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* Checkbox и radio - маленькие, но обёрнуты в label с большим padding для тач-цели */
+input[type="checkbox"], input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--rt-purple);
 }
 
 /* Скрыть стрелки в input type=number */

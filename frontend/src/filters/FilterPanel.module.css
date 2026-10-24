@@ -97,3 +97,27 @@
   color: var(--rt-gray);
   flex-shrink: 0;
 }
+
+.presetButton {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--rt-purple);
+  color: var(--rt-white);
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.presetButton:hover {
+  opacity: 0.9;
+}
+
+.excludedInfo {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: var(--rt-orange);
+  font-weight: 500;
+}
