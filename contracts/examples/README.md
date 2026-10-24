@@ -14,6 +14,22 @@
 | `white-spots.json` | `GET /api/white-spots?industry=all&limit=10` |
 | `companies-internal.json` | `GET /internal/companies?status=all` — массив полных `Company`, сортировка по `name` |
 
+**Продукт 2** — формы по [08-product2-contract](../../docs/tz/08-product2-contract.md). Проекты и компании — из реальных
+данных после ETL (лист МОД2 и реестр МСП), услуги — из `infra/db/init/04_need_offer.sql`; подписки и лента — выдуманные.
+
+| Файл | Запрос | Сервис |
+| --- | --- | --- |
+| `projects.json` | `GET /api/projects?industry=manufacturing&sort=amountMln,desc&size=3` | core-api |
+| `project.json` | `GET /api/projects/31` | core-api |
+| `timeline.json` | `GET /api/projects/timeline?industry=manufacturing` | core-api |
+| `projects-internal.json` | `GET /internal/projects?updatedSince=2026-10-24T00:00:00Z&municipalityId=53&industry=logistics` | core-api |
+| `related-companies.json` | `GET /api/projects/31/related-companies` (в примере 3 компании из 20) | core-api |
+| `subscriptions.json` | `GET /api/subscriptions` | notifier |
+| `notifications.json` | `GET /api/notifications` | notifier |
+| `telegram-link.json` | `GET /api/notifications/telegram-link` | notifier |
+
+`dictionaries.json` — поля `stages` и `needs` заполнены для продукта 2.
+
 Соглашения:
 
 - Поле с неизвестным значением присутствует со значением `null`, а не пропускается (`employees`, `revenueEst`, `settlement`, `excludedAt`…).

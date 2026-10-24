@@ -30,6 +30,15 @@
     { "code": "small", "name": "Малое" },
     { "code": "medium", "name": "Среднее" }
   ],
-  "stages": [],
-  "needs": []
+  "stages": [
+    { "code": "design", "name": "Проектирование" },
+    { "code": "construction", "name": "Строительство" },
+    { "code": "launch", "name": "Запуск" }
+  ],
+  "needs": [
+    { "code": "it_infra", "name": "ИТ-инфраструктура и связь" },
+    { "code": "apcs", "name": "АСУ ТП и промышленный интернет вещей" },
+    { "code": "phys_security", "name": "Физическая безопасность" },
+    { "code": "info_security", "name": "Информационная безопасность" }
+  ]
 }

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": 31,
+      "projectId": 64,
+      "title": "Строительство логистического центра «Демо-Юг»",
+      "municipalityName": "г. Ростов-на-Дону",
+      "subscriptionId": 12,
+      "isRead": false,
+      "sentToTelegram": true,
+      "createdAt": "2026-10-24T09:20:00Z"
+    },
+    {
+      "id": 30,
+      "projectId": 31,
+      "title": "Строительство в промышленной зоне «Заречная» комплекса портовых и логистических сооружений",
+      "municipalityName": "г. Ростов-на-Дону",
+      "subscriptionId": 7,
+      "isRead": true,
+      "sentToTelegram": false,
+      "createdAt": "2026-10-24T08:41:00Z"
+    }
+  ],
+  "unreadCount": 1
+}

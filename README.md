@@ -36,6 +36,7 @@ docker compose up -d --build
 | `notifier/` | notifier, продукт 2 | 8083 | `notify` / `notify_svc` | Go | [05-go-auth](docs/tz/05-go-auth.md) |
 
 Общие правила, контракт и соглашения — [docs/tz/00-common.md](docs/tz/00-common.md).
+Продукт 2 «Инвестиционный навигатор» — контракт [docs/tz/08-product2-contract.md](docs/tz/08-product2-contract.md).
 Задача со звёздочкой от куратора (фактическое место ведения бизнеса) — [docs/tz/07-star-actual-location.md](docs/tz/07-star-actual-location.md).
 
 ## Данные
