@@ -12,6 +12,10 @@ const NavigatorPage = lazy(() =>
   import('./pages/NavigatorPage').then((module) => ({ default: module.NavigatorPage }))
 )
 
+const SubscriptionsPage = lazy(() =>
+  import('./pages/SubscriptionsPage').then((module) => ({ default: module.SubscriptionsPage }))
+)
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -49,6 +53,16 @@ function App() {
                 <RequireAuth>
                   <Suspense fallback={<div>Загрузка...</div>}>
                     <NavigatorPage />
+                  </Suspense>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/subscriptions"
+              element={
+                <RequireAuth>
+                  <Suspense fallback={<div>Загрузка...</div>}>
+                    <SubscriptionsPage />
                   </Suspense>
                 </RequireAuth>
               }

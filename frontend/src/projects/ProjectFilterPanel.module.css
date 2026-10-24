@@ -80,7 +80,8 @@
   white-space: nowrap;
 }
 
-.chip:hover {
+/* Только невыбранные: иначе hover (на телефоне он «залипает» после тапа) делает выбранный чип бледным */
+.chip:not(.chipActive):hover {
   border-color: var(--rt-purple);
   background: var(--rt-lavender);
 }

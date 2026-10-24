@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from './AuthProvider'
 import { apiFetch, setToken } from '../api/apiFetch'
 import type { TwoFactorVerifyResponse, ApiError } from '../api/types'
+import layout from './authLayout.module.css'
 import styles from './TwoFactorPage.module.css'
 
 interface LocationState {
@@ -24,9 +25,10 @@ export function TwoFactorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Фокус в поле — при открытии и после неудачной проверки (пока шёл запрос, поле было disabled)
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    if (!isLoading) inputRef.current?.focus()
+  }, [isLoading])
 
   if (!state?.mfaToken) {
     return <Navigate to="/login" replace />
@@ -67,9 +69,14 @@ export function TwoFactorPage() {
       if (apiError.code === 'INVALID_CODE') {
         setError('Неверный код')
         setCode('')
-        inputRef.current?.focus()
       } else if (apiError.code === 'TOO_MANY_ATTEMPTS') {
         setError('Слишком много попыток')
+        setTimeout(() => {
+          navigate('/login', { replace: true })
+        }, 2000)
+      } else if (apiError.code === 'UNAUTHORIZED') {
+        // mfaToken истёк — начать вход заново
+        setError('Время на ввод кода вышло — войдите ещё раз')
         setTimeout(() => {
           navigate('/login', { replace: true })
         }, 2000)
@@ -87,37 +94,39 @@ export function TwoFactorPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <div className={styles.logo}>Ростелеком</div>
-          <h1 className={styles.title}>Двухфакторная аутентификация</h1>
+    <div className={layout.container}>
+      <main className={layout.card}>
+        <div className={layout.brand}>
+          Ростелеком <span className={layout.brandSeparator}>|</span>{' '}
+          <span className={layout.product}>Радар присутствия</span>
         </div>
+        <h1 className={layout.title}>Код подтверждения</h1>
+        <p className={layout.subtitle}>
+          {state.mfaSetupRequired
+            ? 'Первый вход: привяжите аутентификатор и введите код из него'
+            : 'Введите 6 цифр из Google Authenticator или Яндекс Ключа'}
+        </p>
 
         {state.mfaSetupRequired && state.qrPngBase64 && (
           <div className={styles.qrSection}>
-            <p className={styles.instruction}>
-              Отсканируйте QR-код в Google Authenticator или Яндекс.Ключ
-            </p>
+            <p className={styles.instruction}>Отсканируйте в Google Authenticator или Яндекс Ключе</p>
             <img
               src={`data:image/png;base64,${state.qrPngBase64}`}
-              alt="QR код для настройки 2FA"
+              alt="QR-код для привязки аутентификатора"
               className={styles.qrCode}
             />
           </div>
         )}
 
-        <form onSubmit={handleFormSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label htmlFor="code" className={styles.label}>
-              Введите 6-значный код
-            </label>
+        <form onSubmit={handleFormSubmit} className={layout.form}>
+          <div className={styles.codeWrap}>
             <input
               ref={inputRef}
               id="code"
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
+              aria-label="6-значный код"
               value={code}
               onChange={(e) => handleCodeChange(e.target.value)}
               className={styles.codeInput}
@@ -125,26 +134,38 @@ export function TwoFactorPage() {
               maxLength={6}
               pattern="[0-9]*"
             />
+            <div className={styles.cells} aria-hidden="true">
+              {Array.from({ length: 6 }, (_, i) => (
+                <span
+                  key={i}
+                  className={[
+                    styles.cell,
+                    code[i] ? styles.cellFilled : '',
+                    i === Math.min(code.length, 5) ? styles.cellActive : '',
+                    error ? styles.cellError : '',
+                  ].join(' ')}
+                >
+                  {code[i] ?? ''}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {error && <div className={styles.error}>{error}</div>}
+          {error && (
+            <div className={layout.error} role="alert">
+              {error}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            className={styles.button}
-            disabled={isLoading || code.length !== 6}
-          >
-            {isLoading ? 'Проверка...' : 'Подтвердить'}
+          <button type="submit" className={layout.button} disabled={isLoading || code.length !== 6}>
+            {isLoading ? 'Проверяем…' : 'Подтвердить'}
           </button>
         </form>
 
-        <button
-          onClick={() => navigate('/login', { replace: true })}
-          className={styles.backButton}
-        >
-          Назад к входу
+        <button onClick={() => navigate('/login', { replace: true })} className={layout.linkButton}>
+          Назад ко входу
         </button>
-      </div>
+      </main>
     </div>
   )
 }

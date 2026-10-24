@@ -136,3 +136,8 @@
     height: 10px;
   }
 }
+
+/* Серый «Запуска» — белое число не проходит по контрасту */
+.stageLaunch .clusterCount {
+  color: var(--rt-black);
+}

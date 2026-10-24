@@ -5,6 +5,8 @@ import { downloadBlob } from './downloadBlob'
 import { apiFetch, type BlobResponse } from '../api/apiFetch'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Toast } from '../ui/Toast'
+import { useAuth } from '../auth/AuthProvider'
+import { ImportClientsDialog } from './ImportClientsDialog'
 import type { ApiError } from '../api/types'
 import styles from './ExportButtons.module.css'
 
@@ -14,6 +16,9 @@ interface ExportButtonsProps {
 }
 
 export function ExportButtons({ filters, total }: ExportButtonsProps) {
+  const { user } = useAuth()
+  const isAdmin = !!user?.roles.includes('admin')
+  const [importOpen, setImportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingFormat, setPendingFormat] = useState<'csv' | 'bitrix' | null>(null)
@@ -78,7 +83,14 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
         >
           В CRM
         </button>
+        {isAdmin && (
+          <button className={`${styles.button} ${styles.adminButton}`} onClick={() => setImportOpen(true)}>
+            Обновить список клиентов
+          </button>
+        )}
       </div>
+
+      {importOpen && <ImportClientsDialog onClose={() => setImportOpen(false)} />}
 
       {pendingFormat && (
         <ConfirmDialog

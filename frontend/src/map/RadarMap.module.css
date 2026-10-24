@@ -61,3 +61,15 @@
   transform: scale(1.2);
   z-index: 100;
 }
+
+/* Подпись белого пятна (HTML-маркер вместо symbol-слоя — без внешних шрифтов) */
+.whiteSpotLabel {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--rt-orange);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}

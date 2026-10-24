@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import styles from './ProfileMenu.module.css'
 
 interface ProfileMenuProps {
@@ -32,6 +33,9 @@ export function ProfileMenu({ userName, onLogout }: ProfileMenuProps) {
           <div className={styles.overlay} onClick={() => setIsOpen(false)} />
           <div className={styles.menu}>
             <div className={styles.userName}>{userName}</div>
+            <Link to="/subscriptions" className={styles.menuLink} onClick={() => setIsOpen(false)}>
+              Подписки и Telegram
+            </Link>
             <button className={styles.logoutButton} onClick={onLogout}>
               Выйти
             </button>

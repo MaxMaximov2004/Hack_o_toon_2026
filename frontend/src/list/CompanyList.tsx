@@ -245,6 +245,11 @@ function CompanyRow({ company, isSelected, onClick, searchQuery, sortField }: Co
         <div className={styles.badges}>
           {company.isEstimated && <Badge variant="default">оценка</Badge>}
           {company.isNew && <Badge variant="purple">новая</Badge>}
+          {company.relocated && (
+            <span title="Работает не там, где зарегистрирована">
+              <Badge variant="purple">работает в другом месте</Badge>
+            </span>
+          )}
         </div>
       </div>
 

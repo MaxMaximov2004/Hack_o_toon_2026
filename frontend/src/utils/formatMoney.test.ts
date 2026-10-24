@@ -30,3 +30,14 @@ describe('formatMoney', () => {
     expect(formatMoney(500)).toBe('500 млн ₽')
   })
 })
+
+describe('formatMoney / formatYears: пустые значения из core-api', () => {
+  it('null → прочерк', async () => {
+    const { formatMoney, formatYears } = await import('./formatMoney')
+    expect(formatMoney(null)).toBe('—')
+    expect(formatYears(2024, 2028)).toBe('2024–2028')
+    expect(formatYears(2024, null)).toBe('с 2024')
+    expect(formatYears(null, 2028)).toBe('до 2028')
+    expect(formatYears(null, null)).toBe('—')
+  })
+})

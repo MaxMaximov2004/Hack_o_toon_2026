@@ -13,6 +13,9 @@ import type {
   SubscriptionsResponse,
   NotificationsResponse,
   TelegramLinkResponse,
+  SubscriptionInput,
+  LocationInput,
+  ImportMode,
 } from '../api/types'
 import {
   mockDictionaries,
@@ -24,16 +27,21 @@ import {
   filterProjects,
   getProjectById,
   getProjectTimeline,
+  getProjectRelatedCompanies,
   getSubscriptions,
   createSubscription,
   deleteSubscription,
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  getCompanyLocations,
+  addCompanyLocation,
+  deleteCompanyLocation,
+  importClientsCsv,
+  importLocationsCsv,
   type MockFilters,
   type ProjectMockFilters,
 } from './fixtures'
-import relatedCompaniesExample from '../../../contracts/examples/related-companies.json'
 import telegramLinkExample from '../../../contracts/examples/telegram-link.json'
 
 // Демо-пользователи
@@ -54,6 +62,22 @@ const ADMIN_USER: User = {
 // Простое хранилище токенов (в памяти)
 const validTokens = new Set<string>()
 
+function isAdminRequest(request: Request): boolean {
+  return (request.headers.get('Authorization') ?? '').startsWith('Bearer mock-access-token-admin-')
+}
+
+function notFound(message: string) {
+  return HttpResponse.json({ error: { code: 'NOT_FOUND', message } }, { status: 404 })
+}
+
+function validation(field: string, message: string) {
+  return HttpResponse.json({ error: { code: 'VALIDATION_ERROR', message, details: { field } } }, { status: 400 })
+}
+
+function forbidden() {
+  return HttpResponse.json({ error: { code: 'FORBIDDEN', message: 'Нужна роль admin' } }, { status: 403 })
+}
+
 export const handlers = [
   // POST /api/auth/login
   http.post('/api/auth/login', async ({ request }) => {
@@ -65,7 +89,8 @@ export const handlers = [
       (body.email === 'admin@rt.ru' && body.password === 'Admin2026!')
     ) {
       const response: LoginResponse = {
-        mfaToken: 'mock-mfa-token-' + Date.now(),
+        // Роль зашита в моковый токен: дальше по нему отличаем админа (verify, /me, импорт)
+        mfaToken: `mock-mfa-token-${body.email === 'admin@rt.ru' ? 'admin-' : ''}${Date.now()}`,
         mfaSetupRequired: body.email === 'admin@rt.ru', // Админ показывает QR
         ...(body.email === 'admin@rt.ru' && {
           otpauthUrl: 'otpauth://totp/RadarRT:admin@rt.ru?secret=JBSWY3DPEHPK3PXP&issuer=RadarRT',
@@ -91,13 +116,12 @@ export const handlers = [
   http.post('/api/auth/2fa/verify', async ({ request }) => {
     const body = await request.json() as { mfaToken: string; code: string }
 
-    // Принимаем любой 6-значный код
-    if (body.code.length === 6 && /^\d{6}$/.test(body.code)) {
-      const token = 'mock-access-token-' + Date.now()
+    // Принимаем любой 6-значный код, кроме 000000 — им проверяем «Неверный код»
+    if (/^\d{6}$/.test(body.code) && body.code !== '000000') {
+      const isAdmin = body.mfaToken.includes('admin')
+      const token = `mock-access-token-${isAdmin ? 'admin-' : ''}${Date.now()}`
       validTokens.add(token)
-
-      // Определяем пользователя по mfaToken (упрощённо)
-      const user = body.mfaToken.includes('admin') ? ADMIN_USER : DEMO_USER
+      const user = isAdmin ? ADMIN_USER : DEMO_USER
 
       const response: TwoFactorVerifyResponse = {
         accessToken: token,
@@ -126,8 +150,7 @@ export const handlers = [
 
     // Принимаем любой токен с префиксом 'mock-access-token-'
     if (token && token.startsWith('mock-access-token-')) {
-      // Упрощённо возвращаем демо-пользователя
-      return HttpResponse.json(DEMO_USER)
+      return HttpResponse.json(token.includes('admin') ? ADMIN_USER : DEMO_USER)
     }
 
     return HttpResponse.json(
@@ -155,6 +178,7 @@ export const handlers = [
     const filters: MockFilters = {
       client: url.searchParams.get('client') || 'all',
       status: url.searchParams.get('status') || 'active',
+      relocated: url.searchParams.get('relocated') === 'true',
     }
 
     // bbox
@@ -232,6 +256,7 @@ export const handlers = [
     const filters: MockFilters = {
       client: url.searchParams.get('client') || 'all',
       status: url.searchParams.get('status') || 'active',
+      relocated: url.searchParams.get('relocated') === 'true',
     }
 
     // bbox - ОБЯЗАТЕЛЬНО должен быть в запросе списка!
@@ -307,6 +332,59 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
+  // ============ «Где работает» и импорт CSV (ТЗ 07) ============
+
+  // GET /api/companies/:id/locations
+  http.get('/api/companies/:id/locations', ({ params }) => {
+    const result = getCompanyLocations(Number(params.id))
+    if (!result) return notFound('Компания не найдена')
+    return HttpResponse.json(result)
+  }),
+
+  // POST /api/companies/:id/locations — 201 ActualLocation
+  http.post('/api/companies/:id/locations', async ({ params, request }) => {
+    const result = addCompanyLocation(Number(params.id), (await request.json()) as LocationInput)
+    if (!result.ok) {
+      return result.status === 404 ? notFound(result.message) : validation(result.field ?? 'municipalityName', result.message)
+    }
+    return HttpResponse.json(result.location, { status: 201 })
+  }),
+
+  // DELETE /api/companies/:id/locations/:locationId — 204; чужое (не manager) — 403
+  http.delete('/api/companies/:id/locations/:locationId', ({ params }) => {
+    const status = deleteCompanyLocation(Number(params.id), Number(params.locationId))
+    if (status === 404) return notFound('Место не найдено')
+    if (status === 403) {
+      return HttpResponse.json(
+        { error: { code: 'FORBIDDEN', message: 'Менеджер может удалить только место, введённое вручную' } },
+        { status: 403 }
+      )
+    }
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // POST /api/clients/import (admin) — multipart: file, mode
+  http.post('/api/clients/import', async ({ request }) => {
+    if (!isAdminRequest(request)) return forbidden()
+    const form = await request.formData()
+    const file = form.get('file')
+    const mode = String(form.get('mode') || 'append') as ImportMode
+    if (!(file instanceof File)) return validation('file', 'Не выбран файл')
+    if (mode !== 'append' && mode !== 'replace') return validation('mode', 'mode: append или replace')
+    if (file.size > 10 * 1024 * 1024) {
+      return HttpResponse.json({ error: { code: 'TOO_LARGE', message: 'Файл больше 10 МБ' } }, { status: 413 })
+    }
+    return HttpResponse.json(importClientsCsv(await file.text(), mode))
+  }),
+
+  // POST /api/locations/import (admin) — multipart: file
+  http.post('/api/locations/import', async ({ request }) => {
+    if (!isAdminRequest(request)) return forbidden()
+    const file = (await request.formData()).get('file')
+    if (!(file instanceof File)) return validation('file', 'Не выбран файл')
+    return HttpResponse.json(importLocationsCsv(await file.text()))
+  }),
+
   // GET /api/companies/{id}
   http.get('/api/companies/:id', ({ params }) => {
     const id = parseInt(params.id as string, 10)
@@ -348,6 +426,7 @@ export const handlers = [
     const filters: MockFilters = {
       client: url.searchParams.get('client') || 'all',
       status: url.searchParams.get('status') || 'active',
+      relocated: url.searchParams.get('relocated') === 'true',
     }
 
     const minLat = url.searchParams.get('minLat')
@@ -529,23 +608,7 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  // GET /api/projects/:id
-  http.get('/api/projects/:id', ({ params }) => {
-    const id = Number(params.id)
-    const project = getProjectById(id)
-
-    if (!project) {
-      return HttpResponse.json(
-        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
-        { status: 404 }
-      )
-    }
-
-    const response: Project = project
-    return HttpResponse.json(response)
-  }),
-
-  // GET /api/projects/timeline
+  // GET /api/projects/timeline — до /api/projects/:id, иначе MSW примет «timeline» за id
   http.get('/api/projects/timeline', ({ request }) => {
     const url = new URL(request.url)
 
@@ -565,16 +628,30 @@ export const handlers = [
     return HttpResponse.json(timeline)
   }),
 
+  // GET /api/projects/:id
+  http.get('/api/projects/:id', ({ params }) => {
+    const id = Number(params.id)
+    const project = getProjectById(id)
+
+    if (!project) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
+        { status: 404 }
+      )
+    }
+
+    const response: Project = project
+    return HttpResponse.json(response)
+  }),
+
   // GET /api/projects/:id/related-companies
-  http.get('/api/projects/:id/related-companies', () => {
-    // Возвращаем фиксированный пример
-    const response: ProjectRelatedCompaniesResponse = {
-      items: relatedCompaniesExample.items.map((item: any) => ({
-        ...item,
-        relation: item.relation as 'initiator' | 'same_area_industry',
-      })),
-      sameAreaIndustryTotal: relatedCompaniesExample.sameAreaIndustryTotal,
-      radarQuery: relatedCompaniesExample.radarQuery,
+  http.get('/api/projects/:id/related-companies', ({ params }) => {
+    const response: ProjectRelatedCompaniesResponse | undefined = getProjectRelatedCompanies(Number(params.id))
+    if (!response) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Проект не найден' } },
+        { status: 404 }
+      )
     }
     return HttpResponse.json(response)
   }),
@@ -585,51 +662,50 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  // POST /api/subscriptions
+  // POST /api/subscriptions — 201 или 400 VALIDATION_ERROR (как notifier)
   http.post('/api/subscriptions', async ({ request }) => {
-    const body = (await request.json()) as {
-      industry?: string
-      municipalityId?: number
-      need?: string
-      stage?: string
-    }
-
-    // Валидация: хотя бы одно поле должно быть заполнено
-    if (!body.industry && !body.municipalityId && !body.need && !body.stage) {
+    const result = createSubscription((await request.json()) as SubscriptionInput)
+    if (!result.ok) {
       return HttpResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'Укажите хотя бы одно условие подписки' } },
+        { error: { code: 'VALIDATION_ERROR', message: result.message, details: { field: result.field } } },
         { status: 400 }
       )
     }
-
-    const newSub = createSubscription(body)
-    return HttpResponse.json(newSub, { status: 201 })
+    return HttpResponse.json(result.subscription, { status: 201 })
   }),
 
-  // DELETE /api/subscriptions/:id
+  // DELETE /api/subscriptions/:id — 204, нет такой → 404
   http.delete('/api/subscriptions/:id', ({ params }) => {
-    const id = Number(params.id)
-    deleteSubscription(id)
+    if (!deleteSubscription(Number(params.id))) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Подписка не найдена' } },
+        { status: 404 }
+      )
+    }
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // GET /api/notifications
-  http.get('/api/notifications', () => {
-    const result = getNotifications()
-    const response: NotificationsResponse = result
+  // GET /api/notifications?unread=true
+  http.get('/api/notifications', ({ request }) => {
+    const unreadOnly = new URL(request.url).searchParams.get('unread') === 'true'
+    const response: NotificationsResponse = getNotifications(unreadOnly)
     return HttpResponse.json(response)
-  }),
-
-  // POST /api/notifications/:id/read
-  http.post('/api/notifications/:id/read', ({ params }) => {
-    const id = Number(params.id)
-    markNotificationRead(id)
-    return new HttpResponse(null, { status: 204 })
   }),
 
   // POST /api/notifications/read-all
   http.post('/api/notifications/read-all', () => {
     markAllNotificationsRead()
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  // POST /api/notifications/:id/read
+  http.post('/api/notifications/:id/read', ({ params }) => {
+    if (!markNotificationRead(Number(params.id))) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Уведомление не найдено' } },
+        { status: 404 }
+      )
+    }
     return new HttpResponse(null, { status: 204 })
   }),
 

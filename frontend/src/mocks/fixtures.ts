@@ -5,13 +5,22 @@ import type {
   CompanyShort,
   Company as ApiCompany,
   ProjectShort,
+  ProjectRelatedCompany,
+  ProjectRelatedCompaniesResponse,
   TimelineResponse,
   Subscription,
+  SubscriptionInput,
   Notification,
+  CompanyLocations,
+  ActualLocation,
+  LocationInput,
+  ImportClientsResponse,
+  ImportMode,
+  LocationImportResponse,
+  NotificationsResponse,
 } from '../api/types'
 import projectsFixture from './fixtures/projects.json'
 import subscriptionsExample from '../../../contracts/examples/subscriptions.json'
-import notificationsExample from '../../../contracts/examples/notifications.json'
 
 // Справочники с реальными данными Ростовской области
 export const mockDictionaries: Dictionaries = {
@@ -205,6 +214,7 @@ function createCompanyShort(
     excludedAt: kind === 'excluded' ? '2025-09-15T00:00:00Z' : null,
     isNew,
     registeredAt: `202${Math.floor(rng.range(0, 5))}-01-01T00:00:00Z`,
+    relocated: false,
   }
 }
 
@@ -221,6 +231,7 @@ export interface MockFilters {
   growthMin?: number
   isNew?: boolean
   q?: string
+  relocated?: boolean
 }
 
 export function filterCompanies(filters: MockFilters): CompanyShort[] {
@@ -284,6 +295,11 @@ export function filterCompanies(filters: MockFilters): CompanyShort[] {
     companies = companies.filter(
       (c) => c.revenueGrowthEst !== null && c.revenueGrowthEst >= filters.growthMin!
     )
+  }
+
+  // «Работает не там, где зарегистрирован»
+  if (filters.relocated) {
+    companies = companies.filter((c) => c.relocated)
   }
 
   // Фильтр по новизне
@@ -364,7 +380,7 @@ export function generateMapCells(
 
 // Получение детальной компании по ID
 export function getCompanyById(id: number): ApiCompany {
-  const company = getAllCompanies().find((c) => c.id === id)
+  const company = getAllCompanies().find((c) => c.id === id) ?? findRelatedSyntheticCompany(id)
 
   if (!company) {
     throw new Error(`Company ${id} not found`)
@@ -428,7 +444,7 @@ export function generateMunicipalityStats(industryFilter: string) {
       companies,
       clients,
       excludedClients,
-      coverage,
+      coverage: coverage / 100, // в контракте — доля 0..1 (stats.json: 0.0044)
       newShare,
       revenueEstSum,
       potentialScore: Math.round(potentialScore),
@@ -494,7 +510,7 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   }
 
   if (filters.industry && filters.industry.length > 0) {
-    result = result.filter((p) => filters.industry!.includes(p.industry))
+    result = result.filter((p) => p.industry !== null && filters.industry!.includes(p.industry))
   }
 
   if (filters.need && filters.need.length > 0) {
@@ -508,10 +524,10 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   if (filters.yearFrom !== undefined || filters.yearTo !== undefined) {
     const yearFrom = filters.yearFrom || 0
     const yearTo = filters.yearTo || 9999
-    result = result.filter((p) => {
-      // Проект попадает в диапазон, если он идёт в эти годы (между startYear и launchYear)
-      return p.startYear <= yearTo && p.launchYear >= yearFrom
-    })
+    // Как ProjectFilterSql: проект идёт в эти годы; пустой год условию не мешает
+    result = result.filter(
+      (p) => (p.startYear === null || p.startYear <= yearTo) && (p.launchYear === null || p.launchYear >= yearFrom)
+    )
   }
 
   if (filters.isKey) {
@@ -519,7 +535,7 @@ export function filterProjects(filters: ProjectMockFilters): ProjectShort[] {
   }
 
   if (filters.amountMin !== undefined) {
-    result = result.filter((p) => p.amountMln >= filters.amountMin!)
+    result = result.filter((p) => p.amountMln !== null && p.amountMln >= filters.amountMin!)
   }
 
   if (filters.q && filters.q.length >= 2) {
@@ -548,19 +564,17 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
   // Собираем все события (старты и запуски)
   const events: { year: number; type: 'start' | 'launch'; projectId: number; title: string }[] = []
 
+  // Как Timeline.java: событие есть, если год известен; при yearFrom/yearTo — только внутри периода
+  const inPeriod = (year: number) =>
+    (filters.yearFrom === undefined || year >= filters.yearFrom) &&
+    (filters.yearTo === undefined || year <= filters.yearTo)
   filtered.forEach((project) => {
-    events.push({
-      year: project.startYear,
-      type: 'start',
-      projectId: project.id,
-      title: project.title,
-    })
-    events.push({
-      year: project.launchYear,
-      type: 'launch',
-      projectId: project.id,
-      title: project.title,
-    })
+    if (project.startYear !== null && inPeriod(project.startYear)) {
+      events.push({ year: project.startYear, type: 'start', projectId: project.id, title: project.title })
+    }
+    if (project.launchYear !== null && inPeriod(project.launchYear)) {
+      events.push({ year: project.launchYear, type: 'launch', projectId: project.id, title: project.title })
+    }
   })
 
   // Группируем по годам
@@ -591,8 +605,8 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
     }))
     .sort((a, b) => a.year - b.year)
 
-  const minYear = Math.min(...filtered.map((p) => Math.min(p.startYear, p.launchYear)))
-  const maxYear = Math.max(...filtered.map((p) => Math.max(p.startYear, p.launchYear)))
+  const minYear = years.length > 0 ? years[0].year : null
+  const maxYear = years.length > 0 ? years[years.length - 1].year : null
 
   return {
     minYear,
@@ -602,98 +616,381 @@ export function getProjectTimeline(filters: ProjectMockFilters): TimelineRespons
   }
 }
 
+// Компании вокруг проекта (GET /api/projects/:id/related-companies)
+//
+// Моковые компании радара есть только в городах, а проекты — ещё и в районах. Поэтому: если в районе
+// проекта есть компании той же отрасли — берём их (клик откроет ту же карточку, что в радаре), иначе
+// досоздаём синтетические тем же SeededRandom. Синтетические id = RELATED_ID_BASE + projectId * 100 + n,
+// по id однозначно восстанавливается проект, так что GET /api/companies/:id их тоже находит.
+// Инициатор «находится в реестре» примерно у 60% проектов (на реальных данных 38 из 63) и никогда не клиент.
+const RELATED_ID_BASE = 1_000_000
+const RELATED_LIMIT = 20
+
+function syntheticRelatedCompany(
+  project: ProjectShort,
+  n: number,
+  kind: 'ours' | 'others',
+  rng: SeededRandom
+): CompanyShort {
+  const lat = project.lat + rng.range(-0.03, 0.03)
+  const lon = project.lon + rng.range(-0.03, 0.03)
+  const base = createCompanyShort(RELATED_ID_BASE + project.id * 100 + n, kind, lat, lon, '', rng)
+  return {
+    ...base,
+    industry: project.industry ?? 'other',
+    industryName: project.industryName ?? 'Прочее',
+    municipalityId: project.municipalityId,
+    municipalityName: project.municipalityName,
+    settlement: null,
+  }
+}
+
+export function getProjectRelatedCompanies(projectId: number): ProjectRelatedCompaniesResponse | undefined {
+  const project = getProjectById(projectId)
+  if (!project) return undefined
+
+  const rng = new SeededRandom(projectId + 7000)
+  const items: ProjectRelatedCompany[] = []
+
+  if (rng.next() < 0.6) {
+    const initiator = syntheticRelatedCompany(project, 0, 'others', rng)
+    items.push({ ...initiator, name: project.initiator, relation: 'initiator' })
+  }
+
+  let pool = getAllCompanies().filter(
+    (c) =>
+      c.industry === project.industry &&
+      c.municipalityId === project.municipalityId &&
+      c.status === 'active'
+  )
+  if (pool.length === 0) {
+    const count = Math.floor(rng.range(3, 15))
+    pool = Array.from({ length: count }, (_, i) =>
+      syntheticRelatedCompany(project, i + 1, rng.next() < 0.2 ? 'ours' : 'others', rng)
+    )
+  }
+
+  // Сначала не клиенты (потенциальные), затем клиенты; внутри — по выручке убыв.
+  const sorted = [...pool].sort(
+    (a, b) => Number(a.isClient) - Number(b.isClient) || (b.revenueEst ?? 0) - (a.revenueEst ?? 0)
+  )
+  sorted.slice(0, RELATED_LIMIT).forEach((c) => items.push({ ...c, relation: 'same_area_industry' }))
+
+  return {
+    projectId,
+    items,
+    sameAreaIndustryTotal: pool.length,
+    radarQuery: `industry=${project.industry}&municipalityId=${project.municipalityId}`,
+  }
+}
+
+function findRelatedSyntheticCompany(id: number): CompanyShort | undefined {
+  if (id < RELATED_ID_BASE) return undefined
+  const projectId = Math.floor((id - RELATED_ID_BASE) / 100)
+  const found = getProjectRelatedCompanies(projectId)?.items.find((c) => c.id === id)
+  if (!found) return undefined
+  const company: CompanyShort & { relation?: unknown } = { ...found }
+  delete company.relation
+  return company
+}
+
 // Группировка проектов по районам для карты
 
-// Подписки (из примера)
-const baseSubscriptions: Subscription[] = subscriptionsExample.map((sub: any) => ({
-  id: sub.id,
-  userId: 1, // demo user
-  industry: sub.industry,
-  industryName: sub.industry
-    ? mockDictionaries.industries.find((i) => i.code === sub.industry)?.name || null
-    : null,
-  municipalityId: sub.municipalityId,
-  municipalityName: sub.municipalityId
-    ? mockDictionaries.municipalities.find((m) => m.id === sub.municipalityId)?.name || null
-    : null,
-  need: sub.need,
-  needName: sub.need ? mockDictionaries.needs.find((n) => n.code === sub.need)?.name || null : null,
-  stage: sub.stage,
-  stageName: sub.stage
-    ? mockDictionaries.stages.find((s) => s.code === sub.stage)?.name || null
-    : null,
-  createdAt: sub.createdAt,
-}))
+// Подписки и уведомления (notifier). Формы — contracts/examples/subscriptions.json и notifications.json.
+// Подписки стартуют с примера контракта; ленту уведомлений строим тем же SeededRandom по проектам фикстуры,
+// чтобы клик по уведомлению открывал существующую карточку проекта.
 
-let subscriptions: Subscription[] = [...baseSubscriptions]
+export type MockSubscriptionResult =
+  | { ok: true; subscription: Subscription }
+  | { ok: false; field: string; message: string }
+
+// В настоящем справочнике г. Ростов-на-Дону — id 53 (так в примере контракта), в моковом — id 1
+const EXAMPLE_TO_MOCK_MUNICIPALITY: Record<number, number> = { 53: 1 }
+
+function exampleSubscriptions(): Subscription[] {
+  return subscriptionsExample.map((sub) => ({
+    ...sub,
+    municipalityId:
+      sub.municipalityId === null ? null : EXAMPLE_TO_MOCK_MUNICIPALITY[sub.municipalityId] ?? sub.municipalityId,
+    stage: sub.stage as Subscription['stage'],
+  }))
+}
+
+let subscriptions: Subscription[] = exampleSubscriptions()
 let nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
 
 export function getSubscriptions(): Subscription[] {
   return subscriptions
 }
 
-export function createSubscription(data: {
-  industry?: string
-  municipalityId?: number
-  need?: string
-  stage?: string
-}): Subscription {
-  const newSub: Subscription = {
+/** Валидация как в notifier: хотя бы одно поле, известные коды; иначе 400 VALIDATION_ERROR */
+export function createSubscription(data: SubscriptionInput): MockSubscriptionResult {
+  if (!data.industry && !data.municipalityId && !data.need && !data.stage) {
+    return { ok: false, field: 'industry', message: 'Укажите хотя бы одно условие подписки' }
+  }
+  if (data.industry && !mockDictionaries.industries.some((i) => i.code === data.industry)) {
+    return { ok: false, field: 'industry', message: `Неизвестная отрасль: ${data.industry}` }
+  }
+  if (data.need && !mockDictionaries.needs.some((n) => n.code === data.need)) {
+    return { ok: false, field: 'need', message: `Неизвестная потребность: ${data.need}` }
+  }
+  if (data.stage && !mockDictionaries.stages.some((st) => st.code === data.stage)) {
+    return { ok: false, field: 'stage', message: `Неизвестная стадия: ${data.stage}` }
+  }
+
+  const subscription: Subscription = {
     id: nextSubscriptionId++,
-    userId: 1,
-    industry: data.industry || null,
-    industryName: data.industry
-      ? mockDictionaries.industries.find((i) => i.code === data.industry)?.name || null
-      : null,
-    municipalityId: data.municipalityId || null,
-    municipalityName: data.municipalityId
-      ? mockDictionaries.municipalities.find((m) => m.id === data.municipalityId)?.name || null
-      : null,
-    need: data.need || null,
-    needName: data.need
-      ? mockDictionaries.needs.find((n) => n.code === data.need)?.name || null
-      : null,
-    stage: data.stage ? (data.stage as 'design' | 'construction' | 'launch') : null,
-    stageName: data.stage
-      ? mockDictionaries.stages.find((s) => s.code === data.stage)?.name || null
-      : null,
-    createdAt: new Date('2026-01-01T00:00:00Z').toISOString(),
+    industry: data.industry ?? null,
+    municipalityId: data.municipalityId ?? null,
+    need: data.need ?? null,
+    stage: data.stage ?? null,
+    createdAt: new Date().toISOString(),
   }
-  subscriptions.push(newSub)
-  return newSub
+  subscriptions = [subscription, ...subscriptions]
+  simulateNewProjectFor(subscription)
+  return { ok: true, subscription }
 }
 
-export function deleteSubscription(id: number): void {
+export function deleteSubscription(id: number): boolean {
+  const before = subscriptions.length
   subscriptions = subscriptions.filter((s) => s.id !== id)
+  return subscriptions.length < before
 }
 
-// Уведомления (из примера)
-const baseNotifications: Notification[] = notificationsExample.items.map((notif: any) => ({
-  id: notif.id,
-  userId: 1,
-  projectId: notif.projectId,
-  projectTitle: notif.title, // title из JSON -> projectTitle в типе
-  municipalityName: notif.municipalityName,
-  read: notif.isRead,
-  createdAt: notif.createdAt,
-}))
-
-let notifications: Notification[] = [...baseNotifications]
-
-export function getNotifications(): { items: Notification[]; unreadCount: number } {
-  const unreadCount = notifications.filter((n) => !n.read).length
-  return { items: notifications, unreadCount }
+function projectMatches(project: ProjectShort, sub: Subscription): boolean {
+  return (
+    (sub.industry === null || project.industry === sub.industry) &&
+    (sub.municipalityId === null || project.municipalityId === sub.municipalityId) &&
+    (sub.need === null || project.needs.includes(sub.need)) &&
+    (sub.stage === null || project.stage === sub.stage)
+  )
 }
 
-export function markNotificationRead(id: number): void {
-  const notif = notifications.find((n) => n.id === id)
-  if (notif) {
-    notif.read = true
+function notificationFor(project: ProjectShort, id: number, sub: Subscription | null, createdAt: Date): Notification {
+  return {
+    id,
+    projectId: project.id,
+    title: project.title,
+    municipalityName: project.municipalityName,
+    subscriptionId: sub?.id ?? null,
+    isRead: false,
+    sentToTelegram: false,
+    createdAt: createdAt.toISOString(),
   }
+}
+
+/** Стартовая лента: 6 проектов фикстуры (seeded), новые сверху, непрочитано два самых свежих */
+export function buildMockNotifications(now: Date = new Date()): Notification[] {
+  const rng = new SeededRandom(2026)
+  const projects = getAllProjects()
+  const picked = new Set<number>()
+  while (picked.size < Math.min(6, projects.length)) {
+    picked.add(projects[Math.floor(rng.next() * projects.length)].id)
+  }
+
+  let minutesAgo = 0
+  return [...picked].map((projectId, i) => {
+    minutesAgo += Math.floor(rng.range(5, 600))
+    const project = getProjectById(projectId)!
+    const sub = subscriptions.find((s) => projectMatches(project, s)) ?? null
+    const notification = notificationFor(project, 100 - i, sub, new Date(now.getTime() - minutesAgo * 60_000))
+    notification.isRead = i >= 2
+    notification.sentToTelegram = rng.next() > 0.5
+    return notification
+  })
+}
+
+let notifications: Notification[] = buildMockNotifications()
+let nextNotificationId = 101
+
+/**
+ * Вместо `etl demo-project` на моках: новая подписка сразу получает уведомление о самом свежем подходящем
+ * проекте, которого ещё нет в ленте, — колокольчик показывает «+1».
+ */
+function simulateNewProjectFor(sub: Subscription): void {
+  const project = getAllProjects().find(
+    (p) => projectMatches(p, sub) && !notifications.some((n) => n.projectId === p.id)
+  )
+  if (!project) return
+  notifications = [notificationFor(project, nextNotificationId++, sub, new Date()), ...notifications]
+}
+
+export function getNotifications(unreadOnly = false): NotificationsResponse {
+  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const items = (unreadOnly ? notifications.filter((n) => !n.isRead) : notifications).slice(0, 50)
+  return { items, unreadCount }
+}
+
+export function markNotificationRead(id: number): boolean {
+  const found = notifications.find((n) => n.id === id)
+  if (!found) return false
+  notifications = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+  return true
 }
 
 export function markAllNotificationsRead(): void {
-  notifications.forEach((n) => {
-    n.read = true
+  notifications = notifications.map((n) => ({ ...n, isRead: true }))
+}
+
+/** Для тестов: вернуть подписки и ленту к стартовому состоянию */
+export function resetNotifierMocks(): void {
+  subscriptions = exampleSubscriptions()
+  nextSubscriptionId = Math.max(...subscriptions.map((s) => s.id), 0) + 1
+  notifications = buildMockNotifications()
+  nextNotificationId = 101
+}
+
+// ============ «Где работает» и импорт CSV (ТЗ 07, роль admin) ============
+// Состояние в памяти страницы, как у подписок. Фактические места не выдумываем: стартово их нет,
+// демо — ввод менеджера в карточке («ИП из Сальска → фактически Азов») и импорт CSV из CRM.
+
+const CONFIDENCE: Record<string, number> = { crm: 0.9, manager: 0.8, egrul: 0.7 }
+let locations = new Map<number, ActualLocation[]>()
+let nextLocationId = 1
+
+function findMunicipalityByName(name: string) {
+  const n = name.trim().toLowerCase()
+  return mockDictionaries.municipalities.find((m) => m.name.toLowerCase() === n)
+}
+
+function recomputeRelocated(company: CompanyShort): void {
+  const actual = locations.get(company.id) ?? []
+  // Как CompanyFilterSql.RELOCATED: другой регион или другой муниципалитет, чем при регистрации
+  company.relocated = actual.some(
+    (a) => a.regionName !== null || (a.municipalityName !== null && a.municipalityName !== company.municipalityName)
+  )
+}
+
+export function getCompanyLocations(companyId: number): CompanyLocations | undefined {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  if (!company) return undefined
+  return {
+    registered: {
+      municipalityName: company.municipalityName,
+      settlement: company.settlement,
+      lat: company.lat,
+      lon: company.lon,
+    },
+    actual: [...(locations.get(companyId) ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id),
+    relocated: !!company.relocated,
+  }
+}
+
+export type MockLocationResult =
+  | { ok: true; location: ActualLocation }
+  | { ok: false; status: 400 | 404; field?: string; message: string }
+
+function addLocation(company: CompanyShort, input: LocationInput, source: string): MockLocationResult {
+  const municipalityName = input.municipalityName?.trim() || null
+  const regionName = input.regionName?.trim() || null
+  if ((municipalityName === null) === (regionName === null)) {
+    return { ok: false, status: 400, field: 'municipalityName', message: 'Укажите район/город области или другой регион — одно из двух' }
+  }
+  let lat: number | null = null
+  let lon: number | null = null
+  if (municipalityName !== null) {
+    const muni = findMunicipalityByName(municipalityName)
+    if (!muni) {
+      return { ok: false, status: 400, field: 'municipalityName', message: `Неизвестный район или город: ${municipalityName}` }
+    }
+    lat = muni.lat
+    lon = muni.lon
+  }
+  const location: ActualLocation = {
+    id: nextLocationId++,
+    municipalityName,
+    regionName,
+    address: input.address?.trim() || null,
+    lat,
+    lon,
+    source,
+    confidence: CONFIDENCE[source] ?? 0.5,
+    note: input.note?.trim() || null,
+    createdAt: new Date().toISOString(),
+  }
+  locations.set(company.id, [location, ...(locations.get(company.id) ?? [])])
+  recomputeRelocated(company)
+  return { ok: true, location }
+}
+
+export function addCompanyLocation(companyId: number, input: LocationInput): MockLocationResult {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  if (!company) return { ok: false, status: 404, message: `Компания ${companyId} не найдена` }
+  return addLocation(company, input, 'manager')
+}
+
+/** Менеджер удаляет только своё (source = manager) — как LocationService; 403 для остального */
+export function deleteCompanyLocation(companyId: number, locationId: number): 204 | 403 | 404 {
+  const company = getAllCompanies().find((c) => c.id === companyId)
+  const list = locations.get(companyId) ?? []
+  const found = list.find((l) => l.id === locationId)
+  if (!company || !found) return 404
+  if (found.source !== 'manager') return 403
+  locations.set(companyId, list.filter((l) => l.id !== locationId))
+  recomputeRelocated(company)
+  return 204
+}
+
+/** CSV: «;» или «,», с BOM или без; заголовок пропускаем, если первая ячейка не похожа на ИНН */
+function parseCsv(text: string): string[][] {
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim() !== '')
+  const delimiter = lines[0]?.includes(';') ? ';' : ','
+  const rows = lines.map((l) => l.split(delimiter).map((c) => c.trim().replace(/^"|"$/g, '')))
+  return rows.length > 0 && !/^\d{10,12}$/.test(rows[0][0]) ? rows.slice(1) : rows
+}
+
+export function importClientsCsv(text: string, mode: ImportMode): ImportClientsResponse {
+  const rows = parseCsv(text)
+  const byInn = new Map(getAllCompanies().map((c) => [c.inn, c]))
+  const matchedInns = new Set<string>()
+  const notFound: string[] = []
+  rows.forEach(([inn]) => {
+    if (byInn.has(inn)) matchedInns.add(inn)
+    else if (notFound.length < 100) notFound.push(inn)
   })
+
+  getAllCompanies().forEach((c) => {
+    const isClient = matchedInns.has(c.inn) || (mode === 'append' && c.isClient)
+    // Меняется только признак клиента, статус в реестре — нет (ClientImportService)
+    c.isClient = isClient
+    c.kind = c.status === 'excluded' ? (isClient ? 'excluded' : 'others') : isClient ? 'ours' : 'others'
+  })
+
+  return {
+    rows: rows.length,
+    matched: matchedInns.size,
+    notFound,
+    mode,
+    whiteSpots: generateWhiteSpots('all', 1000).length,
+  }
+}
+
+export function importLocationsCsv(text: string): LocationImportResponse {
+  const rows = parseCsv(text)
+  const byInn = new Map(getAllCompanies().map((c) => [c.inn, c]))
+  let matched = 0
+  const notFound: string[] = []
+  const invalid: string[] = []
+  rows.forEach(([inn, municipality = '', region = '', address = '', source = ''], i) => {
+    const company = byInn.get(inn)
+    if (!company) {
+      if (notFound.length < 100) notFound.push(inn)
+      return
+    }
+    const result = addLocation(
+      company,
+      { municipalityName: municipality || undefined, regionName: region || undefined, address },
+      source || 'crm'
+    )
+    if (result.ok) matched++
+    else if (invalid.length < 100) invalid.push(`строка ${i + 1}: ${result.message}`)
+  })
+  return { rows: rows.length, matched, notFound, invalid }
+}
+
+/** Для тестов */
+export function resetLocationMocks(): void {
+  locations = new Map()
+  nextLocationId = 1
+  getAllCompanies().forEach((c) => (c.relocated = false))
 }

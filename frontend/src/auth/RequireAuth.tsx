@@ -22,7 +22,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   }
 
   if (!user) {
-    const next = location.pathname !== '/' ? `?next=${encodeURIComponent(location.pathname)}` : ''
+    // Вместе с query — ссылка с фильтром переживает вход
+    const back = location.pathname + location.search
+    const next = back !== '/' ? `?next=${encodeURIComponent(back)}` : ''
     return <Navigate to={`/login${next}`} replace />
   }
 

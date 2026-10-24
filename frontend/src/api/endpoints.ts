@@ -12,8 +12,15 @@ import type {
   ProjectRelatedCompaniesResponse,
   SubscriptionsResponse,
   Subscription,
+  SubscriptionInput,
   NotificationsResponse,
   TelegramLinkResponse,
+  CompanyLocations,
+  ActualLocation,
+  LocationInput,
+  LocationImportResponse,
+  ImportClientsResponse,
+  ImportMode,
 } from './types'
 
 export async function getDictionaries(): Promise<Dictionaries> {
@@ -34,6 +41,38 @@ export async function getMunicipalityStats(industry: string): Promise<Municipali
 
 export async function getWhiteSpots(industry: string, limit = 10): Promise<WhiteSpot[]> {
   return apiFetch<WhiteSpot[]>(`/api/white-spots?industry=${industry}&limit=${limit}`)
+}
+
+// «Где работает» (ТЗ 07)
+
+export async function getCompanyLocations(id: number): Promise<CompanyLocations> {
+  return apiFetch<CompanyLocations>(`/api/companies/${id}/locations`)
+}
+
+export async function addCompanyLocation(id: number, data: LocationInput): Promise<ActualLocation> {
+  return apiFetch<ActualLocation>(`/api/companies/${id}/locations`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteCompanyLocation(id: number, locationId: number): Promise<void> {
+  await apiFetch<void>(`/api/companies/${id}/locations/${locationId}`, { method: 'DELETE' })
+}
+
+// Админ: загрузка CSV. Тело — FormData: браузер сам ставит multipart/form-data с границей
+
+export async function importClients(file: File, mode: ImportMode): Promise<ImportClientsResponse> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('mode', mode)
+  return apiFetch<ImportClientsResponse>('/api/clients/import', { method: 'POST', body: form })
+}
+
+export async function importLocations(file: File): Promise<LocationImportResponse> {
+  const form = new FormData()
+  form.append('file', file)
+  return apiFetch<LocationImportResponse>('/api/locations/import', { method: 'POST', body: form })
 }
 
 // Продукт 2 - Навигатор
@@ -58,15 +97,9 @@ export async function getSubscriptions(): Promise<SubscriptionsResponse> {
   return apiFetch<SubscriptionsResponse>('/api/subscriptions')
 }
 
-export async function createSubscription(data: {
-  industry?: string
-  municipalityId?: number
-  need?: string
-  stage?: string
-}): Promise<Subscription> {
+export async function createSubscription(data: SubscriptionInput): Promise<Subscription> {
   return apiFetch<Subscription>('/api/subscriptions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
 }

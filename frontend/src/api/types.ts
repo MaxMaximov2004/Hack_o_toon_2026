@@ -165,10 +165,10 @@ export interface MunicipalityStats {
   excludedClients: number
   coverage: number
   newShare: number
-  revenueEstSum: number
+  revenueEstSum: number | null
   potentialScore: number
   isWhiteSpot: boolean
-  reason: string
+  reason: string | null
 }
 
 // Белые пятна
@@ -183,13 +183,61 @@ export interface WhiteSpot {
   reason: string
 }
 
-// Импорт клиентов
+// Импорт клиентов (admin) — POST /api/clients/import, core-api clients/ClientImportResult
+export type ImportMode = 'append' | 'replace'
+
 export interface ImportClientsResponse {
   rows: number
   matched: number
   notFound: string[]
-  mode: 'append' | 'replace'
+  mode: ImportMode
   whiteSpots: number
+}
+
+// «Где работает» — GET /api/companies/{id}/locations (contracts/examples/locations.json)
+export type LocationSource = 'crm' | 'manager' | 'egrul' | string
+
+export interface RegisteredLocation {
+  municipalityName: string
+  settlement: string | null
+  lat: number
+  lon: number
+}
+
+export interface ActualLocation {
+  id: number
+  municipalityName: string | null
+  /** Другой регион, если место за пределами области */
+  regionName: string | null
+  address: string | null
+  lat: number | null
+  lon: number | null
+  source: LocationSource
+  confidence: number
+  note: string | null
+  createdAt: string
+}
+
+export interface CompanyLocations {
+  registered: RegisteredLocation
+  actual: ActualLocation[]
+  relocated: boolean
+}
+
+/** POST /api/companies/{id}/locations: ровно одно из municipalityName и regionName */
+export interface LocationInput {
+  municipalityName?: string
+  regionName?: string
+  address?: string
+  note?: string
+}
+
+/** POST /api/locations/import (admin) */
+export interface LocationImportResponse {
+  rows: number
+  matched: number
+  notFound: string[]
+  invalid: string[]
 }
 
 // Проекты (продукт 2 - Навигатор)
@@ -210,15 +258,16 @@ export interface ProjectShort {
   lat: number
   lon: number
   isKey: boolean
-  curator: string
-  startYear: number
-  launchYear: number
-  amountMln: number
-  jobs: number
+  // В core-api (invest/Project.java) поля ниже могут быть null — в данных бывают пропуски
+  curator: string | null
+  startYear: number | null
+  launchYear: number | null
+  amountMln: number | null
+  jobs: number | null
   stage: ProjectStage
   stageName: string
-  industry: string
-  industryName: string
+  industry: string | null
+  industryName: string | null
   needs: string[]
   recommendedOffers: RecommendedOffer[]
   updatedAt: string
@@ -245,7 +294,7 @@ export interface TimelineEvent {
   municipalityId: number
   municipalityName: string
   stage: ProjectStage
-  amountMln: number
+  amountMln: number | null
 }
 
 export interface TimelineYear {
@@ -254,8 +303,9 @@ export interface TimelineYear {
 }
 
 export interface TimelineResponse {
-  minYear: number
-  maxYear: number
+  /** null — под фильтром нет ни одного события */
+  minYear: number | null
+  maxYear: number | null
   total: number
   years: TimelineYear[]
 }
@@ -263,39 +313,33 @@ export interface TimelineResponse {
 // Связанные компании проекта
 export type ProjectCompanyRelation = 'initiator' | 'same_area_industry'
 
-export interface ProjectRelatedCompany {
-  id: number
-  inn: string
-  name: string
-  industry: string
-  industryName: string
-  municipalityId: number
-  municipalityName: string
-  revenueEst: number | null
-  isEstimated: boolean
-  kind: CompanyKind
-  relation: ProjectCompanyRelation
-}
+/** Компания вокруг проекта — CompanyShort как в списке радара + отношение к проекту (контракт 08) */
+export type ProjectRelatedCompany = CompanyShort & { relation: ProjectCompanyRelation }
 
 export interface ProjectRelatedCompaniesResponse {
+  projectId: number
   items: ProjectRelatedCompany[]
+  /** Сколько всего действующих компаний той же отрасли в районе проекта */
   sameAreaIndustryTotal: number
+  /** Строка CompanyFilter для «Открыть в радаре»; null — у проекта нет отрасли */
   radarQuery: string | null
 }
 
-// Подписки
+// Подписки (notifier, контракт 08). Названия кодов — из /api/dictionaries на фронте
 export interface Subscription {
   id: number
-  userId: number
   industry: string | null
-  industryName: string | null
   municipalityId: number | null
-  municipalityName: string | null
   need: string | null
-  needName: string | null
   stage: ProjectStage | null
-  stageName: string | null
   createdAt: string
+}
+
+export interface SubscriptionInput {
+  industry?: string
+  municipalityId?: number
+  need?: string
+  stage?: ProjectStage
 }
 
 /** GET /api/subscriptions — массив подписок, новые сверху (contracts/examples/subscriptions.json) */
@@ -304,11 +348,12 @@ export type SubscriptionsResponse = Subscription[]
 // Уведомления
 export interface Notification {
   id: number
-  userId: number
   projectId: number
-  projectTitle: string
-  municipalityName: string
-  read: boolean
+  title: string
+  municipalityName: string | null
+  subscriptionId: number | null
+  isRead: boolean
+  sentToTelegram: boolean
   createdAt: string
 }
 

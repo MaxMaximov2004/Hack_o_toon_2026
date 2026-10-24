@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getProjects } from '../api/endpoints'
 import { projectFilterToQuery } from './projectFilterToQuery'
-import { formatMoney } from '../utils/formatMoney'
+import { formatMoney, formatYears } from '../utils/formatMoney'
 import type { ProjectFilters, ProjectSortField, ProjectSortDirection } from './types'
 import type { ProjectShort } from '../api/types'
 import styles from './ProjectList.module.css'
@@ -142,9 +142,9 @@ function ProjectRow({ project, isSelected, onClick }: ProjectRowProps) {
       <div className={styles.stats}>
         <span className={styles.amount}>{formatMoney(project.amountMln)}</span>
         <span className={styles.years}>
-          {project.startYear}–{project.launchYear}
+          {formatYears(project.startYear, project.launchYear)}
         </span>
-        {project.jobs > 0 && (
+        {!!project.jobs && project.jobs > 0 && (
           <span className={styles.jobs}>{project.jobs} мест</span>
         )}
       </div>

@@ -4,6 +4,7 @@ import { projectFilterToQuery } from './projectFilterToQuery'
 import type { ProjectFilters } from './types'
 import type { TimelineEvent } from '../api/types'
 import { useState, useMemo } from 'react'
+import { formatMoney } from '../utils/formatMoney'
 import styles from './ProjectTimeline.module.css'
 
 interface ProjectTimelineProps {
@@ -30,11 +31,12 @@ export function ProjectTimeline({
   const [hoveredEvent, setHoveredEvent] = useState<TimelineEvent | null>(null)
 
   // Ограничиваем maxYear до 2035, всё позже — "2036+"
-  const displayMaxYear = data ? Math.min(data.maxYear, 2035) : 2035
+  const displayMaxYear = data?.maxYear != null ? Math.min(data.maxYear, 2035) : 2035
 
   // Годы для отображения
   const years = useMemo(() => {
-    if (!data) return []
+    // minYear = null — под фильтром нет ни одного события
+    if (!data || data.minYear === null) return []
     const result: number[] = []
     for (let y = data.minYear; y <= displayMaxYear; y++) {
       result.push(y)
@@ -170,8 +172,8 @@ export function ProjectTimeline({
                     key={`${event.projectId}-${event.type}-${idx}`}
                     className={`${styles.event} ${styles[`event-${event.type}`]}`}
                     style={{
-                      width: `${Math.min(Math.log(event.amountMln + 1) * 3, 20)}px`,
-                      height: `${Math.min(Math.log(event.amountMln + 1) * 3, 20)}px`,
+                      width: `${Math.min(Math.log((event.amountMln ?? 0) + 1) * 3, 20)}px`,
+                      height: `${Math.min(Math.log((event.amountMln ?? 0) + 1) * 3, 20)}px`,
                     }}
                     onClick={() => onSelectProject(event.projectId)}
                     onMouseEnter={() => setHoveredEvent(event)}
@@ -190,7 +192,7 @@ export function ProjectTimeline({
         <div className={styles.tooltip}>
           <div className={styles.tooltipTitle}>{hoveredEvent.title}</div>
           <div className={styles.tooltipMeta}>
-            {hoveredEvent.municipalityName} · {hoveredEvent.amountMln.toFixed(1)} млн ₽
+            {hoveredEvent.municipalityName} · {formatMoney(hoveredEvent.amountMln)}
           </div>
         </div>
       )}
