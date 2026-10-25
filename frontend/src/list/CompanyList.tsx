@@ -139,7 +139,13 @@ export function CompanyList({ filters, selectedId, onSelectCompany, onFiltersCha
         />
       </div>
 
-      <ExportButtons filters={filters} total={data.total} />
+      <ExportButtons
+        endpoint="/api/export/companies"
+        query={filterToQuery(filters)}
+        total={data.total}
+        noun="компаний"
+        allowImport
+      />
 
       <div className={styles.header}>
         <h3 className={styles.title}>Найдено: {data.total}</h3>

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { filterToQuery } from '../filters/filterToQuery'
-import type { CompanyFilters } from '../filters/types'
 import { downloadBlob } from './downloadBlob'
 import { apiFetch, type BlobResponse } from '../api/apiFetch'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -11,11 +9,18 @@ import type { ApiError } from '../api/types'
 import styles from './ExportButtons.module.css'
 
 interface ExportButtonsProps {
-  filters: CompanyFilters
+  /** `/api/export/companies` (Радар) или `/api/export/projects` (Навигатор) */
+  endpoint: string
+  /** Та же строка фильтра, что у списка на экране — выгрузка совпадает с ним */
+  query: string
   total: number
+  /** «компаний» / «проектов» — в подтверждении и ошибке */
+  noun: string
+  /** «Обновить список клиентов» для админа — только на Радаре */
+  allowImport?: boolean
 }
 
-export function ExportButtons({ filters, total }: ExportButtonsProps) {
+export function ExportButtons({ endpoint, query, total, noun, allowImport = false }: ExportButtonsProps) {
   const { user } = useAuth()
   const isAdmin = !!user?.roles.includes('admin')
   const [importOpen, setImportOpen] = useState(false)
@@ -37,8 +42,7 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
     setError(null)
 
     try {
-      const query = filterToQuery(filters)
-      const url = `/api/export/companies?${query}&format=${format}`
+      const url = `${endpoint}?${query}${query ? '&' : ''}format=${format}`
 
       const { blob, filename } = await apiFetch<BlobResponse>(url, {
         responseType: 'blob',
@@ -54,7 +58,7 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
         // Специальная обработка для 413
         if (apiError.code === 'TOO_LARGE' || apiError.code === 'PAYLOAD_TOO_LARGE') {
           const count = apiError.details?.total || total
-          setError(`Слишком много, сузьте фильтр (${count} компаний)`)
+          setError(`Слишком много, сузьте фильтр (${count} ${noun})`)
         } else {
           setError(apiError.message)
         }
@@ -83,7 +87,7 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
         >
           В CRM
         </button>
-        {isAdmin && (
+        {allowImport && isAdmin && (
           <button className={`${styles.button} ${styles.adminButton}`} onClick={() => setImportOpen(true)}>
             Обновить список клиентов
           </button>
@@ -94,8 +98,8 @@ export function ExportButtons({ filters, total }: ExportButtonsProps) {
 
       {pendingFormat && (
         <ConfirmDialog
-          title="Экспорт компаний"
-          message={`Будет выгружено ${total} компаний`}
+          title={`Экспорт ${noun}`}
+          message={`Будет выгружено ${total} ${noun}`}
           onConfirm={handleConfirm}
           onCancel={() => setPendingFormat(null)}
         />

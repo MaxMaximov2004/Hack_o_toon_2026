@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getProjects } from '../api/endpoints'
 import { projectFilterToQuery } from './projectFilterToQuery'
 import { formatMoney, formatYears } from '../utils/formatMoney'
+import { ExportButtons } from '../export/ExportButtons'
 import type { ProjectFilters, ProjectSortField, ProjectSortDirection } from './types'
 import type { ProjectShort } from '../api/types'
 import styles from './ProjectList.module.css'
@@ -75,6 +76,7 @@ export function ProjectList({
 
   return (
     <div className={styles.container}>
+      <ExportButtons endpoint="/api/export/projects" query={queryString} total={data.total} noun="проектов" />
       <div className={styles.header}>
         <div className={styles.count}>Найдено: {data.total}</div>
         <div className={styles.sortButtons}>
