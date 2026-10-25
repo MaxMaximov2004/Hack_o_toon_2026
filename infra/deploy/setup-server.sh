@@ -2,6 +2,7 @@
 # =====================================================================
 # Первичная настройка сервера (Ubuntu / Debian). Один раз, от root:
 #   bash setup-server.sh
+#   BRANCH=before-main bash setup-server.sh     # развернуть не main, а другую ветку
 # Можно запускать повторно — уже сделанные шаги пропускаются.
 #
 # Что делает: ставит git и Docker, добавляет swap (сборка Java и фронта
@@ -12,6 +13,7 @@
 set -euo pipefail
 REPO="${REPO:-git@github.com:MaxMaximov2004/Hack_o_toon_2026.git}"
 DIR="${DIR:-/opt/radar}"
+BRANCH="${BRANCH:-main}"
 KEY=/root/.ssh/radar_deploy
 
 [ "$(id -u)" = 0 ] || { echo "Запускать от root"; exit 1; }
@@ -48,7 +50,7 @@ if [ ! -f "$KEY" ]; then
   ssh-keyscan -q github.com >> /root/.ssh/known_hosts 2>/dev/null
 fi
 if [ ! -d "$DIR/.git" ]; then
-  if ! git clone -q "$REPO" "$DIR" 2>/dev/null; then
+  if ! git clone -q -b "$BRANCH" "$REPO" "$DIR" 2>/dev/null; then
     echo
     echo "Нет доступа к репозиторию. Владелец репозитория на GitHub должен добавить ключ:"
     echo "  Settings -> Deploy keys -> Add deploy key (Allow write access — НЕ ставить)"
