@@ -1,5 +1,5 @@
 import { apiFetch, type BlobResponse } from '../api/apiFetch'
-import type { CalcCatalog, EstimateRequest, EstimateResponse, ProposalClient } from './types'
+import type { CalcCatalog, EstimateRequest, EstimateResponse, PricesStatus, ProposalClient } from './types'
 
 // Калькулятор сделок (calc-service, через nginx /api/calc/*). Расчёт, CSV и КП — один и тот же POST-запрос.
 
@@ -37,4 +37,14 @@ export async function postProposal(body: EstimateRequest, client: ProposalClient
     body: JSON.stringify({ ...body, client }),
     responseType: 'blob',
   })
+}
+
+/** Последний парсинг цен (прайсы Ростелекома + аналоги tinko.ru) */
+export async function getPricesStatus(): Promise<PricesStatus> {
+  return apiFetch<PricesStatus>('/api/calc/prices/status')
+}
+
+/** Запустить парсинг цен — только admin; 409, если уже идёт */
+export async function postPricesRefresh(): Promise<void> {
+  await apiFetch('/api/calc/prices/refresh', { method: 'POST' })
 }

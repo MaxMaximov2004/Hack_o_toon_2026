@@ -11,6 +11,7 @@ import { calcParamsToBody, calcParamsToQuery } from '../calc/calcParams'
 import { hasPositions, useEstimate } from '../calc/useEstimate'
 import { CalcParamsForm } from '../calc/CalcParamsForm'
 import { EquipmentPicker } from '../calc/EquipmentPicker'
+import { PricesPanel } from '../calc/PricesPanel'
 import { CustomItems, type CustomItem } from '../calc/CustomItems'
 import { Dashboard } from '../calc/Dashboard'
 import { CalcExport } from '../calc/CalcExport'
@@ -104,6 +105,7 @@ export function CalcPage() {
                 </section>
                 <section className={styles.card}>
                   <h2 className={styles.cardTitle}>Оборудование</h2>
+                  <PricesPanel />
                   <EquipmentPicker catalog={catalog} items={params.items} onChange={(items) => updateParams({ items })} />
                 </section>
                 <section className={styles.card}>

@@ -40,6 +40,7 @@ function renderPage(url = '/calc') {
 describe('CalcPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(calcApi.getPricesStatus).mockResolvedValue({ running: false, last: null })
     vi.mocked(calcApi.getCalcCatalog).mockResolvedValue(catalog)
     vi.mocked(calcApi.postEstimate).mockImplementation(async (body: EstimateRequest) => mockEstimate(body, catalog, analogs))
     vi.mocked(endpoints.getDictionaries).mockResolvedValue(mockDictionaries)

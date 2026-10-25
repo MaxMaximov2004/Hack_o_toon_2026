@@ -106,6 +106,7 @@ function ComponentRow({ component, qty, nonStandard, nonStandardMarkup, onChange
         <span className={styles.meta}>
           {formatRub(component.base_price)} за {component.unit} · сложность ×{component.complexity.toLocaleString('ru-RU')}
         </span>
+        <PriceSource component={component} />
         {qty > 0 && (
           <label className={styles.nonStandard}>
             <input type="checkbox" checked={nonStandard} onChange={(e) => onChange(qty, e.target.checked)} />
@@ -147,5 +148,42 @@ function ComponentRow({ component, qty, nonStandard, nonStandardMarkup, onChange
         </button>
       </div>
     </li>
+  )
+}
+
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString('ru-RU')
+
+/** Откуда цена: прайс Ростелекома (парсер) или таблица кейса; рядом — рыночный аналог из магазина */
+export function PriceSource({ component: c }: { component: CalcComponent }) {
+  return (
+    <span className={styles.source}>
+      {c.price_source ? (
+        <>
+          {c.price_url ? (
+            <a href={c.price_url} target="_blank" rel="noreferrer">
+              Прайс Ростелекома
+            </a>
+          ) : (
+            'Прайс Ростелекома'
+          )}
+          {c.price_date && ` от ${formatDate(c.price_date)}`}
+        </>
+      ) : (
+        'Цена из таблицы кейса'
+      )}
+      {c.market_price != null && (
+        <span className={styles.market}>
+          {`Рынок, аналог (${c.market_source ?? 'магазин'}): от `}
+          {c.market_url ? (
+            <a href={c.market_url} target="_blank" rel="noreferrer">
+              {formatRub(c.market_price)}
+            </a>
+          ) : (
+            formatRub(c.market_price)
+          )}
+          {c.market_note && ` · ${c.market_note}`}
+        </span>
+      )}
+    </span>
   )
 }

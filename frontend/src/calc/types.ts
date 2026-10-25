@@ -28,6 +28,31 @@ export interface CalcComponent {
   unit: string
   base_price: number // рубли
   complexity: number
+  // Парсер цен (ETL): источник цены; нет — цена из таблицы кейса. Старый calc-service полей не отдаёт
+  price_source?: string | null
+  price_url?: string | null
+  price_date?: string | null // ISO-дата «Тарифы действуют с …»
+  // Рыночный аналог той же серии в магазине
+  market_price?: number | null
+  market_source?: string | null
+  market_note?: string | null
+  market_url?: string | null
+  market_checked_at?: string | null
+}
+
+/** GET /api/calc/prices/status — последний парсинг цен */
+export interface PricesStatus {
+  running: boolean
+  last: {
+    status: 'running' | 'ok' | 'failed'
+    startedAt: string
+    finishedAt: string | null
+    details: {
+      rt?: Record<string, { origin: string; date: string | null; parsed: number; updated: number; added: string[] }>
+      market?: { found: number; missing: string[]; errors: string[] } | null
+      error?: string
+    } | null
+  } | null
 }
 
 export interface CalcPricingParams {
