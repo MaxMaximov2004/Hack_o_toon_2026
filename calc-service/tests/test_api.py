@@ -239,6 +239,52 @@ class TestProposalEndpoint:
                 assert re.search(r"\d\u00a0\d{3},\d{2}", text)
 
 
+def _admin_header():
+    import time
+    return {"Authorization": "Bearer " + _make_token({
+        "iss": "radar-auth", "sub": "2", "amr": ["pwd", "otp"], "roles": ["admin"],
+        "iat": int(time.time()), "exp": int(time.time()) + 3600,
+    })}
+
+
+class TestPrices:
+    """POST /api/calc/prices/refresh и GET /api/calc/prices/status — прокси к парсеру цен в ETL."""
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_refresh_only_admin(self, mock_fetch, client):
+        with patch("app.auth._jwks", _JWKS), patch("app.main._etl") as etl:
+            resp = client.post("/api/calc/prices/refresh", headers=_auth_header())
+            assert resp.status_code == 403
+            assert resp.json()["error"]["code"] == "FORBIDDEN"
+            etl.assert_not_called()
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_refresh_started_and_conflict(self, mock_fetch, client):
+        with patch("app.auth._jwks", _JWKS), patch("app.main._etl") as etl:
+            etl.return_value = MagicMock(status_code=202)
+            assert client.post("/api/calc/prices/refresh", headers=_admin_header()).status_code == 202
+            etl.assert_called_with("POST", "/internal/etl/prices")
+            etl.return_value = MagicMock(status_code=409)
+            resp = client.post("/api/calc/prices/refresh", headers=_admin_header())
+            assert resp.status_code == 409 and resp.json()["error"]["code"] == "CONFLICT"
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_no_etl_url_is_502(self, mock_fetch, client):
+        with patch("app.auth._jwks", _JWKS), patch("app.main.settings.ETL_URL", None):
+            resp = client.get("/api/calc/prices/status", headers=_auth_header())
+            assert resp.status_code == 502 and resp.json()["error"]["code"] == "UPSTREAM_UNAVAILABLE"
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_status_finished_invalidates_catalog(self, mock_fetch, client):
+        last = {"status": "ok", "finishedAt": "2026-10-25T01:29:28+00:00", "details": {}}
+        with patch("app.auth._jwks", _JWKS), patch("app.main._etl") as etl, \
+                patch("app.main.invalidate_catalog") as inv:
+            etl.return_value = MagicMock(status_code=200, json=lambda: {"running": False, "last": last})
+            resp = client.get("/api/calc/prices/status", headers=_auth_header())
+            assert resp.status_code == 200 and resp.json()["last"] == last
+            inv.assert_called_once()
+
+
 class TestBitrixExport:
     """Тест POST /api/calc/export/bitrix — лид для импорта в Bitrix24."""
 

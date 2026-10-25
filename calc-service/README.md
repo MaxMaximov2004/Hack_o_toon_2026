@@ -82,6 +82,12 @@ curl -X POST http://localhost:8085/api/calc/export/csv \
   }' -o estimate.csv
 ```
 
+### Цены: GET /api/calc/prices/status, POST /api/calc/prices/refresh
+Парсинг цен живёт в ETL (`etl/etl/prices.py`): прайсы Ростелекома (PDF) и рыночные аналоги tinko.ru. calc-service
+проксирует к нему с внутренним токеном (`ETL_URL`, необязательная: без неё — 502, расчёт работает). `refresh` — только
+роль `admin` (403 остальным), 409 — уже идёт. В `/catalog` у компонента: `price_source`, `price_url`, `price_date`
+(NULL — цена из таблицы кейса), `market_price`, `market_source`, `market_note`, `market_url`, `market_checked_at`.
+
 ### POST /api/calc/export/bitrix
 Лид для импорта в Bitrix24 (CRM → Лиды → Импорт): тело как у `/proposal`, `client.name` обязателен.
 Колонки как у экспорта Радара и Навигатора + «Сумма» (оптимум) и «Валюта»; в комментарии — вилка, маржа, позиции.

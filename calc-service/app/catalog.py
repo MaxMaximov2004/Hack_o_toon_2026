@@ -63,8 +63,9 @@ def _load_stages():
 
 def _load_components():
     rows = _fetchall(
-        "SELECT id, system_group, name, unit, base_price::text, complexity::text "
-        "FROM calc.component ORDER BY system_group, id"
+        "SELECT id, system_group, name, unit, base_price::text, complexity::text, "
+        "price_source, price_url, price_date, market_price::text, market_source, market_note, market_url, "
+        "market_checked_at FROM calc.component ORDER BY system_group, id"
     )
     groups: dict[str, list[dict]] = {}
     for r in rows:
@@ -78,9 +79,24 @@ def _load_components():
                 "unit": r["unit"],
                 "base_price": float(r["base_price"]),
                 "complexity": float(r["complexity"]),
+                # Откуда цена (парсер ETL, 08_calc_prices.sql): None — цена из таблицы кейса
+                "price_source": r["price_source"],
+                "price_url": r["price_url"],
+                "price_date": r["price_date"].isoformat() if r["price_date"] else None,
+                # Рыночный аналог той же серии (tinko.ru) — для сравнения в калькуляторе
+                "market_price": float(r["market_price"]) if r["market_price"] else None,
+                "market_source": r["market_source"],
+                "market_note": r["market_note"],
+                "market_url": r["market_url"],
+                "market_checked_at": r["market_checked_at"].isoformat() if r["market_checked_at"] else None,
             }
         )
     return {"components": groups}
+
+
+def invalidate():
+    """Сбросить кэш — после парсинга цен каталог перечитывается сразу, а не через 60 с."""
+    _CACHE.clear()
 
 
 def get_catalog():

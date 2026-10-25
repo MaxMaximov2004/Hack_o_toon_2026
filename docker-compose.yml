@@ -136,6 +136,7 @@ services:
       CORE_API_URL: http://core-api:8080
       AUTH_JWKS_URL: http://auth-service:8081/internal/auth/jwks
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-internal_dev_token}
+      ETL_URL: http://etl:8084          # «Обновить цены»: парсинг цен живёт в ETL
     ports:
       - "127.0.0.1:${CALC_PORT:-8085}:8085"
     depends_on:
