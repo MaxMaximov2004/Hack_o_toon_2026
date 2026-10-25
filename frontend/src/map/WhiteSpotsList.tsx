@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { WhiteSpot } from '../api/types'
+import { whiteSpotText } from './whiteSpotText'
 import styles from './WhiteSpotsList.module.css'
 
 interface WhiteSpotsListProps {
@@ -26,16 +27,7 @@ export function WhiteSpotsList({ spots, onSelectSpot }: WhiteSpotsListProps) {
               className={styles.item}
               onClick={() => onSelectSpot(spot.lat, spot.lon)}
             >
-              <div className={styles.name}>{spot.name}</div>
-              <div className={styles.meta}>
-                <span className={styles.potential}>
-                  Потенциал: {spot.potentialScore}
-                </span>
-                <span className={styles.companies}>
-                  {spot.companies} компаний, {spot.clients} клиентов
-                </span>
-              </div>
-              <div className={styles.reason}>{spot.reason}</div>
+              <SpotBody spot={spot} />
             </button>
           ))}
         </div>
@@ -60,21 +52,26 @@ export function WhiteSpotsList({ spots, onSelectSpot }: WhiteSpotsListProps) {
                   setIsExpanded(false)
                 }}
               >
-                <div className={styles.name}>{spot.name}</div>
-                <div className={styles.meta}>
-                  <span className={styles.potential}>
-                    Потенциал: {spot.potentialScore}
-                  </span>
-                  <span className={styles.companies}>
-                    {spot.companies} компаний, {spot.clients} клиентов
-                  </span>
-                </div>
-                <div className={styles.reason}>{spot.reason}</div>
+                <SpotBody spot={spot} />
               </button>
             ))}
           </div>
         )}
       </div>
+    </>
+  )
+}
+
+function SpotBody({ spot }: { spot: WhiteSpot }) {
+  const text = whiteSpotText(spot)
+  return (
+    <>
+      <div className={styles.name}>{spot.name}</div>
+      <div className={styles.meta}>
+        <span className={styles.potential}>{text.potential}</span>
+        <span className={styles.companies}>{text.counts}</span>
+      </div>
+      <div className={styles.reason}>{text.coverage}</div>
     </>
   )
 }

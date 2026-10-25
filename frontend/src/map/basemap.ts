@@ -2,18 +2,12 @@ import type { Map as MaplibreMap, MapSourceDataEvent } from 'maplibre-gl'
 import type { StyleSpecification, RasterSourceSpecification } from 'maplibre-gl'
 
 /**
- * Подложка карт радара и Навигатора: светлая CARTO Positron → OSM → без подложки (только фон).
- * На площадке тайлы могут резать или интернета не будет вовсе — карта с кластерами должна работать всё равно,
+ * Подложка карт радара и Навигатора: OSM, приглушённый до светло-серого (как Positron), → без подложки (только фон).
+ * CARTO Positron не используем: без API-ключа он отдаёт тайлы с надписью «API KEY REQUIRED» (код 200 — по ошибке
+ * не отличить). На площадке тайлы могут резать или интернета не будет вовсе — карта с кластерами работает всё равно,
  * без потока красных ошибок в консоли.
  */
 const BASEMAPS: RasterSourceSpecification[] = [
-  {
-    type: 'raster',
-    tiles: ['a', 'b', 'c', 'd'].map((s) => `https://${s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png`),
-    tileSize: 256,
-    maxzoom: 19,
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
-  },
   {
     type: 'raster',
     tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
@@ -29,6 +23,15 @@ const LAYER_ID = 'basemap'
 const FAILURES_TO_SWITCH = 3
 /** Фон без подложки — светло-серый, как просит гайдлайн */
 const BACKGROUND = '#F3F5F7'
+/**
+ * Цветной OSM → светлый и почти серый: точки «наши / не наши» читаются поверх, а подложка не спорит
+ * с фиолетовым и оранжевым бренда
+ */
+const LIGHT_PAINT = {
+  'raster-saturation': -0.75,
+  'raster-brightness-min': 0.35,
+  'raster-contrast': -0.2,
+}
 
 /** Стартовый стиль — только фон: подложку добавит attachBasemapFallback, когда проба тайла пройдёт */
 export function createBaseStyle(): StyleSpecification {
@@ -77,7 +80,7 @@ function firstAvailableBasemap(): Promise<number> {
 }
 
 /**
- * Следит за ошибками тайлов подложки и переключает CARTO → OSM → без подложки. Ошибки самой подложки
+ * Следит за ошибками тайлов подложки и переключает OSM → без подложки. Ошибки самой подложки
  * не пишет в консоль (их видно по фолбэку); остальные ошибки карты — пишет, как MapLibre по умолчанию.
  * Возвращает отписку.
  */
@@ -102,7 +105,7 @@ export function attachBasemapFallback(map: MaplibreMap): () => void {
       map.addSource(SOURCE_ID, BASEMAPS[index])
       // Подложка — сразу над фоном, под всеми слоями данных
       const firstDataLayer = map.getStyle().layers.find((l) => l.id !== 'background')?.id
-      map.addLayer({ id: LAYER_ID, type: 'raster', source: SOURCE_ID }, firstDataLayer)
+      map.addLayer({ id: LAYER_ID, type: 'raster', source: SOURCE_ID, paint: LIGHT_PAINT }, firstDataLayer)
     } catch {
       // карта уже уничтожена
     }
@@ -145,8 +148,7 @@ export function attachBasemapFallback(map: MaplibreMap): () => void {
 }
 
 /** Для тестов и диагностики: какая подложка сейчас */
-export function basemapName(map: MaplibreMap): 'carto' | 'osm' | 'none' {
+export function basemapName(map: MaplibreMap): 'osm' | 'none' {
   const source = map.getSource(SOURCE_ID) as { tiles?: string[] } | undefined
-  if (!source?.tiles) return 'none'
-  return source.tiles[0].includes('cartocdn') ? 'carto' : 'osm'
+  return source?.tiles ? 'osm' : 'none'
 }
