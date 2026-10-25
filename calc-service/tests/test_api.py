@@ -1,9 +1,19 @@
 """Тесты API (через TestClient с моками)."""
 
+import csv
+import io
 import json
+import re
+import zipfile
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from cryptography.hazmat.backends import default_backend
+
+
+def _docx_text(content: bytes) -> str:
+    """Текст DOCX без разметки — проверить, что попало в КП."""
+    with zipfile.ZipFile(io.BytesIO(content)) as z:
+        return re.sub(r"<[^>]+>", " ", z.read("word/document.xml").decode("utf-8"))
 
 
 def _mock_catalog():
@@ -214,7 +224,7 @@ class TestProposalEndpoint:
         with patch("app.main.get_catalog", return_value=_mock_catalog()):
             with patch("app.auth._jwks", _JWKS):
                 resp = client.post("/api/calc/proposal", json={
-                    "regionId": 1, "level": "basic", "stages": ["pir"], "items": [{"componentId": "el_01", "qty": 5}],
+                    "regionId": 1, "level": "basic", "stages": ["pir"], "items": [{"componentId": "el_01", "qty": 100}],
                     "client": {"name": "ООО Тест", "inn": "1234567890", "contact": "test@test.ru"}
                 }, headers=_auth_header())
                 assert resp.status_code == 200
@@ -223,6 +233,43 @@ class TestProposalEndpoint:
                 assert "radar_proposal_" in resp.headers["Content-Disposition"]
                 assert len(resp.content) > 100
                 assert resp.content[:2] == b"PK"
+                text = _docx_text(resp.content)
+                assert "ООО Тест" in text and "1234567890" in text   # клиент доходит до шапки КП
+                assert not re.search(r"\dX\d", text)                 # суммы «8 500,00», а не «8X500.00»
+                assert re.search(r"\d\u00a0\d{3},\d{2}", text)
+
+
+class TestBitrixExport:
+    """Тест POST /api/calc/export/bitrix — лид для импорта в Bitrix24."""
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_bitrix_lead_with_amount(self, mock_fetch, client, mock_analogs):
+        with patch("app.main.get_catalog", return_value=_mock_catalog()):
+            with patch("app.auth._jwks", _JWKS):
+                resp = client.post("/api/calc/export/bitrix", json={
+                    "regionId": 1, "level": "basic", "stages": ["pir"], "items": [{"componentId": "el_01", "qty": 5}],
+                    "client": {"name": "ООО Тест", "inn": "1234567890", "contact": "test@test.ru"}
+                }, headers=_auth_header())
+                assert resp.status_code == 200
+                assert "estimate_bitrix_" in resp.headers["Content-Disposition"]
+                assert resp.content[:3] == b"\xef\xbb\xbf" and resp.content[3:6] != b"\xef\xbb\xbf"
+                rows = list(csv.reader(io.StringIO(resp.content.decode("utf-8-sig")), delimiter=";"))
+                assert rows[0][:4] == ["Название лида", "Название компании", "Сумма", "Валюта"]
+                lead = dict(zip(rows[0], rows[1]))
+                assert lead["Название лида"] == "Расчёт: ООО Тест"
+                assert lead["Рабочий e-mail"] == "test@test.ru" and lead["Рабочий телефон"] == ""
+                assert lead["Валюта"] == "RUB" and re.fullmatch(r"\d+,\d{2}", lead["Сумма"])
+                assert "ИНН 1234567890" in lead["Комментарий"] and "× 5" in lead["Комментарий"]
+
+    @patch("app.auth._fetch_jwks", return_value=_JWKS)
+    def test_bitrix_without_client_is_400(self, mock_fetch, client, mock_analogs):
+        with patch("app.main.get_catalog", return_value=_mock_catalog()):
+            with patch("app.auth._jwks", _JWKS):
+                resp = client.post("/api/calc/export/bitrix", json={
+                    "regionId": 1, "level": "basic", "stages": ["pir"], "items": [{"componentId": "el_01", "qty": 5}]
+                }, headers=_auth_header())
+                assert resp.status_code == 400
+                assert resp.json()["error"]["details"] == {"field": "client.name"}
 
 
 class TestCSVExport:

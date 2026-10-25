@@ -14,7 +14,7 @@ from app.errors import register_exception_handlers
 from app.auth import verify_jwt
 from app.catalog import get_catalog, validate_region, validate_level, validate_stages, validate_components
 from app.estimate import EstimateRequest, handle_estimate
-from app.export_csv import generate_csv_estimate
+from app.export_csv import generate_bitrix_lead, generate_csv_estimate
 from app.export_docx import generate_proposal
 from app.engine import load_pricing_params
 
@@ -182,10 +182,7 @@ async def proposal(req: EstimateRequest, request: Request):
     auth = request.headers.get("authorization")
     _check_auth(auth)
 
-    # Клиент из тела (опционально)
-    client = getattr(req, "client", None)
-    if not hasattr(req, "client"):
-        client = None
+    client = req.client.model_dump() if req.client else None
 
     try:
         result = handle_estimate(req, _validator)
@@ -241,6 +238,46 @@ async def export_csv(req: EstimateRequest, request: Request):
 
     return Response(
         content=csv_bytes,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{filename}"; '
+                f"filename*=UTF-8''{filename}"
+            ),
+        },
+    )
+
+
+@app.post("/api/calc/export/bitrix")
+async def export_bitrix(req: EstimateRequest, request: Request):
+    """Расчёт на экране -> лид Bitrix24 с суммой сделки (кейс: экспорт в CSV/CRM из любого модуля)."""
+    auth = request.headers.get("authorization")
+    _check_auth(auth)
+
+    if req.client is None:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "VALIDATION_ERROR",
+                "message": "Для лида в CRM укажите клиента: client.name",
+                "details": {"field": "client.name"},
+            },
+        )
+    try:
+        result = handle_estimate(req, _validator)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "VALIDATION_ERROR",
+                "message": str(e),
+                "details": {"field": "items"},
+            },
+        )
+
+    filename = f"estimate_bitrix_{datetime.now(_MOSCOW).strftime('%Y-%m-%d')}.csv"
+    return Response(
+        content=generate_bitrix_lead(result, req.client.model_dump()),
         media_type="text/csv; charset=utf-8",
         headers={
             "Content-Disposition": (

@@ -82,6 +82,22 @@ curl -X POST http://localhost:8085/api/calc/export/csv \
   }' -o estimate.csv
 ```
 
+### POST /api/calc/export/bitrix
+Лид для импорта в Bitrix24 (CRM → Лиды → Импорт): тело как у `/proposal`, `client.name` обязателен.
+Колонки как у экспорта Радара и Навигатора + «Сумма» (оптимум) и «Валюта»; в комментарии — вилка, маржа, позиции.
+```bash
+curl -X POST http://localhost:8085/api/calc/export/bitrix \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "regionId": 3,
+    "level": "basic",
+    "stages": ["pir"],
+    "items": [{"componentId": "cam_02", "qty": 8}],
+    "client": {"name": "ООО Тест", "inn": "1234567890", "contact": "+7 863 200-00-00"}
+  }' -o estimate_bitrix.csv
+```
+
 ## Формулы
 
 ### Базовые

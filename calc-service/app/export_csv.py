@@ -66,6 +66,42 @@ def generate_csv_estimate(data: dict) -> bytes:
     return content.encode("utf-8-sig")
 
 
+def generate_bitrix_lead(data: dict, client: dict) -> bytes:
+    """
+    Расчёт -> лид для импорта в Bitrix24 (CRM -> Лиды -> Импорт), те же колонки, что у экспорта Радара
+    и Навигатора (docs/tz/06), плюс «Сумма» и «Валюта» — оптимальная цена сделки.
+    client — {name, inn?, contact?}; контакт с «@» уходит в e-mail, иначе — в телефон.
+    """
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(["Название лида", "Название компании", "Сумма", "Валюта", "Рабочий телефон",
+                     "Рабочий e-mail", "Источник", "Комментарий"])
+
+    contact = (client.get("contact") or "").strip()
+    price, margin = data["price"], data["margin"]
+    positions = ", ".join(f"{i['name']} × {i['qty']}" for i in data["items"])
+    comment = "; ".join(filter(None, [
+        f"ИНН {client['inn']}" if client.get("inn") else "",
+        f"минимум {_fmt_num(price['min'])} руб., оптимум {_fmt_num(price['optimal'])} руб., "
+        f"максимум {_fmt_num(price['max'])} руб.",
+        f"маржа при оптимуме {_fmt_pct(margin['optimalPct'])} %",
+        f"позиции: {positions}",
+        "расчёт предварительный",
+    ]))
+    writer.writerow([
+        f"Расчёт: {client['name']}",
+        client["name"],
+        _fmt_num(price["optimal"]),
+        "RUB",
+        "" if "@" in contact else contact,
+        contact if "@" in contact else "",
+        "Калькулятор сделок",
+        comment,
+    ])
+    # UTF-8 с BOM — ровно один, как у generate_csv_estimate
+    return output.getvalue().encode("utf-8-sig")
+
+
 def _fmt_num(v) -> str:
     """Форматирует число: запятая как разделитель, без разделителя тысяч, 2 знака."""
     if isinstance(v, Decimal):

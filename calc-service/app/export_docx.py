@@ -107,8 +107,8 @@ def generate_proposal(data: dict, client: dict | None = None) -> bytes:
         row[1].paragraphs[0].add_run(item["name"]).font.size = Pt(9)
         row[2].paragraphs[0].add_run(item["unit"]).font.size = Pt(9)
         row[3].paragraphs[0].add_run(str(item["qty"])).font.size = Pt(9)
-        row[4].paragraphs[0].add_run(f"{item['unitPrice']:,.2f}".replace(",", "X")).font.size = Pt(9)
-        row[5].paragraphs[0].add_run(f"{item['lineTotal']:,.2f}".replace(",", "X")).font.size = Pt(9)
+        row[4].paragraphs[0].add_run(_rub(item['unitPrice'])).font.size = Pt(9)
+        row[5].paragraphs[0].add_run(_rub(item['lineTotal'])).font.size = Pt(9)
 
     doc.add_paragraph("")
 
@@ -129,7 +129,7 @@ def generate_proposal(data: dict, client: dict | None = None) -> bytes:
     for step in breakdown:
         row = stage_table.add_row().cells
         row[0].paragraphs[0].add_run(step["label"]).font.size = Pt(9)
-        row[1].paragraphs[0].add_run(f"{step['amount']:,.2f}".replace(",", "X")).font.size = Pt(9)
+        row[1].paragraphs[0].add_run(_rub(step['amount'])).font.size = Pt(9)
 
     doc.add_paragraph("")
 
@@ -157,9 +157,9 @@ def generate_proposal(data: dict, client: dict | None = None) -> bytes:
     run.font.size = Pt(14)
     run.font.color.rgb = _RT_PURPLE
 
-    doc.add_paragraph(f"Минимум: {price['min']:,.2f} руб.".replace(",", "X"))
-    doc.add_paragraph(f"Оптимум: {price['optimal']:,.2f} руб.".replace(",", "X"))
-    doc.add_paragraph(f"Максимум: {price['max']:,.2f} руб.".replace(",", "X"))
+    doc.add_paragraph(f"Минимум: {_rub(price['min'])} руб.")
+    doc.add_paragraph(f"Оптимум: {_rub(price['optimal'])} руб.")
+    doc.add_paragraph(f"Максимум: {_rub(price['max'])} руб.")
 
     margin = data["margin"]
     doc.add_paragraph(f"Маржа: мин {margin['minPct']:.1f}%, опт {margin['optimalPct']:.1f}%, макс {margin['maxPct']:.1f}%")
@@ -188,3 +188,8 @@ def generate_proposal(data: dict, client: dict | None = None) -> bytes:
     doc.save(buf)
     buf.seek(0)
     return buf.getvalue()
+
+
+def _rub(v) -> str:
+    """28000.5 -> «28 000,50»: пробел (неразрывный) между тысячами и запятая, как принято в документах на русском."""
+    return f"{float(v):,.2f}".replace(",", "\u00a0").replace(".", ",")

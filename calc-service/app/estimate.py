@@ -28,6 +28,13 @@ class CustomItem(BaseModel):
     complexity: float = 1.0
 
 
+class ProposalClient(BaseModel):
+    """Клиент для шапки КП и лида в CRM: название обязательно, ИНН и контакт — по желанию."""
+    name: str = Field(min_length=1, max_length=300)
+    inn: str | None = None
+    contact: str | None = None
+
+
 class EstimateRequest(BaseModel):
     regionId: int
     level: str
@@ -38,6 +45,8 @@ class EstimateRequest(BaseModel):
     uniqueSolution: bool = False
     termMonths: int = 12
     financing: str = "prepay"
+    # Только для /proposal и /export/bitrix; расчёт его не использует. Без поля Pydantic молча отбрасывал client
+    client: ProposalClient | None = None
 
 
 def handle_estimate(req: EstimateRequest, catalog_validator) -> dict:

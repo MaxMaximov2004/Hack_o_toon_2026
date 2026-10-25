@@ -9,6 +9,7 @@
 - POST /api/calc/estimate — полный расчёт по формулам ТЗ (items, costs, price, margin, breakdown, analogs, assumptions).
 - POST /api/calc/proposal — КП в DOCX (python-docx, фирменные цвета, RFC 5987, дата по Москве).
 - POST /api/calc/export/csv — таблица позиций (UTF-8 BOM, разделитель `;`, ru-RU числа, dd.MM.yyyy).
+- POST /api/calc/export/bitrix — лид для Bitrix24 с суммой сделки (тело как у proposal, `client.name` обязателен).
 - POST /internal/calc/estimate — внутренний эндпоинт (X-Internal-Token, сравнение за постоянное время).
 - JWT: RS256, JWKS по kid (кэш 10 мин, перезапрос для неизвестного kid), exp (допуск 60 с), iss, amr с otp.
 - Валидация: неизвестные ID, дубликаты, qty ≤ 0 или > 100000, > 200 позиций → 400 VALIDATION_ERROR.
