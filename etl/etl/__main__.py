@@ -17,6 +17,7 @@ from psycopg.types.json import Jsonb
 
 from . import geo
 from . import model
+from . import prices
 from . import normalize as nz
 
 log = logging.getLogger("etl")
@@ -394,20 +395,28 @@ def cmd_demo_project(url):
     return 0
 
 
+def cmd_prices(url):
+    """Парсинг цен калькулятора: прайсы Ростелекома + аналоги tinko.ru (etl/prices.py)."""
+    with connect(url) as conn:
+        status, _ = prices.run(conn, DATA)
+    return 0 if status == "ok" else 1
+
+
 def cmd_serve(url):
     from .server import serve
-    return serve(url, connect, cmd_load, add_demo_project)
+    return serve(url, connect, cmd_load, add_demo_project, cmd_prices)
 
 
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(asctime)s %(levelname)s %(message)s")
     ap = argparse.ArgumentParser(prog="python -m etl")
-    ap.add_argument("command", choices=["load", "demo-project", "serve"])
+    ap.add_argument("command", choices=["load", "demo-project", "prices", "serve"])
     args = ap.parse_args(argv)
     url = os.environ.get("DATABASE_URL")
     if not url:
         ap.error("не задан DATABASE_URL")
-    return {"load": cmd_load, "demo-project": cmd_demo_project, "serve": cmd_serve}[args.command](url)
+    return {"load": cmd_load, "demo-project": cmd_demo_project, "prices": cmd_prices,
+            "serve": cmd_serve}[args.command](url)
 
 
 if __name__ == "__main__":

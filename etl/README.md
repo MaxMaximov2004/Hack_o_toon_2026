@@ -14,6 +14,8 @@ etl-service — отдельный HTTP-микросервис (Python, стан
 | `POST /internal/etl/load` | запустить загрузку: 202; 409, если уже идёт |
 | `GET /internal/etl/status` | `{"running":…, "last":{id, status, startedAt, finishedAt, details}}` |
 | `POST /internal/etl/demo-project` | 201 `{projectId, municipality}` — демо для notifier |
+| `POST /internal/etl/prices` | парсинг цен калькулятора: 202; 409, если уже идёт |
+| `GET /internal/etl/prices/status` | `{"running":…, "last":{status, startedAt, finishedAt, details}}` из `etl.price_run` |
 
 `/internal/*` — заголовок `X-Internal-Token`. Ошибки — в общем формате `{"error":{"code","message"}}`. Во время загрузки
 читатели `core.*` ждут конца транзакции (TRUNCATE держит блокировку) — перезапускать на демо не стоит.
@@ -74,6 +76,20 @@ python etl/tools/geocode_nominatim.py --rmsp etl/data/rmsp_61.csv.gz --case infr
     --user-agent "radar-hackathon (you@example.com)" --settlements
 python etl/tools/fetch_osm_buildings.py --user-agent "radar-hackathon (you@example.com)"
 ```
+
+## Парсинг цен калькулятора
+
+Кейс (слайд 3): «оценка стоимости проекта … и парсингом цен на оборудование/ПО». `etl/prices.py`, итог — `etl.price_run`:
+
+1. **Прайс-листы Ростелекома для юрлиц** (PDF с rostov.rt.ru/b2b: видеонаблюдение, виртуальная АТС, Wi-Fi) →
+   `calc.component.base_price`, `price_source`, `price_date` («Тарифы действуют с …»; у Wi-Fi — дата PDF).
+   Модели камер, которых нет в каталоге, добавляются. Сайт недоступен — разбираются копии `data/prices/*.pdf`.
+2. **tinko.ru** — рыночная цена аналога той же серии (у Ростелекома названия короткие или устаревшие, в магазине —
+   новые ревизии): минимум и медиана по видеокамерам серии → `market_*`. Не ответил — прежние значения остаются.
+
+Позиции МОД3 из таблицы кейса не трогаются. Запуск: после старта, если за `PRICES_EVERY_HOURS` (24) удачного не было,
+дальше по таймеру; вручную — `POST /internal/etl/prices` (в калькуляторе — кнопка «Обновить цены» для admin)
+или `python -m etl prices`. Тесты на сохранённых PDF и выдаче tinko: `python -m pytest etl/tests`.
 
 ## Записи «Не является субъектом МСП»
 

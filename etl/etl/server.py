@@ -4,6 +4,9 @@ GET  /health                        — без токена: жив ли сер�
 POST /internal/etl/load             — запустить загрузку (202; 409, если уже идёт)
 GET  /internal/etl/status           — последний запуск из etl.load_run + флаг running
 POST /internal/etl/demo-project     — добавить демо-проект для notifier
+POST /internal/etl/prices           — парсинг цен калькулятора (202; 409, если уже идёт)
+GET  /internal/etl/prices/status    — последний запуск из etl.price_run + флаг running
+Цены парсятся и сами: после старта, если сегодня ещё не парсились, и раз в PRICES_EVERY_HOURS (24).
 /internal/* требуют заголовок X-Internal-Token (сравнение за постоянное время).
 """
 import hmac
@@ -11,16 +14,60 @@ import json
 import logging
 import os
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 log = logging.getLogger("etl.server")
 
 
-def serve(url, connect, load_fn, demo_fn):
+def serve(url, connect, load_fn, demo_fn, prices_fn):
     port = int(os.environ.get("PORT", "8084"))
     token = os.environ.get("INTERNAL_TOKEN", "internal_dev_token")
     auto = os.environ.get("AUTO_LOAD", "if-empty")       # if-empty | always | never
+    prices_every = float(os.environ.get("PRICES_EVERY_HOURS", "24"))   # 0 — только по запросу
     lock = threading.Lock()
+    prices_lock = threading.Lock()
+
+    def start_prices():
+        if not prices_lock.acquire(blocking=False):
+            return False
+
+        def run():
+            try:
+                prices_fn(url)
+            except Exception:
+                log.exception("парсинг цен")
+            finally:
+                prices_lock.release()
+
+        threading.Thread(target=run, daemon=True, name="etl-prices").start()
+        return True
+
+    def last_prices():
+        with connect(url, autocommit=True) as c:
+            row = c.execute("SELECT id, started_at, finished_at, status, details FROM etl.price_run "
+                            "ORDER BY id DESC LIMIT 1").fetchone()
+        if not row:
+            return None
+        return {"id": row[0], "startedAt": row[1].isoformat(), "status": row[3],
+                "finishedAt": row[2].isoformat() if row[2] else None, "details": row[4]}
+
+    def prices_schedule():
+        """После старта — если за последние PRICES_EVERY_HOURS удачного парсинга не было, дальше — по таймеру."""
+        if prices_every <= 0:
+            return
+        while True:
+            try:
+                with connect(url, autocommit=True) as c:
+                    fresh = c.execute("SELECT 1 FROM etl.price_run WHERE status = 'ok' "
+                                      "AND started_at > now() - make_interval(secs => %s) LIMIT 1",
+                                      (prices_every * 3600,)).fetchone()
+                if not fresh:
+                    log.info("плановый парсинг цен (раз в %s ч)", prices_every)
+                    start_prices()
+            except Exception:
+                log.exception("плановый парсинг цен")
+            time.sleep(prices_every * 3600)
 
     def start_load():
         if not lock.acquire(blocking=False):
@@ -87,6 +134,14 @@ def serve(url, connect, load_fn, demo_fn):
             path = self.path.split("?")[0]
             if path == "/health":
                 return self.send(200, {"status": "ok", "running": lock.locked()})
+            if path == "/internal/etl/prices/status":
+                if not self.authorized():
+                    return
+                try:
+                    return self.send(200, {"running": prices_lock.locked(), "last": last_prices()})
+                except Exception as e:
+                    log.exception("prices status")
+                    return self.err(502, "UPSTREAM_UNAVAILABLE", f"БД недоступна: {e}")
             if path == "/internal/etl/status":
                 if not self.authorized():
                     return
@@ -105,6 +160,12 @@ def serve(url, connect, load_fn, demo_fn):
                 if not start_load():
                     return self.err(409, "CONFLICT", "загрузка уже идёт")
                 return self.send(202, {"status": "started"})
+            if path == "/internal/etl/prices":
+                if not self.authorized():
+                    return
+                if not start_prices():
+                    return self.err(409, "CONFLICT", "парсинг цен уже идёт")
+                return self.send(202, {"status": "started"})
             if path == "/internal/etl/demo-project":
                 if not self.authorized():
                     return
@@ -119,6 +180,7 @@ def serve(url, connect, load_fn, demo_fn):
             self.err(404, "NOT_FOUND", "нет такого пути")
 
     threading.Thread(target=autostart, daemon=True, name="etl-autostart").start()
+    threading.Thread(target=prices_schedule, daemon=True, name="etl-prices-schedule").start()
     log.info("etl-service слушает :%d", port)
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
     return 0
