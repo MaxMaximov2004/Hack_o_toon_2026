@@ -9,6 +9,7 @@ import type { CompanyFilters } from '../filters/types'
 import { createClusterMarker } from './clusterMarker'
 import { attachBasemapFallback, createBaseStyle } from './basemap'
 import { potentialTooltip } from './potentialTooltip'
+import { HEAT_MAX_ZOOM, cellsToHeatGeoJson, heatGridZoom, heatmapPaint } from './heatmap'
 import styles from './RadarMap.module.css'
 
 interface RadarMapProps {
@@ -22,6 +23,8 @@ interface RadarMapProps {
   onDistrictClick?: (stats: MunicipalityStats) => void
   /** Выбранная компания работает не там, где зарегистрирована: пунктир регистрация → факт (ТЗ 07) */
   relocation?: RelocationLine | null
+  /** Тепловая карта плотности вместо кружков кластеров на обзорных масштабах */
+  heat?: boolean
 }
 
 export interface RelocationLine {
@@ -65,6 +68,7 @@ export function RadarMap({
   whiteSpots,
   onDistrictClick,
   relocation,
+  heat = false,
 }: RadarMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
@@ -85,6 +89,18 @@ export function RadarMap({
     staleTime: 30000,
     placeholderData: (prev) => prev, // Показываем старые данные пока грузятся новые
   })
+
+  // Тепло — по всей области (без окна карты: при сдвиге не будет пустых краёв), сетка мельче видимой
+  const heatQuery = filterToQuery({ ...filters, minLat: undefined, maxLat: undefined, minLon: undefined, maxLon: undefined })
+  const heatZoom = heatGridZoom(zoom)
+  const { data: heatData } = useQuery({
+    queryKey: ['map-heat', heatQuery, heatZoom],
+    queryFn: () => apiFetch<MapDataResponse>(`/api/map/cells?${heatQuery}${heatQuery ? '&' : ''}zoom=${heatZoom}`),
+    enabled: heat,
+    staleTime: 30000,
+    placeholderData: (prev) => prev,
+  })
+  const heatCoversClusters = heat && Math.round(zoom) < HEAT_MAX_ZOOM
 
   // Инициализация карты - ОДИН РАЗ
   useEffect(() => {
@@ -246,7 +262,7 @@ export function RadarMap({
     markersRef.current.forEach((marker) => marker.remove())
     markersRef.current = []
 
-    if (data.mode === 'cells') {
+    if (data.mode === 'cells' && !heatCoversClusters) {
       // Объединяем близкие кластеры
       const mergedCells = mergeClusters(data.cells || [], map.current)
 
@@ -310,7 +326,7 @@ export function RadarMap({
         markersRef.current.push(marker)
       })
     }
-  }, [data, filters.client, selectedCompanyId, onSelectCompany, potentialStats])
+  }, [data, filters.client, selectedCompanyId, onSelectCompany, potentialStats, heatCoversClusters])
 
   // Отрисовка слоёв аналитики через GeoJSON
   useEffect(() => {
@@ -598,6 +614,44 @@ export function RadarMap({
       }
     }
   }, [potentialStats, whiteSpots, onDistrictClick])
+
+  // Тепловая карта: слой под остальными (кластеры и точки — HTML-маркеры, они и так сверху)
+  useEffect(() => {
+    const mapInstance = map.current
+    if (!mapInstance) return
+    const fc = cellsToHeatGeoJson(heat ? heatData : undefined)
+
+    const draw = () => {
+      const m = map.current
+      if (!m) return
+      const source = m.getSource('heat') as maplibregl.GeoJSONSource | undefined
+      if (source) {
+        source.setData(fc)
+      } else {
+        m.addSource('heat', { type: 'geojson', data: fc })
+        const firstOverlay = ['potential-circle', 'white-spots-circle', 'relocation-line'].find((id) => m.getLayer(id))
+        m.addLayer(
+          { id: 'heat', type: 'heatmap', source: 'heat', paint: heatmapPaint },
+          firstOverlay,
+        )
+      }
+      m.setLayoutProperty('heat', 'visibility', heat ? 'visible' : 'none')
+    }
+
+    // Не ждём isStyleLoaded()/load: они наступают только после загрузки тайлов подложки, а на площадке тайлы
+    // могут висеть или не грузиться вовсе — тепло не появилось бы. Пробуем сразу, стиль не готов — на styledata.
+    const attempt = () => {
+      try {
+        draw()
+      } catch {
+        map.current?.once('styledata', attempt)
+      }
+    }
+    attempt()
+    return () => {
+      mapInstance.off('styledata', attempt)
+    }
+  }, [heat, heatData])
 
   // Пунктир «регистрация → фактическое место» у выбранной компании
   useEffect(() => {

@@ -1,7 +1,25 @@
 import { useState } from 'react'
 import styles from './MapLegend.module.css'
 
-export function MapLegend() {
+interface MapLegendProps {
+  /** Показан слой тепловой карты — добавляем шкалу плотности */
+  heat?: boolean
+}
+
+function HeatScale({ short }: { short?: boolean }) {
+  return (
+    <div className={styles.heat}>
+      <div className={styles.heatBar} />
+      <div className={styles.heatLabels}>
+        <span>{short ? 'мало' : 'мало компаний'}</span>
+        <span>много</span>
+      </div>
+      {!short && <div className={styles.heatHint}>Приблизьте карту, чтобы увидеть компании</div>}
+    </div>
+  )
+}
+
+export function MapLegend({ heat = false }: MapLegendProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -9,6 +27,7 @@ export function MapLegend() {
       {/* Десктоп - всегда развёрнута */}
       <div className={styles.legendDesktop}>
         <div className={styles.title}>Легенда</div>
+        {heat && <HeatScale />}
         <div className={styles.items}>
           <div className={styles.item}>
             <div className={styles.dot} style={{ backgroundColor: 'var(--rt-purple)' }} />
@@ -29,6 +48,7 @@ export function MapLegend() {
       <div className={styles.legendMobile}>
         {isExpanded ? (
           <div className={styles.legendExpanded}>
+            {heat && <HeatScale short />}
             <div className={styles.items}>
               <div className={styles.item}>
                 <div className={styles.dot} style={{ backgroundColor: 'var(--rt-purple)' }} />

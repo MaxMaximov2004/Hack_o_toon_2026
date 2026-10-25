@@ -30,7 +30,7 @@ export function RadarPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>()
   const [activeTab, setActiveTab] = useState<'map' | 'list'>('map')
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [activeLayer, setActiveLayer] = useState<MapLayer>('none')
+  const [activeLayer, setActiveLayer] = useState<MapLayer>('heat')
   const [selectedDistrict, setSelectedDistrict] = useState<MunicipalityStats | null>(null)
   const [pendingFilters, setPendingFilters] = useState<CompanyFilters>(filters)
   const mapRef = useRef<Map | null>(null)
@@ -278,10 +278,11 @@ export function RadarPage() {
               whiteSpots={activeLayer === 'whiteSpots' ? whiteSpots : undefined}
               onDistrictClick={handleDistrictClick}
               relocation={relocation}
+              heat={activeLayer === 'heat'}
             />
           </MapErrorBoundary>
           {/* Легенда - скрывается когда показаны белые пятна */}
-          {activeLayer !== 'whiteSpots' && <MapLegend />}
+          {activeLayer !== 'whiteSpots' && <MapLegend heat={activeLayer === 'heat'} />}
 
           {/* Панель района при клике на кружок потенциала */}
           {selectedDistrict && (

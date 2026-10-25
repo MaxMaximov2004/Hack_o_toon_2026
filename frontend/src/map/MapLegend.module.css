@@ -44,6 +44,31 @@
   flex-shrink: 0;
 }
 
+/* Шкала тепловой карты: те же цвета, что heatmap-color в heatmap.ts */
+.heat {
+  margin-bottom: var(--spacing-sm);
+}
+
+.heatBar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--rt-lavender), var(--rt-purple) 55%, var(--rt-orange));
+}
+
+.heatLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--gray-700);
+}
+
+.heatHint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--rt-gray);
+}
+
 @media (max-width: 767px) {
   .legendDesktop {
     display: none;
