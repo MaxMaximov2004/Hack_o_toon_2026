@@ -19,6 +19,7 @@ describe('CalcExport', () => {
     vi.clearAllMocks()
     vi.mocked(api.postEstimateCsv).mockResolvedValue({ blob, filename: 'estimate_2026-10-25.csv' })
     vi.mocked(api.postProposal).mockResolvedValue({ blob, filename: 'radar_proposal_2026-10-25.docx' })
+    vi.mocked(api.postEstimateBitrix).mockResolvedValue({ blob, filename: 'estimate_bitrix_2026-10-25.csv' })
   })
 
   it('CSV — сразу скачивание с именем из заголовка и тост', async () => {
@@ -56,9 +57,25 @@ describe('CalcExport', () => {
     expect(download.downloadBlob).toHaveBeenCalledWith(blob, null, 'radar_proposal_2026-10-25.docx')
   })
 
+  it('В CRM: тот же диалог клиента, лид уходит в /export/bitrix', async () => {
+    render(<CalcExport body={body} disabled={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'В CRM' }))
+    expect(screen.getByRole('dialog', { name: 'Клиент для лида в CRM' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Название'), { target: { value: 'ООО «Ромашка»' } })
+    fireEvent.change(screen.getByLabelText('Контакт'), { target: { value: 'info@romashka.ru' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Скачать для CRM' }))
+    await waitFor(() =>
+      expect(api.postEstimateBitrix).toHaveBeenCalledWith(body, { name: 'ООО «Ромашка»', contact: 'info@romashka.ru' })
+    )
+    expect(download.downloadBlob).toHaveBeenCalledWith(blob, null, 'estimate_bitrix_2026-10-25.csv')
+    expect(api.postProposal).not.toHaveBeenCalled()
+    expect(await screen.findByText('Лид для Bitrix24 скачан')).toBeInTheDocument()
+  })
+
   it('нет расчёта — кнопки неактивны', () => {
     render(<CalcExport body={body} disabled />)
     expect(screen.getByRole('button', { name: 'Скачать CSV' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Коммерческое предложение' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'В CRM' })).toBeDisabled()
   })
 })

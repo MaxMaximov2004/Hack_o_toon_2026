@@ -22,6 +22,15 @@ export async function postEstimateCsv(body: EstimateRequest): Promise<BlobRespon
   })
 }
 
+/** Расчёт на экране -> лид Bitrix24 с суммой сделки (CSV для импорта в CRM) */
+export async function postEstimateBitrix(body: EstimateRequest, client: ProposalClient): Promise<BlobResponse> {
+  return apiFetch<BlobResponse>('/api/calc/export/bitrix', {
+    method: 'POST',
+    body: JSON.stringify({ ...body, client }),
+    responseType: 'blob',
+  })
+}
+
 export async function postProposal(body: EstimateRequest, client: ProposalClient): Promise<BlobResponse> {
   return apiFetch<BlobResponse>('/api/calc/proposal', {
     method: 'POST',
