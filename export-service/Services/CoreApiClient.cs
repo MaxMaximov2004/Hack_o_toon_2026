@@ -1,8 +1,8 @@
 namespace ExportService.Services
 {
     /// <summary>
-    /// core-api по HTTP: GET /internal/companies?{фильтр} с X-Internal-Token. Возвращает ответ, как только пришли
-    /// заголовки (тело — потоком, до 100 000 компаний). Сосед не ответил за 5 с — исключение, контроллер даст 502.
+    /// core-api по HTTP: GET /internal/companies|projects?{фильтр} с X-Internal-Token. Возвращает ответ, как только
+    /// пришли заголовки (тело — потоком, до 100 000 компаний). Сосед не ответил за 5 с — исключение, контроллер даст 502.
     /// </summary>
     public class CoreApiClient
     {
@@ -21,11 +21,17 @@ namespace ExportService.Services
             }
         }
 
-        public async Task<HttpResponseMessage> CompaniesAsync(string query, CancellationToken ct)
+        public Task<HttpResponseMessage> CompaniesAsync(string query, CancellationToken ct) =>
+            GetAsync("/internal/companies", query, ct);
+
+        public Task<HttpResponseMessage> ProjectsAsync(string query, CancellationToken ct) =>
+            GetAsync("/internal/projects", query, ct);
+
+        private async Task<HttpResponseMessage> GetAsync(string path, string query, CancellationToken ct)
         {
             using var headers = CancellationTokenSource.CreateLinkedTokenSource(ct);
             headers.CancelAfter(HeadersTimeout);
-            var url = string.IsNullOrEmpty(query) ? "/internal/companies" : "/internal/companies?" + query;
+            var url = string.IsNullOrEmpty(query) ? path : path + "?" + query;
             return await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, headers.Token);
         }
     }

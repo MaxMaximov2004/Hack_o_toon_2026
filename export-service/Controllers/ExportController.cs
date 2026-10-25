@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExportService.Controllers
 {
     /// <summary>
-    /// GET /api/export/companies?{CompanyFilter}&amp;format=csv|bitrix — ровно то, что на экране: фильтр уходит в core-api
-    /// исходной строкой (без format), разбирает и проверяет его core-api — здесь не дублируем.
+    /// GET /api/export/companies?{CompanyFilter}&amp;format=csv|bitrix и /api/export/projects?{ProjectFilter}&amp;format=… —
+    /// ровно то, что на экране: фильтр уходит в core-api исходной строкой (без format), разбирает и проверяет его
+    /// core-api — здесь не дублируем.
     /// </summary>
     [ApiController]
     public class ExportController : ControllerBase
@@ -26,7 +27,23 @@ namespace ExportService.Controllers
         }
 
         [HttpGet("/api/export/companies")]
-        public async Task GetCompanies(CancellationToken ct)
+        public Task GetCompanies(CancellationToken ct) =>
+            Export("radar", _core.CompaniesAsync, CsvExport.WriteAsync, ct);
+
+        /// <summary>Инвестпроекты Навигатора: тот же путь, фильтр — ProjectFilter (docs/tz/06, «Продукт 2»).</summary>
+        [HttpGet("/api/export/projects")]
+        public Task GetProjects(CancellationToken ct) =>
+            Export("navigator", _core.ProjectsAsync, ProjectCsvExport.WriteAsync, ct);
+
+        /// <summary>
+        /// Общая схема выгрузки: токен -> format -> core-api с исходным фильтром -> потоком в CSV.
+        /// 400/413 core-api отдаём как есть, остальные отказы соседа — 502.
+        /// </summary>
+        private async Task Export(
+            string filePrefix,
+            Func<string, CancellationToken, Task<HttpResponseMessage>> fetch,
+            Func<Stream, Stream, string, CancellationToken, Task<int>> write,
+            CancellationToken ct)
         {
             var auth = await _auth.AuthenticateAsync(Request.Headers.Authorization.FirstOrDefault(), ct);
             if (!auth.Success)
@@ -52,7 +69,7 @@ namespace ExportService.Controllers
             HttpResponseMessage core;
             try
             {
-                core = await _core.CompaniesAsync(FilterQuery(), ct);
+                core = await fetch(FilterQuery(), ct);
             }
             catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
             {
@@ -74,18 +91,18 @@ namespace ExportService.Controllers
                 }
                 if (!core.IsSuccessStatusCode)
                 {
-                    _logger.LogError("core-api ответил {Status} на /internal/companies", status);
+                    _logger.LogError("core-api ответил {Status} на {Path}", status, core.RequestMessage?.RequestUri?.AbsolutePath);
                     await Error(502, "UPSTREAM_UNAVAILABLE", "Сервис данных временно недоступен — повторите позже");
                     return;
                 }
 
-                var fileName = $"radar_{(format == "bitrix" ? "bitrix_" : "")}{DateTime.UtcNow.AddHours(3):yyyy-MM-dd}.csv";   // дата по Москве
+                var fileName = $"{filePrefix}_{(format == "bitrix" ? "bitrix_" : "")}{DateTime.UtcNow.AddHours(3):yyyy-MM-dd}.csv";   // дата по Москве
                 Response.ContentType = "text/csv; charset=utf-8";
                 Response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"; filename*=UTF-8''{Uri.EscapeDataString(fileName)}";
                 await using var body = await core.Content.ReadAsStreamAsync(ct);
-                var rows = await CsvExport.WriteAsync(body, Response.Body, format, ct);
-                _logger.LogInformation("выгрузка {Format}: {Rows} строк за {Ms} мс, фильтр: {Query}",
-                    format, rows, started.ElapsedMilliseconds, FilterQuery());
+                var rows = await write(body, Response.Body, format, ct);
+                _logger.LogInformation("выгрузка {Path} {Format}: {Rows} строк за {Ms} мс, фильтр: {Query}",
+                    Request.Path, format, rows, started.ElapsedMilliseconds, FilterQuery());
             }
         }
 
