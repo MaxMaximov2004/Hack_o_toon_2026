@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styles from './MapLegend.module.css'
 
 interface MapLegendProps {
-  /** Показан слой тепловой карты — добавляем шкалу плотности */
+  /** Показан слой тепловой карты — добавляем шкалу охвата */
   heat?: boolean
 }
 
@@ -11,10 +11,12 @@ function HeatScale({ short }: { short?: boolean }) {
     <div className={styles.heat}>
       <div className={styles.heatBar} />
       <div className={styles.heatLabels}>
-        <span>{short ? 'мало' : 'мало компаний'}</span>
+        <span>{short ? 'мало наших' : 'мало наших клиентов'}</span>
         <span>много</span>
       </div>
-      {!short && <div className={styles.heatHint}>Приблизьте карту, чтобы увидеть компании</div>}
+      {!short && (
+        <div className={styles.heatHint}>Крупнее и ярче пятно — больше компаний. Приблизьте, чтобы увидеть их</div>
+      )}
     </div>
   )
 }

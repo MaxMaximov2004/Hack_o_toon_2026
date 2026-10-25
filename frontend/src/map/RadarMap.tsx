@@ -9,7 +9,7 @@ import type { CompanyFilters } from '../filters/types'
 import { createClusterMarker } from './clusterMarker'
 import { attachBasemapFallback, createBaseStyle } from './basemap'
 import { potentialTooltip } from './potentialTooltip'
-import { HEAT_MAX_ZOOM, cellsToHeatGeoJson, heatGridZoom, heatmapPaint } from './heatmap'
+import { HEAT_MAX_ZOOM, cellsToHeatGeoJson, heatGridZoom, heatLayout, heatPaint } from './heatmap'
 import styles from './RadarMap.module.css'
 
 interface RadarMapProps {
@@ -631,7 +631,7 @@ export function RadarMap({
         m.addSource('heat', { type: 'geojson', data: fc })
         const firstOverlay = ['potential-circle', 'white-spots-circle', 'relocation-line'].find((id) => m.getLayer(id))
         m.addLayer(
-          { id: 'heat', type: 'heatmap', source: 'heat', paint: heatmapPaint },
+          { id: 'heat', type: 'circle', source: 'heat', layout: heatLayout, paint: heatPaint },
           firstOverlay,
         )
       }

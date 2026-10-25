@@ -44,7 +44,7 @@
   flex-shrink: 0;
 }
 
-/* Шкала тепловой карты: те же цвета, что heatmap-color в heatmap.ts */
+/* Шкала тепловой карты: те же цвета, что circle-color в heatmap.ts (мало наших -> много) */
 .heat {
   margin-bottom: var(--spacing-sm);
 }
@@ -52,7 +52,7 @@
 .heatBar {
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--rt-lavender), var(--rt-purple) 55%, var(--rt-orange));
+  background: linear-gradient(90deg, var(--rt-orange), #B428B0, var(--rt-purple));
 }
 
 .heatLabels {
@@ -64,6 +64,7 @@
 }
 
 .heatHint {
+  max-width: 220px; /* длинная подсказка не растягивает легенду */
   margin-top: 4px;
   font-size: 12px;
   color: var(--rt-gray);
